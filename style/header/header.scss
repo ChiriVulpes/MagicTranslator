@@ -1,0 +1,20 @@
+#header {
+	z-index: 99999999999999;
+	
+	--header: 29px;
+	:root.is-maximized & {
+		--header: 23px;
+	}
+	
+	:root.is-fullscreen & {
+		display: none;
+	}
+	
+	--padding: 0px;
+	height: var(--header);
+	-webkit-app-region: drag;
+	
+	background: #0007;
+}
+
+@import "window-controls";

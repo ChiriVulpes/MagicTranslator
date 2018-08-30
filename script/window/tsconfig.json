@@ -1,0 +1,31 @@
+{
+    "compilerOptions": {
+        "baseUrl": "./",
+        "paths": {
+            "*": [
+                "*"
+            ]
+        },
+        "forceConsistentCasingInFileNames": true,
+        "module": "amd",
+        "noImplicitReturns": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": false,
+        "strict": true,
+        "strictPropertyInitialization": false,
+        "experimentalDecorators": true,
+        "target": "esnext",
+        "lib": [
+            "dom", "dom.iterable", "es2018", "es2018.promise"
+        ],
+        "plugins": [
+            {
+                "name": "tslint-language-service"
+            }
+        ]
+    },
+    "include": [
+		"**/*.ts"
+    ],
+    "version": "2.2.2"
+}

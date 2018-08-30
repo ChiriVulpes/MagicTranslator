@@ -1,0 +1,82 @@
+export class Box implements ClientRect {
+	public readonly top: number;
+	public readonly bottom: number;
+	public readonly height: number;
+	public readonly width: number;
+	public readonly left: number;
+	public readonly right: number;
+
+	public constructor(rect: ClientRect) {
+		this.top = rect.top;
+		this.bottom = rect.bottom;
+		this.width = rect.width;
+		this.height = rect.height;
+		this.left = rect.left;
+		this.right = rect.right;
+	}
+
+	public intersects (...things: (Box | Vector)[]) {
+		return !things.some(thing => !this.doesIntersect(thing));
+	}
+
+	private doesIntersect (boxOrPoint: Box | Vector) {
+		if (boxOrPoint instanceof Vector)
+			return this.top <= boxOrPoint.y && this.bottom > boxOrPoint.y && this.left <= boxOrPoint.x && this.right > boxOrPoint.x;
+
+		return this.top < boxOrPoint.bottom && this.bottom > boxOrPoint.top && this.left < boxOrPoint.right && this.right > boxOrPoint.left;
+	}
+}
+
+export class Vector {
+	public static get ZERO () { return new Vector(0); }
+	public static get ONE () { return new Vector(1); }
+
+	public static get (event: MouseEvent) {
+		return new Vector(event.clientX, event.clientY);
+	}
+
+	public x: number;
+	public y: number;
+
+	public constructor(xAndY: number);
+	public constructor(vector: { x: number; y: number });
+	public constructor(x: number, y: number);
+	public constructor(x: number | { x: number; y: number }, y = x as number) {
+		if (typeof x === "object") {
+			this.x = x.x;
+			this.y = x.y;
+			return;
+		}
+
+		this.x = x;
+		this.y = y;
+	}
+
+	public plus (vector: { x: number; y: number }) {
+		return new Vector(this.x + vector.x, this.y + vector.y);
+	}
+
+	public minus (vector: { x: number; y: number }) {
+		return new Vector(this.x - vector.x, this.y - vector.y);
+	}
+
+	public abs () {
+		return new Vector(Math.abs(this.x), Math.abs(this.y));
+	}
+
+	public raw () {
+		return { x: this.x, y: this.y };
+	}
+
+	public static size (a: { x: number; y: number }, b: { x: number; y: number }) {
+		return new Vector(a).minus(b).abs();
+	}
+
+	public static min (a: { x: number; y: number }, b: { x: number; y: number }) {
+		return new Vector(Math.min(a.x, b.x), Math.min(a.y, b.y));
+	}
+
+	public static max (a: { x: number; y: number }, b: { x: number; y: number }) {
+		return new Vector(Math.max(a.x, b.x), Math.max(a.y, b.y));
+	}
+}

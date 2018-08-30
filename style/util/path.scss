@@ -1,0 +1,3 @@
+@function image-path($path, $ext) {
+	@return url("../image/#{$path}.#{$ext}");
+}

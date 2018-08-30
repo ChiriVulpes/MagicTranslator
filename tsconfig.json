@@ -1,0 +1,27 @@
+{
+    "compilerOptions": {
+        "forceConsistentCasingInFileNames": true,
+        "module": "commonjs",
+        "noImplicitReturns": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": false,
+        "strict": true,
+        "strictPropertyInitialization": false,
+        "experimentalDecorators": true,
+        "target": "esnext",
+        "types": [
+            "node"
+        ],
+        "plugins": [
+            {
+                "name": "tslint-language-service"
+            }
+        ]
+    },
+    "include": [
+        "gulpfile.ts",
+        "gulp/**/*.ts",
+        "gulp/typings/electron-forge.d.ts"
+    ],
+    "version": "2.2.2"
+}

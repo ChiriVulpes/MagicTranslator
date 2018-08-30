@@ -1,0 +1,62 @@
+#explorer {
+    position: relative;
+    height: 100%;
+    display: grid;
+    grid-template-rows: auto 1fr;
+}
+
+.action-wrapper {
+    padding: 3px 15px 4px;
+    background: #0007;
+    &:empty {
+        opacity: 0;
+    }
+}
+
+.explorer-wrapper {
+    position: relative;
+    height: 100%;
+}
+
+.explorer-links {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    padding: 15px;
+    box-sizing: border-box;
+}
+
+.image-button {
+    display: inline-block;
+    margin: 5px;
+    padding: 15px;  
+    color: inherit;
+    text-decoration: none;
+    outline: none;
+    
+    &:focus, &:hover {
+        background: #fff3;
+    }
+}
+
+.image-button::before {
+    content: "";
+    display: block;
+    --scale: .204;
+    width: calc(1114px * var(--scale));
+    height: calc(1600px * var(--scale));
+    background: var(--preview);
+    background-size: cover;
+    background-repeat: no-repeat;
+    box-shadow: inset 0 0 0 1px #fff3, 0 0 2px 1px #0005;
+}
+
+.image-button::after {
+    content: var(--text);
+    display: block;
+    font-size: 18pt;
+    font-weight: 100;
+    margin-bottom: -5px;
+    margin-top: 3px;
+}

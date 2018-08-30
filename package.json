@@ -1,0 +1,22 @@
+{
+	"name": "magical-trans-ocr-builder",
+	"description": "Builder for magicalTransOCR",
+	"devDependencies": {
+		"electron": "3.0.0-beta.8",
+		"gulp": "^4.0.0",
+		"gulp-sass": "4.0.1",
+		"gulp-run-electron": "3.0.2",
+		"typescript": "3.0.3",
+		"tslint-language-service": "0.9.9",
+		"tslint": "5.10.0",
+		"chalk": "2.4.1",
+		"ts-node": "7.0.0",
+		"del": "3.0.0",
+		"mz": "2.7.0",
+		"@types/mz": "0.0.32",
+		"@types/del": "3.0.1",
+		"@types/gulp": "4.0.5",
+		"@types/gulp-sass": "0.0.31",
+		"@types/node": "10.3.6"
+	}
+}

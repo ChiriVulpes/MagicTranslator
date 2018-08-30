@@ -1,0 +1,78 @@
+#window-controls {
+	-webkit-app-region: no-drag;
+	position: fixed;
+	top: 0;
+	right: 0;
+	
+	> div {
+		display: inline-block;
+		position: relative;
+		text-align: center;
+		outline: none;
+		transition: background .1s ease-in-out;
+
+		--margin: 1px;
+		margin-right: var(--margin);
+
+		padding-top: 9px;
+		box-sizing: border-box;
+		
+		width: 45px;
+		height: var(--header);
+		
+		:root.is-maximized & {
+			height: var(--header);
+			padding-top: 6px;
+		}
+		
+		background: transparent;
+		--hover: rgba(255,255,255,.2);
+		--active: rgba(255,255,255,.3);
+		&:hover {
+			background: var(--hover);
+		}
+		&:active {
+			background: var(--active);
+			transition-duration: .03s;
+		}
+		
+		&::before {
+			content: var(--icon);
+			position: relative;
+			
+			font-family: "Segoe MDL2 Assets";
+			font-size: 10px;
+			color: white;
+		}
+		&::after {
+			content: "";
+			display: block;
+			position: absolute;
+			top: 0;
+			right: calc(var(--margin) * -1);
+			width: var(--margin);
+			height: 100%;
+		}
+		
+		&[action="close"] {
+			--margin: 0;
+			--hover: rgb(232, 17, 35);
+			--active: rgb(169, 40, 49);
+			--icon:  "\E106";
+			
+			:root.is-maximized & {
+				--margin: 2px;
+			}
+		}
+		
+		&[action="minimize"] {
+			--icon: "\E949";
+		}
+		&[action="restore"] {
+			--icon: "\E923";
+		}
+		&[action="maximize"] {
+			--icon: "\E739";
+		}
+	}
+}

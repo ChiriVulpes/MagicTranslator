@@ -1,0 +1,40 @@
+.action-bar {
+	width: 100%;
+}
+
+.action-button {
+	--text: none;
+	padding: 8px 20px;
+	float: left;
+	margin-left: 1px;
+	color: rgba(255, 255, 255, .8);
+	transition: all .1s ease-in-out;
+	transition-property: color, background;
+	
+	&.right {
+		float: right;
+	}
+	
+	&.disabled {
+		pointer-events: none;
+		opacity: .3;
+	}
+	
+	&:hover, &:focus {
+		color: #fff;
+		background-color: var(--color-button-hover);
+		transition-duration: .03s;
+	}
+	
+	&:active {
+		color: #555;
+		background-color: var(--color-button-active);
+		transition-duration: 0s;
+	}
+}
+
+.action-button::before {
+    content: var(--icon);
+	font-family: "Segoe MDL2 Assets";
+	font-size: 16pt;
+}

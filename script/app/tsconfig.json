@@ -1,0 +1,28 @@
+{
+    "compilerOptions": {
+        "baseUrl": "./",
+        "paths": {
+            "*": [
+                "*"
+            ]
+        },
+        "forceConsistentCasingInFileNames": true,
+        "module": "commonjs",
+        "noImplicitReturns": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": false,
+        "strict": true,
+        "strictPropertyInitialization": false,
+        "target": "esnext",
+        "types": [],
+        "plugins": [
+            {
+                "name": "tslint-language-service"
+            }
+        ]
+    },
+    "include": [
+		"**/*.ts"
+    ],
+    "version": "2.2.2"
+}

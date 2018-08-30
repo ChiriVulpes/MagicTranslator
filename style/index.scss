@@ -1,0 +1,140 @@
+////////////////////////////////////
+// Vars
+//
+
+:root {
+	--color-background: #333;
+	--color-background-header: #444;
+	--color-background-footer: #444;
+	--color-background-tooltip: #333;
+	
+	--color-border-tooltip: #555;
+	
+	--color-button-hover: rgba(255, 255, 255, .3);
+	--color-button-active: rgba(0, 0, 0, .1);
+	
+	--color-shadow-header: #222;
+	--color-shadow-footer: #222;
+	
+	--color-text: #fff;
+	
+	--color-file: rgba(0, 0, 0, .1);
+	--color-file-odd: rgba(0, 0, 0, .2);
+	--color-file-selected: rgba(49, 139, 255, 0.6);
+	--color-file-selected-odd: rgba(49, 139, 255, 0.5);
+	--color-file-column-separator: rgba(0, 0, 0, .2);
+	--color-file-hover: rgba(255, 255, 255, .1);
+	--color-file-selected-hover: rgba(49, 139, 255, .9);
+	--color-file-columns-column-separator: #292929;
+	--color-file-columns-column-separator-hover: #888;
+	
+	--filter-logo-background: grayscale(100%) brightness(110%);
+	
+	--font: "Segoe UI";
+	
+	background-color: var(--color-background);
+	font-family: var(--font);
+	color: var(--color-text);
+}
+
+:root[scheme="maple"] {
+	--color-background: #432;
+	--color-background-header: #543;
+	
+	--color-border-header: #321;
+	
+	--filter-logo-background: filter: grayscale(90%) hue-rotate(125deg) brightness(110%);
+}
+
+////////////////////////////////////
+// Transition Speed
+//
+
+:root {
+	$transition-speed-default: .3s;
+	$transition-speed-fast: .1s;
+
+	--transition-speed-out: #{$transition-speed-default};
+	--transition-speed-in: #{$transition-speed-fast};
+	--transition-speed-slow: #{$transition-speed-default};
+	--transition-speed-fast: #{$transition-speed-fast};
+	--transition-speed-0: 0s;
+	--transition-speed-subtle: .05s;
+}
+
+////////////////////////////////////
+// Utilities
+//
+
+@import "util/path";
+@import "util/icon";
+
+////////////////////////////////////
+// Styles
+//
+
+body {
+	margin: 0;
+	display: grid;
+	grid-template-rows: auto 1fr;
+	overflow: hidden;
+	width: 100%;
+	height: 100%;
+	user-select: none;
+	cursor: default;
+}
+
+.hidden {
+	display: none;
+}
+
+.transparent {
+	opacity: 0;
+}
+
+button {
+	border: none;
+	margin: 5px;
+	padding: 5px 10px;
+	color: inherit;
+	font-size: inherit;
+	font-family: inherit;
+	outline: none;
+	cursor: pointer;
+	
+	background: #318bff80;
+	&:hover, &:focus {
+		background: #318bffe6;
+	}
+}
+
+::-webkit-scrollbar {
+	background: #0004;
+	// box-shadow: inset 1px 0 0 0 black;
+}
+::-webkit-scrollbar-thumb {
+	background: #3a3a3a;
+	border: 1px solid #555;
+	
+	&:hover {
+		background: #444;
+	}
+	
+	&:active {
+		background: #333;
+	}
+}
+
+////////////////////////////////////
+// Misc Components
+//
+
+@import "component/action-button";
+@import "component/tooltips";
+
+////////////////////////////////////
+// Main
+//
+
+@import "header/header";
+@import "content/content";

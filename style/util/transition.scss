@@ -1,0 +1,9 @@
+@mixin transition($duration, $transition-properties...) {
+	@if (length($transition-properties) > 0) {
+		transition: all var(--transition-speed-#{$duration}) ease-in-out;
+		transition-property: $transition-properties;
+	
+	} @else {
+		transition-duration: var(--transition-speed-#{$duration});
+	}
+}

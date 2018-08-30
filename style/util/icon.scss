@@ -1,0 +1,4 @@
+@mixin icon($icon) {
+	content: $icon;
+	font-family: "Segoe MDL2 Assets";
+}
