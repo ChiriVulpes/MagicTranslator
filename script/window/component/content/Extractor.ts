@@ -88,7 +88,10 @@ export default class Extractor extends Component {
 		new Component()
 			.classes.add("extraction-drawer")
 			.append(new Component()
-				.classes.add("extraction-actions"))
+				.classes.add("extraction-actions")
+				.append(new Component("button")
+					.setText("back")
+					.listeners.add("click", () => this.emit("quit"))))
 			.append(new Component()
 				.classes.add("extraction-captures-wrapper")
 				.append(this.capturesWrapper = new Component()
@@ -112,8 +115,10 @@ export default class Extractor extends Component {
 
 		this.pageImage.listeners.add("mousedown", this.mouseDown);
 
-		Component.window.listeners.add("keyup", this.keyup, true);
-		Component.window.listeners.add("mousewheel", this.scroll, true);
+		Component.window.listeners.until(this.listeners.waitFor("remove"))
+			.add("keyup", this.keyup, true);
+		Component.window.listeners.until(this.listeners.waitFor("remove"))
+			.add("mousewheel", this.scroll, true);
 	}
 
 	private addCapture (capture: Capture) {

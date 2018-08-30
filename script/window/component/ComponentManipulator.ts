@@ -188,7 +188,7 @@ export class StyleManipulator<T> extends Manipulator<T, StyleUntil<T>> {
 }
 
 export interface ListenUntil<T> extends Until<T> {
-	add<E extends Event = Event> (events: string | string[], callback: (event: E) => any): T;
+	add<E extends Event = Event> (events: string | string[], callback: (event: E) => any, always?: boolean): T;
 }
 
 export interface ComponentEvent<T = any> extends Event {

@@ -7,7 +7,7 @@ import {
 	StyleManipulator,
 } from "component/ComponentManipulator";
 import { sleep } from "util/Async";
-import { Box, Vector } from "util/math/Geometry";
+import { Box } from "util/math/Geometry";
 import Translation from "util/string/Translation";
 
 export default class Component {

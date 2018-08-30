@@ -1,4 +1,5 @@
 import Component from "component/Component";
+import { sleep } from "util/Async";
 import Bound from "util/Bound";
 import Collectors from "util/Collectors";
 import { tuple } from "util/IterableIterator";
@@ -33,7 +34,7 @@ export default class Explorer extends Component {
 	private readonly explorerWrapper: Component;
 	private readonly actionWrapper: Component;
 
-	public constructor() {
+	public constructor(private readonly startLocation?: [string, string]) {
 		super();
 		this.setId("explorer");
 
@@ -52,7 +53,18 @@ export default class Explorer extends Component {
 
 	private async initialize () {
 		this.volumes = await this.getVolumes();
-		this.showVolumes();
+
+		if (!this.startLocation) {
+			this.showVolumes();
+			return;
+		}
+
+		await this.showPages(...this.startLocation);
+	}
+
+	@Bound
+	private keyup (event: KeyboardEvent) {
+		if (event.code === "Escape") this.emit("back");
 	}
 
 	@Bound
@@ -71,6 +83,13 @@ export default class Explorer extends Component {
 		}
 	}
 
+	private bindBack (handler: () => void) {
+		Component.window.listeners.until(this.listeners.waitFor("back"))
+			.add("keyup", this.keyup, true);
+
+		this.listeners.until("back").add("back", () => sleep(0.001).then(handler));
+	}
+
 	private showChapters (volume: string) {
 		this.actionWrapper.dump();
 		this.explorerWrapper.dump();
@@ -79,6 +98,8 @@ export default class Explorer extends Component {
 			.setText("back")
 			.listeners.add("click", this.showVolumes)
 			.appendTo(this.actionWrapper);
+
+		this.bindBack(this.showVolumes);
 
 		const chapters = this.volumes.get(volume)!;
 		for (const [chapter, pages] of chapters.entries()) {
@@ -99,6 +120,8 @@ export default class Explorer extends Component {
 			.setText("back")
 			.listeners.add("click", () => this.showChapters(volume))
 			.appendTo(this.actionWrapper);
+
+		this.bindBack(() => this.showChapters(volume));
 
 		const pages = await this.volumes.get(volume)!.get(chapter)!.values();
 

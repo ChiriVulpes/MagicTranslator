@@ -49,6 +49,10 @@
 	}
 }
 
+.extraction-actions {
+	background: #fff1;
+}
+
 .extraction-drawer {
 	position: relative;
 	z-index: 1;
@@ -68,15 +72,19 @@
 	height: 100%;
 	width: 100%;
 	overflow-y: auto;
-	padding: 10px;
+	padding: 10px 0;
 	box-sizing: border-box;
 }
 
 .capture {
-	margin: 5px;
+	padding: 10px;
 	display: grid;
 	grid-template-columns: 60px 1fr;
 	height: 150px;
+	
+	&:hover {
+		background: #0003;
+	}
 	
 	> * {
 		position: relative;
