@@ -32,12 +32,18 @@
 	
 	> * {
 		position: absolute;
-		height: 100%;
+		top: 0;
+		left: 0;
 		width: 100%;
-		overflow-y: scroll;
+		height: 100%;
+		overflow: auto;
+		
 		> img {
+			--zoom: 0;
 			display: block;
-			margin: 50px auto;
+			max-width: calc(100% + (var(--natural-width) - 100%) * var(--zoom));
+			max-height: calc(100% + (var(--natural-height) - 100%) * var(--zoom));
+			margin: auto;
 			-webkit-user-drag: none;
 		}
 	}

@@ -77,7 +77,12 @@ export default class Extractor extends Component {
 			.classes.add("page-wrapper")
 			.append(new Component()
 				.append(this.pageImage = new Component("img")
-					.attributes.set("src", `${options.root}/${volume}/${chapter}/raw/${page}`)))
+					.attributes.set("src", `${options.root}/${volume}/${chapter}/raw/${page}`)
+					.listeners.add("load", () => {
+						const image = this.pageImage.element<HTMLImageElement>();
+						this.pageImage.style.set("--natural-width", `${image.naturalWidth}px`);
+						this.pageImage.style.set("--natural-height", `${image.naturalHeight}px`);
+					})))
 			.appendTo(this);
 
 		new Component()
@@ -106,6 +111,9 @@ export default class Extractor extends Component {
 		}
 
 		this.pageImage.listeners.add("mousedown", this.mouseDown);
+
+		Component.window.listeners.add("keyup", this.keyup, true);
+		Component.window.listeners.add("mousewheel", this.scroll, true);
 	}
 
 	private addCapture (capture: Capture) {
@@ -116,14 +124,44 @@ export default class Extractor extends Component {
 	}
 
 	@Bound
+	private keyup (event: KeyboardEvent) {
+		if (event.code === "Equal" && event.ctrlKey) this.zoomIn();
+		else if (event.code === "Minus" && event.ctrlKey) this.zoomOut();
+		else if (event.code === "Escape") this.emit("quit");
+	}
+
+	@Bound
+	private scroll (event: WheelEvent) {
+		if (!event.ctrlKey) return;
+
+		if (event.deltaY > 0) this.zoomOut();
+		else this.zoomIn();
+	}
+
+	private zoomIn () {
+		const zoom = +this.pageImage.style.get("--zoom");
+		this.pageImage.style.set("--zoom", Math.min(1, zoom + 0.1));
+	}
+
+	private zoomOut () {
+		const zoom = +this.pageImage.style.get("--zoom");
+		this.pageImage.style.set("--zoom", Math.max(0, zoom - 0.1));
+	}
+
+	@Bound
 	private mouseEnterCapture (event: MouseEvent) {
 		const component = Component.get<CaptureComponent>(event).listeners.add("mouseleave", this.mouseLeaveCapture);
 		this.classes.add("selecting");
 
-		this.style.set("--capture-x", component.capture.position.x);
-		this.style.set("--capture-y", component.capture.position.y + this.pageImage.position().y - 73);
-		this.style.set("--capture-w", component.capture.size.x);
-		this.style.set("--capture-h", component.capture.size.y);
+		const scale = this.pageImage.box().size().over(Vector.getNaturalSize(this.pageImage.element<HTMLImageElement>()));
+
+		const position = new Vector(component.capture.position).times(scale);
+		const size = new Vector(component.capture.size).times(scale);
+
+		this.style.set("--capture-x", position.x + this.pageImage.box().left);
+		this.style.set("--capture-y", position.y + this.pageImage.box().top);
+		this.style.set("--capture-w", size.x);
+		this.style.set("--capture-h", size.y);
 	}
 
 	@Bound
@@ -172,24 +210,21 @@ export default class Extractor extends Component {
 		Component.window.listeners.remove("mousemove", this.mouseMove);
 		Component.window.listeners.remove("mouseup", this.mouseUp);
 
-		// const windowPosition = await window.send<{ x: number; y: number }>("window-get-position");
-		// const captureStart = this.captureStart.plus(windowPosition);
-		// const captureEnd = this.captureEnd.plus(windowPosition);
+		const scale = this.pageImage.box().size().over(Vector.getNaturalSize(this.pageImage.element<HTMLImageElement>()));
 
-		const size = Vector.size(this.captureStart, this.captureEnd);
+		const size = Vector.size(this.captureStart, this.captureEnd).over(scale);
 		if (size.x < 30 || size.y < 30) {
 			return;
 		}
 
-		const position = Vector.min(this.captureStart, this.captureEnd);
+		const position = Vector.min(this.captureStart, this.captureEnd).minus(this.pageImage.box().position()).over(scale);
 
 		const canvas = document.createElement("canvas");
 		canvas.width = size.x;
 		canvas.height = size.y;
 		const context = canvas.getContext("2d")!;
 
-		const drawPosition = position.minus(this.pageImage.position());
-		context.drawImage(this.pageImage.element<HTMLImageElement>(), -drawPosition.x, -drawPosition.y);
+		context.drawImage(this.pageImage.element<HTMLImageElement>(), -position.x, -position.y);
 
 		const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve));
 

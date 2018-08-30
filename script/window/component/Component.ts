@@ -222,11 +222,6 @@ export default class Component {
 		return new Box(this.element().getBoundingClientRect());
 	}
 
-	public position () {
-		const rect = this.element().getBoundingClientRect();
-		return new Vector(rect.left, rect.top);
-	}
-
 	public click () {
 		this.element().click();
 	}

@@ -19,6 +19,14 @@ export class Box implements ClientRect {
 		return !things.some(thing => !this.doesIntersect(thing));
 	}
 
+	public position () {
+		return new Vector(this.left, this.top);
+	}
+
+	public size () {
+		return new Vector(this.width, this.height);
+	}
+
 	private doesIntersect (boxOrPoint: Box | Vector) {
 		if (boxOrPoint instanceof Vector)
 			return this.top <= boxOrPoint.y && this.bottom > boxOrPoint.y && this.left <= boxOrPoint.x && this.right > boxOrPoint.x;
@@ -33,6 +41,10 @@ export class Vector {
 
 	public static get (event: MouseEvent) {
 		return new Vector(event.clientX, event.clientY);
+	}
+
+	public static getNaturalSize (element: HTMLImageElement) {
+		return new Vector(element.naturalWidth, element.naturalHeight);
 	}
 
 	public x: number;
@@ -58,6 +70,14 @@ export class Vector {
 
 	public minus (vector: { x: number; y: number }) {
 		return new Vector(this.x - vector.x, this.y - vector.y);
+	}
+
+	public times (vector: { x: number; y: number }) {
+		return new Vector(this.x * vector.x, this.y * vector.y);
+	}
+
+	public over (vector: { x: number; y: number }) {
+		return new Vector(this.x / vector.x, this.y / vector.y);
 	}
 
 	public abs () {

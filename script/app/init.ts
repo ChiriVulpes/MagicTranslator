@@ -36,8 +36,16 @@ async function init () {
 		y: Math.floor(display.height / 2 - height / 2),
 	});
 
+	win.webContents.setIgnoreMenuShortcuts(true);
+
+	// win.webContents.on("before-input-event", event => event.preventDefault());
+
 	if (store.get("window.maximized")) {
 		win.maximize();
+	}
+
+	if (store.get("window.devtools")) {
+		win.webContents.openDevTools();
 	}
 
 
@@ -66,13 +74,16 @@ async function init () {
 			}
 
 			// add 100 to make sure it opens on the secondary monitor if that's where it was open last (we don't restore the exact screen position anyway)
-			store.set("window.screenOffset", win.getBounds().x + 400);
+			store.set("window.screenOffset", win.getBounds().x + 100);
 			store.set("window.maximized", win.isMaximized());
 		}, 100);
 	}
 
 	win.on("move", storeWindowPosition);
 	win.on("resize", storeWindowPosition);
+
+	win.webContents.on("devtools-opened", () => store.set("window.devtools", true));
+	win.webContents.on("devtools-closed", () => store.set("window.devtools", false));
 
 
 	////////////////////////////////////
@@ -82,6 +93,10 @@ async function init () {
 	win.loadURL("data:text/html;charset=UTF-8," + encodeURIComponent(`
 		<link rel="stylesheet" href="style/index.css">
 		<script>
+			const { webFrame } = require("electron");
+			webFrame.setVisualZoomLevelLimits(1, 1);
+			webFrame.setLayoutZoomLevelLimits(0, 0);
+
 			window.nodeRequire = require;
 			delete window.require;
 			delete window.exports;

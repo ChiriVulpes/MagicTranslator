@@ -22,6 +22,7 @@ interface MagicalData {
 	"window.height": number;
 	"window.maximized": boolean;
 	"window.screenOffset": number;
+	"window.devtools": boolean;
 }
 
 interface StoreModule {

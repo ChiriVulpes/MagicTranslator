@@ -215,7 +215,7 @@ export class EventListenerManipulator<T> extends Manipulator<T, ListenUntil<T>> 
 
 		return new Proxy({}, {
 			get: (_, key: keyof EventListenerManipulator<T>["untilHandler"]) => (...args: any[]) => {
-				const { start, end } = this.untilHandler![key] as any as Until<T>;
+				const { start, end } = this.untilHandler[key] as any as Until<T>;
 				start(...args);
 
 				const promise = typeof s === "number" ? sleep(s) : typeof s === "string" ? this.waitFor(s) : s;
@@ -226,11 +226,11 @@ export class EventListenerManipulator<T> extends Manipulator<T, ListenUntil<T>> 
 		}) as any;
 	}
 
-	public add<E extends Event = ComponentEvent> (events: string | string[], callback: (event: E) => any) {
+	public add<E extends Event = ComponentEvent> (events: string | string[], callback: (event: E) => any, always = false) {
 		if (!Array.isArray(events)) events = [events];
 
 		for (const event of events) {
-			this.element().addEventListener(event, callback as any);
+			this.element().addEventListener(event, callback as any, always);
 		}
 
 		return this.host;
