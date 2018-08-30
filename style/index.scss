@@ -1,4 +1,19 @@
 ////////////////////////////////////
+// Fonts
+//
+
+@font-face {
+	font-family: "IPAexGothic";
+	src: url("../font/ipaexg.ttf");
+}
+
+@font-face {
+	font-family: "IPAexMincho";
+	src: url("../font/ipaexm.ttf");
+}
+
+
+////////////////////////////////////
 // Vars
 //
 
@@ -31,6 +46,7 @@
 	--filter-logo-background: grayscale(100%) brightness(110%);
 	
 	--font: "Segoe UI";
+	--font-ja: "IPAexGothic";
 	
 	background-color: var(--color-background);
 	font-family: var(--font);

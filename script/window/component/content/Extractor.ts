@@ -16,7 +16,7 @@ interface TranslationData {
 }
 
 class CaptureComponent extends Component {
-	private readonly translation: Component;
+	private readonly japanese: Component;
 
 	public constructor(public readonly capture: Capture) {
 		super();
@@ -28,35 +28,35 @@ class CaptureComponent extends Component {
 			.appendTo(this);
 
 		new Component()
-			.append(this.translation = new Component("textarea")
-				.classes.add("translation")
+			.append(this.japanese = new Component("textarea")
+				.classes.add("japanese")
 				.attributes.set("rows", "1")
 				.setText(() => capture.text)
-				.listeners.add(["change", "keyup", "paste", "input"], this.changeTranslation)
-				.listeners.add("blur", this.blurTranslation))
+				.listeners.add(["change", "keyup", "paste", "input"], this.changeJapanese)
+				.listeners.add("blur", this.blurJapanese))
 			.appendTo(this);
 
-		this.updateTranslationHeight();
+		this.updateJapaneseHeight();
 	}
 
 	@Bound
-	private changeTranslation () {
-		this.capture.text = this.translation.element<HTMLTextAreaElement>().value;
-		this.updateTranslationHeight();
+	private changeJapanese () {
+		this.capture.text = this.japanese.element<HTMLTextAreaElement>().value;
+		this.updateJapaneseHeight();
 		this.emit("change");
 	}
 
 	@Bound
-	private blurTranslation () {
-		this.capture.text = this.translation.element<HTMLTextAreaElement>().value = this.translation.element<HTMLTextAreaElement>().value.trim();
-		this.updateTranslationHeight();
+	private blurJapanese () {
+		this.capture.text = this.japanese.element<HTMLTextAreaElement>().value = this.japanese.element<HTMLTextAreaElement>().value.trim();
+		this.updateJapaneseHeight();
 		this.emit("change");
 	}
 
-	private updateTranslationHeight () {
+	private updateJapaneseHeight () {
 		const lines = this.capture.text.split("\n").length;
-		this.translation.style.set("--height", Math.min(80, lines * 29));
-		this.translation.classes.toggle(lines > 4, "overflow");
+		this.japanese.style.set("--height", Math.min(2.75862069, lines));
+		this.japanese.classes.toggle(lines > 4, "overflow");
 	}
 }
 
