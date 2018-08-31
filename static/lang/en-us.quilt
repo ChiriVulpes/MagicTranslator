@@ -3,3 +3,5 @@ volume: Volume {0}
 chapter: Chapter {0}
 page: Page {0}
 remove: Remove
+previous-page: Previous Page
+next-page: Next Page

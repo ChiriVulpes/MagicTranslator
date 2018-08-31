@@ -118,7 +118,7 @@ export default class Extractor extends Component {
 	private captureEnd: Vector;
 	private captureId = 0;
 
-	public constructor(private readonly volume: string, private readonly chapter: string, private readonly page: string) {
+	public constructor(private readonly volume: string, private readonly chapter: string, private readonly page: string, hasPreviousPage = true, hasNextPage = true) {
 		super();
 		this.setId("extractor");
 
@@ -126,11 +126,13 @@ export default class Extractor extends Component {
 			.classes.add("page-wrapper")
 			.append(new Component()
 				.append(this.pageImage = new Component("img")
+					.hide(true)
 					.attributes.set("src", `${options.root}/${volume}/${chapter}/raw/${page}`)
 					.listeners.add("load", () => {
 						const image = this.pageImage.element<HTMLImageElement>();
 						this.pageImage.style.set("--natural-width", `${image.naturalWidth}px`);
 						this.pageImage.style.set("--natural-height", `${image.naturalHeight}px`);
+						this.pageImage.show();
 					})))
 			.appendTo(this);
 
@@ -140,7 +142,17 @@ export default class Extractor extends Component {
 				.classes.add("extraction-actions")
 				.append(new Component("button")
 					.setText("back")
-					.listeners.add("click", () => this.emit("quit"))))
+					.listeners.add("click", () => this.emit("quit")))
+				.append(new Component("button")
+					.classes.add("float-right")
+					.setText("next-page")
+					.classes.toggle(!hasNextPage, "disabled")
+					.listeners.add("click", () => this.emit("next")))
+				.append(new Component("button")
+					.classes.add("float-right")
+					.setText("previous-page")
+					.classes.toggle(!hasPreviousPage, "disabled")
+					.listeners.add("click", () => this.emit("previous"))))
 			.append(new Component()
 				.classes.add("extraction-captures-wrapper")
 				.append(this.capturesWrapper = new Component()

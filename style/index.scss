@@ -122,6 +122,15 @@ button {
 	&:hover, &:focus {
 		background: #318bffe6;
 	}
+	
+	&:active {
+		background: #318bff40;
+	}
+	
+	&.disabled {
+		opacity: .3;
+		pointer-events: none;
+	}
 }
 
 ::-webkit-scrollbar {

@@ -1,7 +1,6 @@
 import Component from "component/Component";
 import { sleep } from "util/Async";
 import Bound from "util/Bound";
-import Collectors from "util/Collectors";
 import { tuple } from "util/IterableIterator";
 import Translation from "util/string/Translation";
 
@@ -30,11 +29,10 @@ class ImageButton extends Component {
 }
 
 export default class Explorer extends Component {
-	private volumes: Map<string, Map<string, string[]>>;
 	private readonly explorerWrapper: Component;
 	private readonly actionWrapper: Component;
 
-	public constructor(private readonly startLocation?: [string, string]) {
+	public constructor(private readonly volumes: Map<string, Map<string, string[]>>, private readonly startLocation?: [string, string]) {
 		super();
 		this.setId("explorer");
 
@@ -52,7 +50,6 @@ export default class Explorer extends Component {
 	}
 
 	private async initialize () {
-		this.volumes = await this.getVolumes();
 
 		if (!this.startLocation) {
 			this.showVolumes();
@@ -123,39 +120,16 @@ export default class Explorer extends Component {
 
 		this.bindBack(() => this.showChapters(volume));
 
-		const pages = await this.volumes.get(volume)!.get(chapter)!.values();
+		const pages = await this.volumes.get(volume)!.get(chapter)!;
 
-		for (const page of pages) {
+		for (let i = 0; i < pages.length; i++) {
+			const page = pages[i];
 			new ImageButton(`${options.root}/${volume}/${chapter}/raw/${page}`)
 				.setText(() => new Translation("page").get(parseInt(page)))
-				.listeners.add("click", () => this.emit<[string, string, string]>("extract", event => event.data = tuple(volume, chapter, page)))
+				.listeners.add("click", () => this
+					.emit<[string, string, string, boolean, boolean]>("extract", event => event
+						.data = tuple(volume, chapter, page, i > 0, i < pages.length - 1)))
 				.appendTo(this.explorerWrapper);
 		}
-	}
-
-	////////////////////////////////////
-	// Loading the map of Volumes/Chapters/Pages
-	//
-
-	private async getVolumes () {
-		return (await fs.readdir(options.root)).values()
-			.filter(volume => /vol\d\d/.test(volume))
-			.map(async volume => tuple(volume, await this.getChapters(volume)))
-			.awaitAll()
-			.collect(Map.createAsync);
-	}
-
-	private async getChapters (volume: string) {
-		return (await fs.readdir(`${options.root}/${volume}`)).values()
-			.filter(chapter => /ch\d\d\d/.test(chapter))
-			.map(async chapter => tuple(chapter, await this.getPages(volume, chapter)))
-			.awaitAll()
-			.collect(Map.createAsync);
-	}
-
-	private async getPages (volume: string, chapter: string) {
-		return (await fs.readdir(`${options.root}/${volume}/${chapter}/raw`)).values()
-			.filter(page => /\d\d\d\.png/.test(page))
-			.collect(Collectors.toArray);
 	}
 }

@@ -45,12 +45,21 @@
 			max-height: calc(100% + (var(--natural-height) - 100%) * var(--zoom));
 			margin: auto;
 			-webkit-user-drag: none;
+			transition: opacity .1s ease-in-out, height 0s linear;
+			
+			&.transparent {
+				height: 0;
+			}
 		}
 	}
 }
 
 .extraction-actions {
 	background: #fff1;
+	
+	> .float-right {
+		float: right;
+	}
 }
 
 .extraction-drawer {

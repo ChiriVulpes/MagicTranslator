@@ -136,9 +136,9 @@ export default class Component {
 		return this;
 	}
 
-	public append (...what: Component[]) {
+	public append (...what: (Component | undefined)[]) {
 		for (const component of what) {
-			component.appendTo(this);
+			if (component) component.appendTo(this);
 		}
 
 		return this;
