@@ -82,8 +82,31 @@
 	grid-template-columns: 60px 1fr;
 	grid-template-rows: 1fr auto;
 	height: 150px;
+	box-sizing: border-box;
+	cursor: move;
 	
-	&:hover {
+	> * {
+		cursor: auto;
+	}
+	
+	> .capture-action-row {
+		pointer-events: none;
+		> * {
+			pointer-events: all;
+		}
+	}
+	
+	&.moving {
+		position: absolute;
+		width: 100%;
+		top: var(--drag-y);
+	}
+	
+	&.moving-before {
+		margin-top: 150px;
+	}
+	
+	&:hover, &.moving {
 		background: #0003;
 	}
 	

@@ -1,5 +1,7 @@
 import Component from "component/Component";
 import Bound from "util/Bound";
+import { tuple } from "util/IterableIterator";
+import { ComponentEvent } from "util/Manipulator";
 import { Vector } from "util/math/Geometry";
 import { pad } from "util/string/String";
 
@@ -16,6 +18,10 @@ interface TranslationData {
 }
 
 class CaptureComponent extends Component {
+	public dragStart?: Vector;
+	public dragEnd?: Vector;
+	public positionStart?: number;
+
 	private readonly japanese: Component;
 
 	public constructor(public readonly capture: Capture) {
@@ -44,6 +50,8 @@ class CaptureComponent extends Component {
 			.appendTo(this);
 
 		this.updateJapaneseHeight();
+
+		this.listeners.add("mousedown", this.mouseDown);
 	}
 
 	@Bound
@@ -64,6 +72,40 @@ class CaptureComponent extends Component {
 		const lines = this.capture.text.split("\n").length;
 		this.japanese.style.set("--height", Math.min(2.75862069, lines));
 		this.japanese.classes.toggle(lines > 4, "overflow");
+	}
+
+	@Bound
+	private mouseDown (event: MouseEvent) {
+		if (Component.get(event) !== this) return;
+
+		this.positionStart = this.box().top - this.parent!.box().top;
+		this.dragStart = Vector.get(event);
+		Component.window.listeners.add("mousemove", this.mouseMove);
+		Component.window.listeners.add("mouseup", this.mouseUp);
+	}
+
+	@Bound
+	private mouseMove (event: MouseEvent) {
+		this.dragEnd = Vector.get(event);
+
+		this.classes.add("moving");
+		const y = this.positionStart! + (this.dragEnd.y - this.dragStart!.y);
+		this.style.set("--drag-y", y);
+
+		this.emit<[CaptureComponent, number]>("move-update", updateEvent => updateEvent.data = tuple(this, y));
+
+		return y;
+	}
+
+	@Bound
+	private mouseUp (event: MouseEvent) {
+		const y = this.mouseMove(event);
+		this.classes.remove("moving");
+
+		Component.window.listeners.remove("mousemove", this.mouseMove);
+		Component.window.listeners.remove("mouseup", this.mouseUp);
+
+		this.emit<[CaptureComponent, number]>("move-complete", completeEvent => completeEvent.data = tuple(this, y));
 	}
 }
 
@@ -133,7 +175,69 @@ export default class Extractor extends Component {
 			.listeners.add("change", this.updateJSON)
 			.listeners.add("mouseenter", this.mouseEnterCapture)
 			.listeners.add("remove-capture", this.removeCapture)
+			.listeners.add("move-update", this.updateMove)
+			.listeners.add("move-complete", this.completeMove)
 			.appendTo(this.capturesWrapper));
+	}
+
+	@Bound
+	private updateMove ({ data: [movingComponent, y] }: ComponentEvent<[CaptureComponent, number]>) {
+		y += movingComponent.box().height / 2;
+
+		let totalY = 0;
+		let lastComponent: CaptureComponent | undefined;
+
+		for (let i = 0; i < this.captures.length; i++) {
+			const component = this.captures[i];
+			if (component === movingComponent) continue;
+
+			component.classes.remove("moving-before");
+
+			const box = component.box();
+			if (y >= totalY && y < totalY + box.height) {
+				if (lastComponent) lastComponent.classes.remove("moving-before");
+				lastComponent = component.classes.add("moving-before");
+			}
+
+			totalY += box.height;
+		}
+	}
+
+	@Bound
+	private completeMove ({ data: [movingComponent, y] }: ComponentEvent<[CaptureComponent, number]>) {
+		y += movingComponent.box().height / 2;
+
+		let totalY = 0;
+		let insertIndex = -1;
+
+		for (let i = 0; i < this.captures.length; i++) {
+			const component = this.captures[i];
+			if (component === movingComponent) continue;
+
+			const box = component.box();
+			component.classes.remove("moving-before");
+			if (y >= totalY && y < totalY + box.height) {
+				insertIndex = i;
+			}
+
+			totalY += box.height;
+		}
+
+		const oldIndex = this.captures.indexOf(movingComponent);
+		this.captures.splice(oldIndex, 1);
+
+		insertIndex = oldIndex < insertIndex ? insertIndex - 1 : insertIndex;
+		const beforeComponent = this.captures[insertIndex];
+
+		if (beforeComponent) {
+			this.capturesWrapper.element().insertBefore(movingComponent.element(), beforeComponent.element());
+			this.captures.splice(insertIndex, 0, movingComponent);
+		} else {
+			this.capturesWrapper.append(movingComponent);
+			this.captures.push(movingComponent);
+		}
+
+		this.updateJSON();
 	}
 
 	@Bound
