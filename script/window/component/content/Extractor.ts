@@ -36,6 +36,13 @@ class CaptureComponent extends Component {
 				.listeners.add("blur", this.blurJapanese))
 			.appendTo(this);
 
+		new Component()
+			.classes.add("capture-action-row")
+			.append(new Component("button")
+				.setText("remove")
+				.listeners.add("click", () => this.emit("remove-capture")))
+			.appendTo(this);
+
 		this.updateJapaneseHeight();
 	}
 
@@ -125,7 +132,20 @@ export default class Extractor extends Component {
 		this.captures.push(new CaptureComponent(capture)
 			.listeners.add("change", this.updateJSON)
 			.listeners.add("mouseenter", this.mouseEnterCapture)
+			.listeners.add("remove-capture", this.removeCapture)
 			.appendTo(this.capturesWrapper));
+	}
+
+	@Bound
+	private removeCapture (event: Event) {
+		const component = Component.get<CaptureComponent>(event);
+		const index = this.captures.indexOf(component);
+		this.captures.splice(index, 1);
+		component.remove();
+
+		// we were just hovering over a capture, but now it's gone, so the "leave" event will never fire
+		this.classes.remove("selecting");
+		this.updateJSON();
 	}
 
 	@Bound

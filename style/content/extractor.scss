@@ -80,6 +80,7 @@
 	padding: 10px;
 	display: grid;
 	grid-template-columns: 60px 1fr;
+	grid-template-rows: 1fr auto;
 	height: 150px;
 	
 	&:hover {
@@ -88,6 +89,10 @@
 	
 	> * {
 		position: relative;
+		
+		&:first-child {
+			grid-row: 1/3;
+		}
 	}
 	
 	img {
