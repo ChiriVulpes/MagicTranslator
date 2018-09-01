@@ -83,6 +83,17 @@
 	overflow-y: auto;
 	padding: 10px 0;
 	box-sizing: border-box;
+	
+	&::before {
+		content: "";
+		display: block;
+		position: absolute;
+		z-index: -1;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: var(--captures-height);
+	}
 }
 
 .capture {
@@ -103,13 +114,14 @@
 	}
 	
 	&.moving {
-		position: absolute;
-		width: 100%;
+		position: fixed;
+		width: var(--width);
 		top: var(--drag-y);
+		pointer-events: none;
 	}
 	
 	&.moving-before {
-		margin-top: 150px;
+		margin-top: var(--moving-capture-height);
 	}
 	
 	&:hover, &.moving {

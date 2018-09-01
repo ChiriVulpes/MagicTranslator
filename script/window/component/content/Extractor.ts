@@ -21,6 +21,8 @@ class CaptureComponent extends Component {
 	public dragStart?: Vector;
 	public dragEnd?: Vector;
 	public positionStart?: number;
+	private scrollStart: number;
+	private lastMoveEvent?: MouseEvent;
 
 	private readonly japanese: Component;
 
@@ -55,6 +57,20 @@ class CaptureComponent extends Component {
 	}
 
 	@Bound
+	public mouseMove (event = this.lastMoveEvent) {
+		this.lastMoveEvent = event;
+		this.dragEnd = Vector.get(event!);
+
+		this.classes.add("moving");
+		const y = this.positionStart! + (this.dragEnd.y - this.dragStart!.y) + (this.parent!.element().scrollTop - this.scrollStart);
+		this.style.set("--drag-y", y - this.parent!.element().scrollTop + this.parent!.box().top);
+
+		this.emit<[CaptureComponent, number]>("move-update", updateEvent => updateEvent.data = tuple(this, y));
+
+		return y;
+	}
+
+	@Bound
 	private changeJapanese () {
 		this.capture.text = this.japanese.element<HTMLTextAreaElement>().value;
 		this.updateJapaneseHeight();
@@ -78,23 +94,16 @@ class CaptureComponent extends Component {
 	private mouseDown (event: MouseEvent) {
 		if (Component.get(event) !== this) return;
 
-		this.positionStart = this.box().top - this.parent!.box().top;
+		const box = this.box();
+		this.scrollStart = this.parent!.element().scrollTop;
+		this.positionStart = box.top - this.parent!.box().top + this.scrollStart;
 		this.dragStart = Vector.get(event);
-		Component.window.listeners.add("mousemove", this.mouseMove);
-		Component.window.listeners.add("mouseup", this.mouseUp);
-	}
+		this.style.set("--width", box.width);
 
-	@Bound
-	private mouseMove (event: MouseEvent) {
-		this.dragEnd = Vector.get(event);
+		this.parent!.style.set("--captures-height", `${this.parent!.element().scrollHeight}px`);
 
-		this.classes.add("moving");
-		const y = this.positionStart! + (this.dragEnd.y - this.dragStart!.y);
-		this.style.set("--drag-y", y);
-
-		this.emit<[CaptureComponent, number]>("move-update", updateEvent => updateEvent.data = tuple(this, y));
-
-		return y;
+		Component.window.listeners.add<MouseEvent>("mousemove", this.mouseMove);
+		Component.window.listeners.add<MouseEvent>("mouseup", this.mouseUp);
 	}
 
 	@Bound
@@ -102,10 +111,12 @@ class CaptureComponent extends Component {
 		const y = this.mouseMove(event);
 		this.classes.remove("moving");
 
-		Component.window.listeners.remove("mousemove", this.mouseMove);
-		Component.window.listeners.remove("mouseup", this.mouseUp);
+		Component.window.listeners.remove<MouseEvent>("mousemove", this.mouseMove);
+		Component.window.listeners.remove<MouseEvent>("mouseup", this.mouseUp);
 
 		this.emit<[CaptureComponent, number]>("move-complete", completeEvent => completeEvent.data = tuple(this, y));
+
+		this.parent!.style.remove("--captures-height");
 	}
 }
 
@@ -117,6 +128,9 @@ export default class Extractor extends Component {
 	private captureStart: Vector;
 	private captureEnd: Vector;
 	private captureId = 0;
+	private movingCapture = false;
+	private scrollSpeed = 0;
+	private scrollAnimation: number | undefined;
 
 	public constructor(private readonly volume: string, private readonly chapter: string, private readonly page: string, hasPreviousPage = true, hasNextPage = true) {
 		super();
@@ -185,7 +199,7 @@ export default class Extractor extends Component {
 	private addCapture (capture: Capture) {
 		this.captures.push(new CaptureComponent(capture)
 			.listeners.add("change", this.updateJSON)
-			.listeners.add("mouseenter", this.mouseEnterCapture)
+			.listeners.add<MouseEvent>("mouseenter", this.mouseEnterCapture)
 			.listeners.add("remove-capture", this.removeCapture)
 			.listeners.add("move-update", this.updateMove)
 			.listeners.add("move-complete", this.completeMove)
@@ -194,6 +208,8 @@ export default class Extractor extends Component {
 
 	@Bound
 	private updateMove ({ data: [movingComponent, y] }: ComponentEvent<[CaptureComponent, number]>) {
+		this.movingCapture = true;
+		this.style.set("--moving-capture-height", `${movingComponent.box().height}px`);
 		y += movingComponent.box().height / 2;
 
 		let totalY = 0;
@@ -213,6 +229,30 @@ export default class Extractor extends Component {
 
 			totalY += box.height;
 		}
+
+		this.updateScroll(y);
+	}
+
+	private updateScroll (y?: number) {
+		if (!this.movingCapture) return;
+
+		if (y !== undefined) {
+			if (this.scrollAnimation !== undefined) cancelAnimationFrame(this.scrollAnimation);
+
+			const screenY = y - this.capturesWrapper.element().scrollTop;
+			const capturesHeight = this.capturesWrapper.element().clientHeight;
+
+			this.scrollSpeed = screenY < 100 ? (100 - screenY) / -2 :
+				screenY > capturesHeight - 100 ? (screenY - (capturesHeight - 100)) / 2 : 0;
+		}
+
+		this.capturesWrapper.element().scrollTop += this.scrollSpeed;
+
+		if (y === undefined) {
+			this.capturesWrapper.descendants<CaptureComponent>(".moving").first()!.mouseMove();
+		}
+
+		this.scrollAnimation = requestAnimationFrame(() => this.updateScroll());
 	}
 
 	@Bound
@@ -250,6 +290,8 @@ export default class Extractor extends Component {
 		}
 
 		this.updateJSON();
+		this.movingCapture = false;
+		this.mouseLeaveCapture();
 	}
 
 	@Bound
@@ -290,8 +332,10 @@ export default class Extractor extends Component {
 	}
 
 	@Bound
-	private mouseEnterCapture (event: MouseEvent) {
-		const component = Component.get<CaptureComponent>(event).listeners.add("mouseleave", this.mouseLeaveCapture);
+	private mouseEnterCapture (eventOrCaptureComponent: MouseEvent | CaptureComponent) {
+		const component = eventOrCaptureComponent instanceof CaptureComponent ? eventOrCaptureComponent :
+			Component.get<CaptureComponent>(eventOrCaptureComponent).listeners.add<MouseEvent>("mouseleave", this.mouseLeaveCapture);
+
 		this.classes.add("selecting");
 
 		const scale = this.pageImage.box().size().over(Vector.getNaturalSize(this.pageImage.element<HTMLImageElement>()));
@@ -306,9 +350,15 @@ export default class Extractor extends Component {
 	}
 
 	@Bound
-	private mouseLeaveCapture (event: MouseEvent) {
-		Component.get(event).listeners.remove("mouseleave", this.mouseLeaveCapture);
+	private mouseLeaveCapture (event?: MouseEvent) {
+		if (event) Component.get(event).listeners.remove<MouseEvent>("mouseleave", this.mouseLeaveCapture);
 		this.classes.remove("selecting");
+
+		if (this.movingCapture) {
+			this.capturesWrapper.descendants<CaptureComponent>(".moving")
+				.first()!
+				.schedule(this.mouseEnterCapture);
+		}
 	}
 
 	@Bound
