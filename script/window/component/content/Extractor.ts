@@ -6,7 +6,7 @@ import { Vector } from "util/math/Geometry";
 import { pad } from "util/string/String";
 
 interface Capture {
-	cropPath: string;
+	id: number;
 	position: { x: number; y: number };
 	size: { x: number; y: number };
 	text: string;
@@ -26,13 +26,13 @@ class CaptureComponent extends Component {
 
 	private readonly japanese: Component;
 
-	public constructor(public readonly capture: Capture) {
+	public constructor(volume: string, chapter: string, page: string, public readonly capture: Capture) {
 		super();
 		this.classes.add("capture");
 
 		new Component()
 			.append(new Component("img")
-				.attributes.set("src", capture.cropPath))
+				.attributes.set("src", `${options.root}/${volume}/${chapter}/capture/${page.slice(0, -4)}/cap${pad(capture.id++, 3)}.png`))
 			.appendTo(this);
 
 		new Component()
@@ -197,7 +197,7 @@ export default class Extractor extends Component {
 	}
 
 	private addCapture (capture: Capture) {
-		this.captures.push(new CaptureComponent(capture)
+		this.captures.push(new CaptureComponent(this.volume, this.chapter, this.page, capture)
 			.listeners.add("change", this.updateJSON)
 			.listeners.add<MouseEvent>("mouseenter", this.mouseEnterCapture)
 			.listeners.add("remove-capture", this.removeCapture)
@@ -432,6 +432,7 @@ export default class Extractor extends Component {
 		await fs.mkdir(`${options.root}/${this.volume}/${this.chapter}/capture`);
 		await fs.mkdir(`${options.root}/${this.volume}/${this.chapter}/capture/${this.page.slice(0, -4)}`);
 
+		const captureId = this.captureId;
 		const cropPath = `${options.root}/${this.volume}/${this.chapter}/capture/${this.page.slice(0, -4)}/cap${pad(this.captureId++, 3)}.png`;
 		await fs.writeFile(cropPath, buffer);
 
@@ -440,7 +441,7 @@ export default class Extractor extends Component {
 		const [out] = await childProcess.exec(`${options.capture2TextCLIPath} --language Japanese --image ${cropPath} --line-breaks${vertical ? " --vertical" : ""}`);
 
 		this.addCapture({
-			cropPath,
+			id: captureId,
 			position: position.raw(),
 			size: size.raw(),
 			text: out.toString("utf8").trim(),
