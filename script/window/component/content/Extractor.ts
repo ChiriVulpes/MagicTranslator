@@ -221,6 +221,7 @@ export default class Extractor extends Component {
 	@Bound
 	private updateMove ({ data: [movingComponent, y] }: ComponentEvent<[CaptureComponent, number]>) {
 		this.movingCapture = true;
+		this.classes.add("moving-capture");
 		this.style.set("--moving-capture-height", `${movingComponent.box().height}px`);
 		y += movingComponent.box().height / 2;
 
@@ -301,9 +302,11 @@ export default class Extractor extends Component {
 			this.captures.push(movingComponent);
 		}
 
-		this.updateJSON();
 		this.movingCapture = false;
+		this.classes.remove("moving-capture");
 		this.mouseLeaveCapture();
+
+		this.updateJSON();
 	}
 
 	@Bound

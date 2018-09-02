@@ -3,6 +3,12 @@
     height: 100%;
     display: grid;
 	grid-template-columns: 1fr auto;
+	
+	&.moving-capture {
+		&, & * {
+			cursor: -webkit-grabbing;
+		}
+	}
 }
 
 .page-wrapper {
@@ -103,7 +109,7 @@
 	grid-template-rows: 1fr auto;
 	min-height: 15vh;
 	box-sizing: border-box;
-	cursor: move;
+	cursor: -webkit-grab;
 	
 	> * {
 		cursor: auto;
