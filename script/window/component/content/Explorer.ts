@@ -137,8 +137,6 @@ export default class Explorer extends Component {
 				.appendTo(this.explorerWrapper);
 		}
 
-		console.log(+volume.slice(3), +chapter.slice(2));
-
 		Header.setTitle(() => new Translation("title").get({ volume: +volume.slice(3), chapter: +chapter.slice(2) }));
 	}
 }
