@@ -43,7 +43,8 @@ class CaptureComponent extends Component {
 				.attributes.set("rows", "1")
 				.setText(() => capture.text)
 				.listeners.add(["change", "keyup", "paste", "input"], this.changeJapanese)
-				.listeners.add("blur", this.blurJapanese))
+				.listeners.add("blur", this.blurJapanese)
+				.listeners.add("contextmenu", this.copy))
 			.appendTo(this);
 
 		new Component()
@@ -119,6 +120,13 @@ class CaptureComponent extends Component {
 		this.emit<[CaptureComponent, number]>("move-complete", completeEvent => completeEvent.data = tuple(this, y));
 
 		this.parent!.style.remove("--captures-height");
+	}
+
+	@Bound
+	private copy (event: MouseEvent) {
+		const textarea = Component.get(event);
+		textarea.element<HTMLTextAreaElement>().select();
+		document.execCommand("copy");
 	}
 }
 
