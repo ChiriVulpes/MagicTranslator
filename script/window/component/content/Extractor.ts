@@ -26,13 +26,13 @@ class CaptureComponent extends Component {
 
 	private readonly japanese: Component;
 
-	public constructor(volume: string, chapter: string, page: string, public readonly capture: Capture) {
+	public constructor(root: string, public readonly capture: Capture) {
 		super();
 		this.classes.add("capture");
 
 		new Component()
 			.append(new Component("img")
-				.attributes.set("src", `${options.root}/${volume}/${chapter}/capture/${page.slice(0, -4)}/cap${pad(capture.id++, 3)}.png`))
+				.attributes.set("src", `${root}/cap${pad(capture.id, 3)}.png`))
 			.appendTo(this);
 
 		new Component()
@@ -177,7 +177,7 @@ export default class Extractor extends Component {
 	}
 
 	private async initialize () {
-		const jsonData = await fs.readFile(`${options.root}/${this.volume}/${this.chapter}/capture/${this.page.slice(0, -4)}.json`, "utf8")
+		const jsonData = await fs.readFile(`${this.getCapturePagePath()}.json`, "utf8")
 			.catch(() => { });
 
 		const translationData: TranslationData = JSON.parse(jsonData || "{}");
@@ -197,7 +197,7 @@ export default class Extractor extends Component {
 	}
 
 	private addCapture (capture: Capture) {
-		this.captures.push(new CaptureComponent(this.volume, this.chapter, this.page, capture)
+		this.captures.push(new CaptureComponent(this.getCapturePagePath(), capture)
 			.listeners.add("change", this.updateJSON)
 			.listeners.add<MouseEvent>("mouseenter", this.mouseEnterCapture)
 			.listeners.add("remove-capture", this.removeCapture)
@@ -300,6 +300,9 @@ export default class Extractor extends Component {
 		const index = this.captures.indexOf(component);
 		this.captures.splice(index, 1);
 		component.remove();
+
+		const capture = component.capture;
+		fs.unlink(`${this.getCapturePagePath()}/cap${pad(capture.id, 3)}.png`);
 
 		// we were just hovering over a capture, but now it's gone, so the "leave" event will never fire
 		this.classes.remove("selecting");
@@ -430,10 +433,10 @@ export default class Extractor extends Component {
 		});
 
 		await fs.mkdir(`${options.root}/${this.volume}/${this.chapter}/capture`);
-		await fs.mkdir(`${options.root}/${this.volume}/${this.chapter}/capture/${this.page.slice(0, -4)}`);
+		await fs.mkdir(this.getCapturePagePath());
 
 		const captureId = this.captureId;
-		const cropPath = `${options.root}/${this.volume}/${this.chapter}/capture/${this.page.slice(0, -4)}/cap${pad(this.captureId++, 3)}.png`;
+		const cropPath = `${this.getCapturePagePath()}/cap${pad(this.captureId++, 3)}.png`;
 		await fs.writeFile(cropPath, buffer);
 
 		const vertical = size.x < size.y;
@@ -448,5 +451,9 @@ export default class Extractor extends Component {
 		});
 
 		await this.updateJSON();
+	}
+
+	private getCapturePagePath () {
+		return `${options.root}/${this.volume}/${this.chapter}/capture/${this.page.slice(0, -4)}`;
 	}
 }

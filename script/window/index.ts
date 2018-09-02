@@ -26,7 +26,7 @@ declare global {
 
 	type RequireFunction = <T = any>(module: string) => T;
 
-	const fs: typeof import("mz/fs");
+	const fs: FileSystem;
 	const childProcess: typeof import("mz/child_process");
 }
 
@@ -41,50 +41,7 @@ declare global {
 	ipcRenderer.on(event, callback);
 };
 
-const nodefs = req<typeof import("fs")>("fs");
 const nodeChildProcess = req<typeof import("child_process")>("child_process");
-
-(window as any).fs = {
-	async readdir (dir: string) {
-		return new Promise<string[]>((resolve, reject) => {
-			nodefs.readdir(dir, (err: NodeJS.ErrnoException | undefined, files) => {
-				if (err) reject(err);
-				else resolve(files);
-			});
-		});
-	},
-	async readFile (path: string, encoding: string) {
-		return new Promise<string>((resolve, reject) => {
-			nodefs.readFile(path, encoding, (err: NodeJS.ErrnoException | undefined, file) => {
-				if (err) reject(err);
-				else resolve(file);
-			});
-		});
-	},
-	async exists (path: string) {
-		return new Promise<boolean>((resolve, reject) => {
-			nodefs.stat(path, (err: NodeJS.ErrnoException | undefined, stats) => {
-				resolve(!err);
-			});
-		});
-	},
-	async writeFile (path: string, data: string | Buffer) {
-		return new Promise((resolve, reject) => {
-			nodefs.writeFile(path, data, err => {
-				if (err) reject(err);
-				resolve();
-			});
-		});
-	},
-	async mkdir (path: string) {
-		return new Promise((resolve, reject) => {
-			nodefs.mkdir(path, err => {
-				if (err && err.code !== "EEXIST") reject(err);
-				resolve();
-			});
-		});
-	},
-};
 
 (window as any).childProcess = {
 	async exec (path: string) {
@@ -108,8 +65,12 @@ Options.initialize(req);
 
 
 ////////////////////////////////////
-// Initialize external dependencies for File classes
+// Initialize external dependencies for utility classes
 //
+
+import FileSystem from "util/FileSystem";
+
+(window as any).fs = new FileSystem(req<typeof import("fs")>("fs"));
 
 
 delete (window as any).nodeRequire;
