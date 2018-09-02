@@ -65,8 +65,8 @@
 .extraction-drawer {
 	position: relative;
 	z-index: 1;
-	width: 30vw;
-	max-width: 500px;
+	width: 40vw;
+    max-width: 600px;
 	display: grid;
 	grid-template-rows: auto 1fr;
 }
@@ -101,7 +101,7 @@
 	display: grid;
 	grid-template-columns: 60px 1fr;
 	grid-template-rows: 1fr auto;
-	height: 150px;
+	min-height: 15vh;
 	box-sizing: border-box;
 	cursor: move;
 	
@@ -162,14 +162,14 @@
 	.japanese {
 		padding: 5px 10px;
 		box-sizing: border-box;
-		height: calc(var(--height) * 31px + 5px);
+		height: calc(var(--height) * 1.2em + 1.1vh);
 		width: 100%;
 		background: #0003;
 		border: none;
 		color: inherit;
 		resize: none;
 		font-family: inherit;
-     	font-size: 18pt;
+		font-size: 1.5vw;
 		font-family: var(--font-ja);
 		font-weight: 100;
 	}
