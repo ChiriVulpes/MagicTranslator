@@ -1,9 +1,11 @@
 import Component from "component/Component";
+import Header from "component/header/Header";
 import Bound from "util/Bound";
 import { tuple } from "util/IterableIterator";
 import { ComponentEvent } from "util/Manipulator";
 import { Vector } from "util/math/Geometry";
 import { pad } from "util/string/String";
+import Translation from "util/string/Translation";
 
 interface Capture {
 	id: number;
@@ -172,6 +174,8 @@ export default class Extractor extends Component {
 				.append(this.capturesWrapper = new Component()
 					.classes.add("extraction-captures")))
 			.appendTo(this);
+
+		Header.setTitle(() => new Translation("title").get({ volume: +volume.slice(3), chapter: +chapter.slice(2), page: parseInt(page) }));
 
 		this.initialize();
 	}

@@ -15,6 +15,12 @@
 	-webkit-app-region: drag;
 	
 	background: #0007;
+	
+	> .title {
+		font-size: 10pt;
+		padding: 2px 10px;
+		color: #fff9;
+	}
 }
 
 @import "window-controls";

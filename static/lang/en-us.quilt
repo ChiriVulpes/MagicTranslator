@@ -1,7 +1,8 @@
-back: Back
 volume: Volume {0}
 chapter: Chapter {0}
 page: Page {0}
+back: Back
 remove: Remove
 previous-page: Previous Page
 next-page: Next Page
+title: Magical Trans OCR{volume? — Volume {volume}{chapter? — Chapter {chapter}{page? — Page {page}}}}

@@ -23,7 +23,11 @@ export default class Component {
 
 	private static map = new Map<Element, Component>();
 
-	public static get<C extends Component = Component> (element: Element | Event) {
+	public static get<C extends Component = Component> (element: Element | Event | string) {
+		if (typeof element === "string") {
+			element = document.querySelector(element)!;
+		}
+
 		if ("target" in element) {
 			element = element.target as Element;
 		}

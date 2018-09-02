@@ -3,6 +3,7 @@ import { sleep } from "util/Async";
 import Bound from "util/Bound";
 import { tuple } from "util/IterableIterator";
 import Translation from "util/string/Translation";
+import Header from "../header/Header";
 
 /*
 async function getImageData (path: string) {
@@ -78,6 +79,8 @@ export default class Explorer extends Component {
 				.listeners.add("click", () => this.showChapters(volume))
 				.appendTo(this.explorerWrapper);
 		}
+
+		Header.setTitle(() => new Translation("title").get());
 	}
 
 	private bindBack (handler: () => void) {
@@ -107,6 +110,8 @@ export default class Explorer extends Component {
 				.listeners.add("click", () => this.showPages(volume, chapter))
 				.appendTo(this.explorerWrapper);
 		}
+
+		Header.setTitle(() => new Translation("title").get({ volume: +volume.slice(3) }));
 	}
 
 	private async showPages (volume: string, chapter: string) {
@@ -131,5 +136,9 @@ export default class Explorer extends Component {
 						.data = tuple(volume, chapter, page, i > 0, i < pages.length - 1)))
 				.appendTo(this.explorerWrapper);
 		}
+
+		console.log(+volume.slice(3), +chapter.slice(2));
+
+		Header.setTitle(() => new Translation("title").get({ volume: +volume.slice(3), chapter: +chapter.slice(2) }));
 	}
 }
