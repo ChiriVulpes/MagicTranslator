@@ -12,6 +12,7 @@ interface Capture {
 	position: { x: number; y: number };
 	size: { x: number; y: number };
 	text: string;
+	translation: string;
 }
 
 interface TranslationData {
@@ -27,6 +28,7 @@ class CaptureComponent extends Component {
 	private lastMoveEvent?: MouseEvent;
 
 	private readonly japanese: Component;
+	private readonly translation: Component;
 
 	public constructor(root: string, public readonly capture: Capture) {
 		super();
@@ -41,9 +43,18 @@ class CaptureComponent extends Component {
 			.append(this.japanese = new Component("textarea")
 				.classes.add("japanese")
 				.attributes.set("rows", "1")
+				.attributes.set("placeholder", new Translation("source-placeholder").get())
 				.setText(() => capture.text)
-				.listeners.add(["change", "keyup", "paste", "input"], this.changeJapanese)
-				.listeners.add("blur", this.blurJapanese)
+				.listeners.add(["change", "keyup", "paste", "input"], this.changeTextarea)
+				.listeners.add("blur", this.blurTextarea)
+				.listeners.add("contextmenu", this.copy))
+			.append(this.translation = new Component("textarea")
+				.classes.add("translation")
+				.attributes.set("rows", "1")
+				.attributes.set("placeholder", new Translation("translation-placeholder").get())
+				.setText(() => capture.translation || "")
+				.listeners.add(["change", "keyup", "paste", "input"], this.changeTextarea)
+				.listeners.add("blur", this.blurTextarea)
 				.listeners.add("contextmenu", this.copy))
 			.appendTo(this);
 
@@ -54,7 +65,8 @@ class CaptureComponent extends Component {
 				.listeners.add("click", () => this.emit("remove-capture")))
 			.appendTo(this);
 
-		this.updateJapaneseHeight();
+		this.updateTextareaHeight(this.japanese);
+		this.updateTextareaHeight(this.translation);
 
 		this.listeners.add("mousedown", this.mouseDown);
 	}
@@ -74,23 +86,26 @@ class CaptureComponent extends Component {
 	}
 
 	@Bound
-	private changeJapanese () {
-		this.capture.text = this.japanese.element<HTMLTextAreaElement>().value;
-		this.updateJapaneseHeight();
+	private changeTextarea (event: Event) {
+		const component = Component.get(event);
+		this.capture[component.classes.has("japanese") ? "text" : "translation"] = component.element<HTMLTextAreaElement>().value;
+		this.updateTextareaHeight(component);
 		this.emit("change");
 	}
 
 	@Bound
-	private blurJapanese () {
-		this.capture.text = this.japanese.element<HTMLTextAreaElement>().value = this.japanese.element<HTMLTextAreaElement>().value.trim();
-		this.updateJapaneseHeight();
+	private blurTextarea (event: Event) {
+		const component = Component.get(event);
+		const textarea = component.element<HTMLTextAreaElement>();
+		this.capture[component.classes.has("japanese") ? "text" : "translation"] = textarea.value = textarea.value.trim();
+		this.updateTextareaHeight(component);
 		this.emit("change");
 	}
 
-	private updateJapaneseHeight () {
-		const lines = this.capture.text.split("\n").length;
-		this.japanese.style.set("--height", Math.min(2.75862069, lines));
-		this.japanese.classes.toggle(lines > 4, "overflow");
+	private updateTextareaHeight (textareaComponent: Component) {
+		const lines = textareaComponent.element<HTMLTextAreaElement>().value.split("\n").length;
+		textareaComponent.style.set("--height", Math.min(2.75862069, lines));
+		textareaComponent.classes.toggle(lines > 4, "overflow");
 	}
 
 	@Bound
@@ -463,6 +478,7 @@ export default class Extractor extends Component {
 			position: position.raw(),
 			size: size.raw(),
 			text: out.toString("utf8").trim(),
+			translation: "",
 		});
 
 		await this.updateJSON();

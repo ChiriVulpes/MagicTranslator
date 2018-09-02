@@ -165,7 +165,7 @@
 		}
 	}
 	
-	.japanese {
+	textarea {
 		padding: 5px 10px;
 		box-sizing: border-box;
 		height: calc(var(--height) * 1.2em + 1.1vh);
@@ -176,7 +176,15 @@
 		resize: none;
 		font-family: inherit;
 		font-size: 1.5vw;
-		font-family: var(--font-ja);
 		font-weight: 100;
+		margin: 5px 0;
+	}
+	
+	.japanese {
+		font-family: var(--font-ja);
+	}
+	
+	.translation {
+		height: calc(var(--height) * 1.3em + 1.1vh);
 	}
 }
