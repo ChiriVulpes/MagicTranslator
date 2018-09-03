@@ -319,6 +319,8 @@ declare global {
 		entries (): IterableIterator<[number, T]>;
 
 		awaitAll (): T extends Promise<infer X> ? AsyncIterableIterator<X> : never;
+
+		at (index: number): T;
 	}
 
 	interface RegExp {
@@ -615,6 +617,17 @@ const iteratorImpl = {
 		for (const value of this) {
 			yield await value;
 		}
+	},
+
+	at (this: IterableIterator<any>, index: number) {
+		let i = 0;
+		for (const value of this) {
+			if (i++ == index) {
+				return value;
+			}
+		}
+
+		return undefined;
 	},
 
 	split (this: IterableIterator<any>, splitter: (val: any) => string) {

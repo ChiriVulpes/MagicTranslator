@@ -135,6 +135,7 @@ export default class Component {
 	//
 
 	public appendTo (where: Component) {
+		where.emit("append-child", event => event.data = this);
 		where.element().appendChild(this.element());
 		this.bindObserverForRemoval();
 		return this;
@@ -180,7 +181,7 @@ export default class Component {
 
 		const stepSign = Math.sign(step);
 		for (let i = start; Math.sign(end - i) === stepSign; i += step) {
-			yield Component.get(this.element().children[i]);
+			yield Component.get<C>(this.element().children[i]);
 		}
 	}
 
@@ -210,6 +211,18 @@ export default class Component {
 
 			yield Component.get<C>(match);
 		}
+	}
+
+	public isDescendantOf (component: Component) {
+		return component.element().contains(this.element());
+	}
+
+	public hasDescendants (...components: Component[]) {
+		for (const component of components) {
+			if (!component.isDescendantOf(this)) return false;
+		}
+
+		return true;
 	}
 
 	////////////////////////////////////

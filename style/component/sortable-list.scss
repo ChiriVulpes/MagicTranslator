@@ -1,0 +1,32 @@
+.sortable-list {
+	&.sorting {
+		&, & * {
+			cursor: -webkit-grabbing;
+		}
+		
+		&::before {
+			content: "";
+			display: block;
+			position: absolute;
+			z-index: -1;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: var(--sorting-wrapper-height);
+		}
+	}
+}
+
+.sortable-list-item {
+	&.sorting {
+		position: fixed;
+		width: var(--width);
+		top: var(--drag-y);
+		pointer-events: none;
+	}
+	
+	&.sorting-before {
+		margin-top: var(--sorting-item-height);
+	}
+}
+	

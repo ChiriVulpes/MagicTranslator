@@ -8,3 +8,4 @@ next-page: Next Page
 title: Magical Trans OCR{volume? — Volume {volume}{chapter? — Chapter {chapter}{page? — Page {page}}}}
 source-placeholder: Foreign
 translation-placeholder: Translation
+note-placeholder: Note
