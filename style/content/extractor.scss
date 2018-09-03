@@ -171,6 +171,15 @@
 }
 
 .note {
+	> textarea {
+		margin: 2px 0;
+		font-family: var(--font-ja);
+	}
+
+	> .translation {
+		height: calc(var(--height) * 1.2em + 1.1vh);
+	}
+	
 	:not(:focus-within) * > * > &.empty {
 		display: none;
 	}
