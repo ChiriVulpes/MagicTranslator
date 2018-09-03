@@ -5,6 +5,7 @@ import Bound from "util/Bound";
 import Collectors from "util/Collectors";
 import { pad } from "util/string/String";
 import Translation from "util/string/Translation";
+import { tuple } from "util/IterableIterator";
 
 export interface CaptureData {
 	id: number;
@@ -25,7 +26,7 @@ class Note extends SortableListItem {
 			.attributes.set("rows", "1")
 			.attributes.set("placeholder", new Translation("source-placeholder").get())
 			.setText(() => noteData[0])
-			.listeners.add(["change", "keyup", "paste", "input"], this.changeTextarea)
+			.listeners.add(["change", "keyup", "paste", "input", "focus"], this.changeTextarea)
 			.listeners.add("blur", this.blurTextarea)
 			.listeners.add("contextmenu", this.copy)
 			.appendTo(this);
@@ -35,7 +36,7 @@ class Note extends SortableListItem {
 			.attributes.set("rows", "1")
 			.attributes.set("placeholder", new Translation("note-placeholder").get())
 			.setText(() => noteData[1])
-			.listeners.add(["change", "keyup", "paste", "input"], this.changeTextarea)
+			.listeners.add(["change", "keyup", "paste", "input", "focus"], this.changeTextarea)
 			.listeners.add("blur", this.blurTextarea)
 			.listeners.add("contextmenu", this.copy)
 			.appendTo(this);
@@ -55,7 +56,7 @@ class Note extends SortableListItem {
 	private changeTextarea (event: Event) {
 		const component = Component.get(event);
 		this.noteData[component.classes.has("japanese") ? 0 : 1] = component.element<HTMLTextAreaElement>().value;
-		this.emit("change");
+		this.emit("note-change");
 	}
 
 	@Bound
@@ -63,7 +64,7 @@ class Note extends SortableListItem {
 		const component = Component.get(event);
 		const textarea = component.element<HTMLTextAreaElement>();
 		this.noteData[component.classes.has("japanese") ? 0 : 1] = textarea.value = textarea.value.trim();
-		sleep(0.01).then(() => this.emit("blur"));
+		sleep(0.01).then(() => this.emit("note-blur"));
 		this.classes.toggle(this.isBlank(), "empty");
 	}
 
@@ -121,31 +122,34 @@ export default class Capture extends SortableListItem {
 		this.updateTextareaHeight(this.japanese);
 		this.updateTextareaHeight(this.translation);
 
-		(capture.notes || []).forEach(this.addNote);
-		this.addNote();
+		(capture.notes.length ? capture.notes : [tuple("", "")])
+			.forEach(this.addNote);
 	}
 
 	public getData (): CaptureData {
+		const notes = this.notes.children<Note>()
+			.filter(note => !note.isBlank())
+			.map(note => note.getData())
+			.collect(Collectors.toArray);
+
 		return {
 			...this.capture,
-			notes: this.notes.children<Note>()
-				.filter(note => !note.isBlank())
-				.map(note => note.getData())
-				.collect(Collectors.toArray),
+			notes: notes.length === 0 ? [["", ""]] : notes,
 		};
 	}
 
 	@Bound
 	private addNote (noteData?: [string, string]) {
 		new Note(noteData)
-			.listeners.add("change", this.noteChange)
-			.listeners.add("blur", this.noteBlur)
+			.listeners.add("note-change", this.noteChange)
+			.listeners.add("note-blur", this.noteBlur)
 			.appendTo(this.notes);
 	}
 
 	@Bound
 	private noteChange (event: Event) {
 		const note = Component.get<Note>(event);
+
 		if (!note.isBlank()) {
 			if (note.parent!.child(-1) === note) {
 				this.addNote();
@@ -171,7 +175,7 @@ export default class Capture extends SortableListItem {
 		const component = Component.get(event);
 		this.capture[component.classes.has("japanese") ? "text" : "translation"] = component.element<HTMLTextAreaElement>().value;
 		this.updateTextareaHeight(component);
-		this.emit("change");
+		this.emit("capture-change");
 	}
 
 	@Bound
@@ -180,7 +184,7 @@ export default class Capture extends SortableListItem {
 		const textarea = component.element<HTMLTextAreaElement>();
 		this.capture[component.classes.has("japanese") ? "text" : "translation"] = textarea.value = textarea.value.trim();
 		this.updateTextareaHeight(component);
-		this.emit("change");
+		this.emit("capture-change");
 	}
 
 	private updateTextareaHeight (textareaComponent: Component) {

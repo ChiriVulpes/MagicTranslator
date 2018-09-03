@@ -96,7 +96,7 @@ export default class Extractor extends Component {
 
 	private addCapture (capture: CaptureData) {
 		new Capture(this.getCapturePagePath(), capture)
-			.listeners.add("change", this.updateJSON)
+			.listeners.add("capture-change", this.updateJSON)
 			.listeners.add<MouseEvent>("mouseenter", this.mouseEnterCapture)
 			.listeners.add("remove-capture", this.removeCapture)
 			.appendTo(this.capturesWrapper);
