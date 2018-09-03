@@ -3,9 +3,9 @@ import SortableList, { SortableListItem } from "component/shared/SortableList";
 import { sleep } from "util/Async";
 import Bound from "util/Bound";
 import Collectors from "util/Collectors";
+import { tuple } from "util/IterableIterator";
 import { pad } from "util/string/String";
 import Translation from "util/string/Translation";
-import { tuple } from "util/IterableIterator";
 
 export interface CaptureData {
 	id: number;
@@ -122,7 +122,7 @@ export default class Capture extends SortableListItem {
 		this.updateTextareaHeight(this.japanese);
 		this.updateTextareaHeight(this.translation);
 
-		(capture.notes.length ? capture.notes : [tuple("", "")])
+		(capture.notes && capture.notes.length ? capture.notes : [tuple("", "")])
 			.forEach(this.addNote);
 	}
 
