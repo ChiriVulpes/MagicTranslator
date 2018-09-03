@@ -29,17 +29,19 @@ class Note extends SortableListItem {
 			.listeners.add(["change", "keyup", "paste", "input", "focus"], this.changeTextarea)
 			.listeners.add("blur", this.blurTextarea)
 			.listeners.add("contextmenu", this.copy)
-			.appendTo(this);
+			.appendTo(this)
+			.schedule(this.updateTextareaHeight);
 
 		new Component("textarea")
-			.classes.add("translation-note")
+			.classes.add("translation")
 			.attributes.set("rows", "1")
 			.attributes.set("placeholder", new Translation("note-placeholder").get())
 			.setText(() => noteData[1])
 			.listeners.add(["change", "keyup", "paste", "input", "focus"], this.changeTextarea)
 			.listeners.add("blur", this.blurTextarea)
 			.listeners.add("contextmenu", this.copy)
-			.appendTo(this);
+			.appendTo(this)
+			.schedule(this.updateTextareaHeight);
 
 		this.classes.toggle(this.isBlank(), "empty");
 	}
@@ -56,6 +58,7 @@ class Note extends SortableListItem {
 	private changeTextarea (event: Event) {
 		const component = Component.get(event);
 		this.noteData[component.classes.has("japanese") ? 0 : 1] = component.element<HTMLTextAreaElement>().value;
+		this.updateTextareaHeight(component);
 		this.emit("note-change");
 	}
 
@@ -64,8 +67,16 @@ class Note extends SortableListItem {
 		const component = Component.get(event);
 		const textarea = component.element<HTMLTextAreaElement>();
 		this.noteData[component.classes.has("japanese") ? 0 : 1] = textarea.value = textarea.value.trim();
+		this.updateTextareaHeight(component);
 		sleep(0.01).then(() => this.emit("note-blur"));
 		this.classes.toggle(this.isBlank(), "empty");
+	}
+
+	@Bound
+	private updateTextareaHeight (textareaComponent: Component) {
+		const lines = textareaComponent.element<HTMLTextAreaElement>().value.split("\n").length;
+		textareaComponent.style.set("--height", Math.min(2.75862069, lines));
+		textareaComponent.classes.toggle(lines > 4, "overflow");
 	}
 
 	@Bound
@@ -78,8 +89,6 @@ class Note extends SortableListItem {
 
 export default class Capture extends SortableListItem {
 
-	private readonly japanese: Component;
-	private readonly translation: Component;
 	private readonly notes: SortableList;
 
 	public constructor(root: string, private readonly capture: CaptureData) {
@@ -92,22 +101,24 @@ export default class Capture extends SortableListItem {
 			.appendTo(this);
 
 		new Component()
-			.append(this.japanese = new Component("textarea")
+			.append(new Component("textarea")
 				.classes.add("japanese")
 				.attributes.set("rows", "1")
 				.attributes.set("placeholder", new Translation("source-placeholder").get())
 				.setText(() => capture.text)
 				.listeners.add(["change", "keyup", "paste", "input"], this.changeTextarea)
 				.listeners.add("blur", this.blurTextarea)
-				.listeners.add("contextmenu", this.copy))
-			.append(this.translation = new Component("textarea")
+				.listeners.add("contextmenu", this.copy)
+				.schedule(this.updateTextareaHeight))
+			.append(new Component("textarea")
 				.classes.add("translation")
 				.attributes.set("rows", "1")
 				.attributes.set("placeholder", new Translation("translation-placeholder").get())
 				.setText(() => capture.translation || "")
 				.listeners.add(["change", "keyup", "paste", "input"], this.changeTextarea)
 				.listeners.add("blur", this.blurTextarea)
-				.listeners.add("contextmenu", this.copy))
+				.listeners.add("contextmenu", this.copy)
+				.schedule(this.updateTextareaHeight))
 			.append(this.notes = new SortableList()
 				.classes.add("notes"))
 			.appendTo(this);
@@ -118,9 +129,6 @@ export default class Capture extends SortableListItem {
 				.setText("remove")
 				.listeners.add("click", () => this.emit("remove-capture")))
 			.appendTo(this);
-
-		this.updateTextareaHeight(this.japanese);
-		this.updateTextareaHeight(this.translation);
 
 		(capture.notes && capture.notes.length ? capture.notes : [tuple("", "")])
 			.forEach(this.addNote);
@@ -187,6 +195,7 @@ export default class Capture extends SortableListItem {
 		this.emit("capture-change");
 	}
 
+	@Bound
 	private updateTextareaHeight (textareaComponent: Component) {
 		const lines = textareaComponent.element<HTMLTextAreaElement>().value.split("\n").length;
 		textareaComponent.style.set("--height", Math.min(2.75862069, lines));
