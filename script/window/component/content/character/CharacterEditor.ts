@@ -107,10 +107,10 @@ export default class CharacterEditor extends Component {
 
 		await fs.mkdir(`${options.root}/character`);
 
-		await fs.writeFile(`${options.root}/character/${pad(this.characterId++, 3)}.png`, buffer);
+		await fs.writeFile(`${options.root}/character/${pad(this.characterId, 3)}.png`, buffer);
 
 		this.addCharacter({
-			id: this.characterId,
+			id: this.characterId++,
 			name: new Translation("unknown").get(),
 		});
 

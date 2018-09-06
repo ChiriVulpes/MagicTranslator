@@ -7,6 +7,7 @@ import Collectors from "util/Collectors";
 import { Vector } from "util/math/Geometry";
 import { pad } from "util/string/String";
 import Translation from "util/string/Translation";
+import CharacterEditor from "component/content/character/CharacterEditor";
 
 interface TranslationData {
 	captureId: number;
@@ -229,6 +230,25 @@ export default class Extractor extends Component {
 
 		context.drawImage(this.pageImage.element<HTMLImageElement>(), -position.x, -position.y);
 
+		const [character, textBuffer] = await Promise.all([
+			CharacterEditor.chooseCharacter(),
+			this.saveCapture(canvas, size),
+		]);
+
+		this.addCapture({
+			id: this.captureId - 1,
+			position: position.raw(),
+			size: size.raw(),
+			text: textBuffer.toString("utf8").trim(),
+			translation: "",
+			notes: [],
+			character,
+		});
+
+		await this.updateJSON();
+	}
+
+	private async saveCapture (canvas: HTMLCanvasElement, size: Vector) {
 		const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve));
 
 		const buffer = await new Promise<Buffer>(resolve => {
@@ -244,24 +264,13 @@ export default class Extractor extends Component {
 		await fs.mkdir(`${options.root}/${this.volume}/${this.chapter}/capture`);
 		await fs.mkdir(this.getCapturePagePath());
 
-		const captureId = this.captureId;
 		const cropPath = `${this.getCapturePagePath()}/cap${pad(this.captureId++, 3)}.png`;
 		await fs.writeFile(cropPath, buffer);
 
 		const vertical = size.x < size.y;
 
 		const [out] = await childProcess.exec(`${options.capture2TextCLIPath} --language Japanese --image ${cropPath} --line-breaks${vertical ? " --vertical" : ""}`);
-
-		this.addCapture({
-			id: captureId,
-			position: position.raw(),
-			size: size.raw(),
-			text: out.toString("utf8").trim(),
-			translation: "",
-			notes: [],
-		});
-
-		await this.updateJSON();
+		return out;
 	}
 
 	private getCapturePagePath () {
