@@ -2,6 +2,7 @@ import Component from "component/Component";
 import Character, { BasicCharacter, CharacterData } from "component/content/character/Character";
 import Bound from "util/Bound";
 import Collectors from "util/Collectors";
+import Enums from "util/Enums";
 import { pipe } from "util/IterableIterator";
 import { ComponentEvent } from "util/Manipulator";
 import Options from "util/Options";
@@ -72,7 +73,7 @@ export default class CharacterEditor extends Component {
 		pipe(characterData.characters)
 			.flat()
 			.filter<undefined>(character => character)
-			.include([BasicCharacter.Narrator, BasicCharacter.Unknown])
+			.include(Enums.values(BasicCharacter))
 			.forEach(this.addCharacter);
 
 		this.select(BasicCharacter.Unknown);

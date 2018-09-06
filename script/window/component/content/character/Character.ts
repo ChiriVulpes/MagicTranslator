@@ -10,8 +10,10 @@ export interface CharacterData {
 }
 
 export enum BasicCharacter {
-	Unknown = "Unknown",
-	Narrator = "Narrator",
+	Sfx = "sfx",
+	Narrator = "narrator",
+	ChapterTitle = "chapter-title",
+	Unknown = "unknown",
 }
 
 export default class Character extends Component {

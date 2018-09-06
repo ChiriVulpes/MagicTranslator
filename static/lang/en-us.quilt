@@ -11,6 +11,8 @@ translation-placeholder: Translation
 note-placeholder: Note
 character-unknown: N/A
 character-narrator: Narrator
+character-chapter-title: Chapter Title
+character-sfx: SFX
 cancel: Cancel
 choose: Choose
 name: Name
