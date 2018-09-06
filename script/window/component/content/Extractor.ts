@@ -230,16 +230,33 @@ export default class Extractor extends Component {
 
 		context.drawImage(this.pageImage.element<HTMLImageElement>(), -position.x, -position.y);
 
-		const [character, textBuffer] = await Promise.all([
+		if (event.ctrlKey) {
+			const textarea = document.createElement("textarea");
+			textarea.style.setProperty("position", "fixed");
+			textarea.style.setProperty("opacity", "0");
+			document.body.appendChild(textarea);
+
+			textarea.value = await this.saveCapture("temp.png", canvas, size);
+
+			textarea.select();
+			document.execCommand("copy");
+			textarea.remove();
+
+			await fs.unlink(`${this.getCapturePagePath()}/temp.png`);
+
+			return;
+		}
+
+		const [character, text] = await Promise.all([
 			CharacterEditor.chooseCharacter(),
-			this.saveCapture(canvas, size),
+			this.saveCapture(`cap${pad(this.captureId++, 3)}.png`, canvas, size),
 		]);
 
 		this.addCapture({
 			id: this.captureId - 1,
 			position: position.raw(),
 			size: size.raw(),
-			text: textBuffer.toString("utf8").trim(),
+			text,
 			translation: "",
 			notes: [],
 			character,
@@ -248,7 +265,7 @@ export default class Extractor extends Component {
 		await this.updateJSON();
 	}
 
-	private async saveCapture (canvas: HTMLCanvasElement, size: Vector) {
+	private async saveCapture (path: string, canvas: HTMLCanvasElement, size: Vector) {
 		const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve));
 
 		const buffer = await new Promise<Buffer>(resolve => {
@@ -264,13 +281,13 @@ export default class Extractor extends Component {
 		await fs.mkdir(`${options.root}/${this.volume}/${this.chapter}/capture`);
 		await fs.mkdir(this.getCapturePagePath());
 
-		const cropPath = `${this.getCapturePagePath()}/cap${pad(this.captureId++, 3)}.png`;
+		const cropPath = `${this.getCapturePagePath()}/${path}`;
 		await fs.writeFile(cropPath, buffer);
 
 		const vertical = size.x < size.y;
 
 		const [out] = await childProcess.exec(`${options.capture2TextCLIPath} --language Japanese --image ${cropPath} --line-breaks${vertical ? " --vertical" : ""}`);
-		return out;
+		return out.toString("utf8").trim();
 	}
 
 	private getCapturePagePath () {
