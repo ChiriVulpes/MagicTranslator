@@ -60,9 +60,9 @@ export default class Content extends Component {
 	//
 
 	private async getVolumes () {
-		const entries = (await fs.readdir(options.root));
-		entries.sort();
-		return entries.values()
+		return (await fs.readdir(options.root))
+			.sort()
+			.values()
 			.filter(volume => /vol\d\d/.test(volume))
 			.map(async volume => tuple(volume, await this.getChapters(volume)))
 			.awaitAll()
@@ -70,9 +70,9 @@ export default class Content extends Component {
 	}
 
 	private async getChapters (volume: string) {
-		const entries = (await fs.readdir(`${options.root}/${volume}`));
-		entries.sort();
-		return entries.values()
+		return (await fs.readdir(`${options.root}/${volume}`))
+			.sort()
+			.values()
 			.filter(chapter => /ch\d\d\d/.test(chapter))
 			.map(async chapter => tuple(chapter, await this.getPages(volume, chapter)))
 			.awaitAll()
@@ -80,9 +80,9 @@ export default class Content extends Component {
 	}
 
 	private async getPages (volume: string, chapter: string) {
-		const entries = (await fs.readdir(`${options.root}/${volume}/${chapter}/raw`));
-		entries.sort();
-		return entries.values()
+		return (await fs.readdir(`${options.root}/${volume}/${chapter}/raw`))
+			.sort()
+			.values()
 			.filter(page => /\d\d\d\.png/.test(page))
 			.collect(Collectors.toArray);
 	}
