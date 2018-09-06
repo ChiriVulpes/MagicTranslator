@@ -26,6 +26,7 @@ declare global {
 
 	type RequireFunction = <T = any>(module: string) => T;
 
+	const path: typeof import("path");
 	const fs: FileSystem;
 	const childProcess: typeof import("mz/child_process");
 }
@@ -53,6 +54,8 @@ const nodeChildProcess = req<typeof import("child_process")>("child_process");
 		});
 	},
 };
+
+(window as any).path = req("path");
 
 
 ////////////////////////////////////

@@ -138,18 +138,10 @@
 	}
 	
 	textarea {
-		padding: 5px 10px;
-		box-sizing: border-box;
 		height: calc(var(--height) * 1.2em + 1.1vh);
 		width: 100%;
-		background: #0003;
-		border: none;
-		color: inherit;
-		resize: none;
-		font-family: inherit;
 		font-size: 1.5vw;
 		font-weight: 100;
-		margin: 5px 0;
 	}
 	
 	.japanese {
@@ -170,6 +162,12 @@
 	}
 }
 
+.capture-action-row {
+	display: grid;
+	grid-template-columns: 1fr auto;
+	gap: 10px;
+}
+
 .note {
 	> textarea {
 		margin: 2px 0;
@@ -180,8 +178,10 @@
 		height: calc(var(--height) * 1.2em + 1.1vh);
 	}
 	
-	:not(:focus-within) * > * > &.empty {
-		display: none;
+	textarea:not(:focus) + textarea:not(:focus) ~ :not(:focus-within) > &.empty {
+		opacity: 0;
+		pointer-events: none;
+		margin-bottom: -100%;
 	}
 	
 	&:not(.empty), & > * {

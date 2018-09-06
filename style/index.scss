@@ -91,7 +91,7 @@
 
 body {
 	margin: 0;
-	display: grid;
+	display: grid !important;
 	grid-template-rows: auto 1fr;
 	overflow: hidden;
 	width: 100%;
@@ -109,6 +109,7 @@ body {
 }
 
 button {
+	display: inline-block;
 	border: none;
 	margin: 5px;
 	padding: 5px 10px;
@@ -131,6 +132,19 @@ button {
 		opacity: .3;
 		pointer-events: none;
 	}
+}
+
+textarea {
+	padding: 5px 10px;
+	box-sizing: border-box;
+	background: #0003;
+	border: none;
+	color: inherit;
+	font-family: inherit;
+	font-size: inherit;
+	font-weight: inherit;
+	resize: none;
+	margin: 5px 0;
 }
 
 ::-webkit-scrollbar {

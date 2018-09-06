@@ -11,8 +11,11 @@ export default class FileSystem {
 		});
 	}
 
-	public async readFile (path: string, encoding: string) {
-		return new Promise<string>((resolve, reject) => {
+	public async readFile (path: string, encoding: string): Promise<string>;
+	public async readFile (path: string): Promise<Buffer>;
+	public async readFile (path: string, encoding?: string): Promise<string | Buffer>;
+	public async readFile (path: string, encoding?: string) {
+		return new Promise<string | Buffer>((resolve, reject) => {
 			this.nodefs.readFile(path, encoding, (err: NodeJS.ErrnoException | undefined, file) => {
 				if (err) reject(err);
 				else resolve(file);

@@ -1,12 +1,13 @@
 import Component from "component/Component";
+import CharacterEditor from "component/content/character/CharacterEditor";
 import Explorer from "component/content/Explorer";
+import Extractor from "component/content/Extractor";
 import Bound from "util/Bound";
 import Collectors from "util/Collectors";
 import { tuple } from "util/IterableIterator";
 import { ComponentEvent } from "util/Manipulator";
 import Options from "util/Options";
 import Language from "util/string/Language";
-import Extractor from "./Extractor";
 
 export default class Content extends Component {
 	private volumes: Map<string, Map<string, string[]>>;
@@ -19,9 +20,11 @@ export default class Content extends Component {
 	}
 
 	public async initialize () {
+		await Language.waitForLanguage();
+
 		await Promise.all([
-			Language.waitForLanguage(),
 			Options.waitForOptions(),
+			new CharacterEditor().hide().appendTo(this).waitForCharacters(),
 		]);
 
 		this.volumes = await this.getVolumes();
@@ -30,7 +33,7 @@ export default class Content extends Component {
 	}
 
 	private showExplorer (startLocation?: [string, string]) {
-		this.dump();
+		this.children(1).forEach(child => child.remove());
 
 		new Explorer(this.volumes, startLocation)
 			.listeners.add("extract", this.extractPage)
@@ -39,7 +42,7 @@ export default class Content extends Component {
 
 	@Bound
 	private extractPage ({ data }: ComponentEvent<[string, string, string, boolean, boolean]>) {
-		this.dump();
+		this.children(1).forEach(child => child.remove());
 
 		const [volume, chapter, page] = data;
 		const pages = this.volumes.get(volume)!.get(chapter)!;

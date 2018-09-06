@@ -1,3 +1,5 @@
+import Translation from "util/string/Translation";
+
 let Dialog: typeof Electron.dialog;
 let Store: StoreModule;
 
@@ -61,35 +63,59 @@ export default class Options {
 		return new Promise(resolve => this.waitForOptionsHandlers.push(resolve));
 	}
 
-	private static async chooseRootFolder () {
-		let result: string[] | undefined;
+	public static async chooseFile (title: string, validator: ((result: string) => boolean | Promise<boolean>) | undefined, retryOnCancel: true): Promise<string>;
+	public static async chooseFile (title: string, validator?: (result: string) => boolean | Promise<boolean>): Promise<string | undefined>;
+	public static async chooseFile (title: string, validator?: (result: string) => boolean | Promise<boolean>, retryOnCancel?: boolean): Promise<string | undefined>;
+	public static async chooseFile (title: string, validator?: (result: string) => boolean | Promise<boolean>, retryOnCancel = false) {
+		let file: string | undefined;
 		while (true) {
-			result = await new Promise<string[] | undefined>(resolve => Dialog.showOpenDialog({
-				properties: ["openDirectory"],
-				title: "Choose Root Folder (Folder Containing vol##/ch### folders)",
+			const result = await new Promise<string[] | undefined>(resolve => Dialog.showOpenDialog({
+				properties: ["openFile"],
+				title: new Translation(title).get(),
 			}, resolve));
 
-			if (result) break;
+			if (!result) {
+				if (retryOnCancel) continue;
+				else break;
+			}
+
+			file = result[0].replace(/\\/g, "/");
+			if (!validator || await validator(file)) break;
 		}
 
-		return result[0].replace(/\\/g, "/");
+		return file;
 	}
 
-	private static async chooseCapture2TextCLIPath () {
-		let cliPath: string;
+	public static async chooseFolder (title: string, validator: ((result: string) => boolean | Promise<boolean>) | undefined, retryOnCancel: true): Promise<string>;
+	public static async chooseFolder (title: string, validator?: (result: string) => boolean | Promise<boolean>): Promise<string | undefined>;
+	public static async chooseFolder (title: string, validator?: (result: string) => boolean | Promise<boolean>, retryOnCancel?: boolean): Promise<string | undefined>;
+	public static async chooseFolder (title: string, validator?: (result: string) => boolean | Promise<boolean>, retryOnCancel = false) {
+		let folder: string | undefined;
 		while (true) {
 			const result = await new Promise<string[] | undefined>(resolve => Dialog.showOpenDialog({
 				properties: ["openDirectory"],
-				title: "Choose Capture2Text Folder (Folder Containing Capture2Text_CLI.exe)",
+				title,
 			}, resolve));
 
-			if (!result) continue;
+			if (!result) {
+				if (retryOnCancel) continue;
+				else break;
+			}
 
-			cliPath = `${result[0]}/Capture2Text_CLI.exe`;
-			if (await fs.exists(cliPath)) break;
+			folder = result[0].replace(/\\/g, "/");
+			if (!validator || await validator(folder)) break;
 		}
 
-		return cliPath.replace(/\\/g, "/");
+		return folder;
+	}
+
+	private static async chooseRootFolder () {
+		return this.chooseFolder("prompt-root-folder", undefined, true);
+	}
+
+	private static async chooseCapture2TextCLIPath () {
+		const folder = await this.chooseFolder("prompt-cap-2-text-cli", result => fs.exists(`${result}/Capture2Text_CLI.exe`), true);
+		return `${folder}/Capture2Text_CLI.exe`;
 	}
 
 	////////////////////////////////////

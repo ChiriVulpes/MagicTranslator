@@ -141,8 +141,8 @@ export default class Component {
 		return this;
 	}
 
-	public append (...what: (Component | undefined)[]) {
-		for (const component of what) {
+	public append (...what: ArrayOfTOrIterablesOfT<Component | undefined>) {
+		for (const component of what.values().flat()) {
 			if (component) component.appendTo(this);
 		}
 
@@ -213,6 +213,14 @@ export default class Component {
 		}
 	}
 
+	public *siblings<C extends Component = Component> () {
+		if (!this.parent) return;
+
+		for (const child of this.parent.children().filter(c => c !== this)) {
+			yield child;
+		}
+	}
+
 	public isDescendantOf (component: Component) {
 		return component.element().contains(this.element());
 	}
@@ -239,8 +247,14 @@ export default class Component {
 		return new Box(this.element().getBoundingClientRect());
 	}
 
+	public focus () {
+		this.element().focus();
+		return this;
+	}
+
 	public click () {
 		this.element().click();
+		return this;
 	}
 
 	public schedule (handler: (component: this) => any): this;

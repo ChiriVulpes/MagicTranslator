@@ -9,3 +9,12 @@ title: Magical Trans OCR{volume? — Volume {volume}{chapter? — Chapter {chapt
 source-placeholder: Foreign
 translation-placeholder: Translation
 note-placeholder: Note
+character-unknown: N/A
+character-narrator: Narrator
+cancel: Cancel
+choose: Choose
+name: Name
+character-new: Add New Character
+prompt-cap-2-text-cli: Choose Capture2Text Folder (Folder Containing Capture2Text_CLI.exe)
+prompt-root-folder: Choose Root Folder (Folder Containing vol##/ch### folders)
+prompt-character-headshot: Choose the Headshot Image for the Character (Prefer Square Images)
