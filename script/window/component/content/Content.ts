@@ -29,6 +29,9 @@ export default class Content extends Component {
 
 		this.volumes = await this.getVolumes();
 
+		Component.window.listeners.until(this.listeners.waitFor("remove"))
+			.add("keyup", this.keyup, true);
+
 		this.showExplorer();
 	}
 
@@ -53,6 +56,11 @@ export default class Content extends Component {
 			.listeners.add("previous", () => this.extractPage({ data: [volume, chapter, pages[index - 1], index > 1, true] } as any))
 			.listeners.add("next", () => this.extractPage({ data: [volume, chapter, pages[index + 1], true, index < pages.length - 2] } as any))
 			.appendTo(this);
+	}
+
+	@Bound
+	private keyup (event: KeyboardEvent) {
+		if (event.code === "F12") window.send("window-toggle-devtools");
 	}
 
 	////////////////////////////////////

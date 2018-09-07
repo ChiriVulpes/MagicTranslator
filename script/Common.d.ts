@@ -8,6 +8,7 @@ type WindowEvent =
 	"window-back" |
 	"window-forward" |
 	"window-get-position" |
+	"window-toggle-devtools" |
 	"get-locale";
 
 interface IpcEvent {

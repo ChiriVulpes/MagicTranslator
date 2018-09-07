@@ -55,6 +55,7 @@ async function init () {
 	on("window-maximize", () => win.maximize());
 	on("window-minimize", () => win.minimize());
 	on("window-restore", () => win.unmaximize());
+	on("window-toggle-devtools", () => win.webContents.toggleDevTools());
 	on("get-locale", () => app.getLocale());
 
 	win.on("app-command", (e, command) => {
