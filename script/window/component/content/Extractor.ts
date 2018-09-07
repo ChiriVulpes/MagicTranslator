@@ -6,10 +6,10 @@ import Header from "component/header/Header";
 import SortableList, { SortableListEvent } from "component/shared/SortableList";
 import Bound from "util/Bound";
 import Collectors from "util/Collectors";
+import File from "util/File";
 import { Vector } from "util/math/Geometry";
 import { pad } from "util/string/String";
 import Translation from "util/string/Translation";
-import File from "util/File";
 
 interface TranslationData {
 	captureId: number;
