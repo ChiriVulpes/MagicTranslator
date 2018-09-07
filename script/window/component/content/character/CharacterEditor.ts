@@ -22,7 +22,7 @@ export default class CharacterEditor extends Component {
 
 	public static async chooseCharacter (startingCharacter?: number | BasicCharacter) {
 		const characterEditor = Component.get<CharacterEditor>("#character-editor").show();
-		if (startingCharacter !== undefined) characterEditor.select(startingCharacter);
+		if (startingCharacter !== undefined) characterEditor.select(characterEditor.startingCharacter = startingCharacter);
 
 		return new Promise<number | BasicCharacter>(resolve => {
 			characterEditor.listeners.until("choose")
@@ -36,7 +36,7 @@ export default class CharacterEditor extends Component {
 	private characterId = 0;
 
 	private readonly characterWrapper: Component;
-	private startingCharacter: string | BasicCharacter = BasicCharacter.Unknown;
+	private startingCharacter: number | BasicCharacter = BasicCharacter.Unknown;
 
 	public constructor() {
 		super();
@@ -63,6 +63,10 @@ export default class CharacterEditor extends Component {
 			.setText("choose")
 			.listeners.add("click", this.choose)
 			.appendTo(content);
+
+		this.listeners.add("show", () =>
+			Component.window.listeners.until(this.listeners.waitFor("hide"))
+				.add("keyup", this.keyup, true));
 	}
 
 	public async waitForCharacters () {
@@ -178,5 +182,10 @@ export default class CharacterEditor extends Component {
 			.forEach(sibling => sibling.classes.remove("selected"));
 	}
 
+	@Bound
+	private keyup (event: KeyboardEvent) {
+		if (event.code === "Enter") this.choose();
+		if (event.code === "Escape") this.cancel();
+	}
 
 }

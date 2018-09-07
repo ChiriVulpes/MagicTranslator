@@ -118,6 +118,8 @@ export default class Extractor extends Component {
 
 	@Bound
 	private keyup (event: KeyboardEvent) {
+		if (!Component.get("#character-editor").classes.has("hidden")) return;
+
 		if (event.code === "Equal" && event.ctrlKey) this.zoomIn();
 		else if (event.code === "Minus" && event.ctrlKey) this.zoomOut();
 		else if (event.code === "Escape") this.emit("quit");
