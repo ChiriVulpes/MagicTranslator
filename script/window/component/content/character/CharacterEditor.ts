@@ -122,17 +122,20 @@ export default class CharacterEditor extends Component {
 
 		this.addCharacter({
 			id: this.characterId++,
-			name: new Translation("unknown").get(),
-		});
+			name: "",
+		}).focusInput();
 
 		this.updateJson();
 	}
 
 	@Bound
 	private addCharacter (character: CharacterData | BasicCharacter) {
-		new Character(character, typeof character === "object")
+		return new Character(character, typeof character === "object")
 			.listeners.add("click", this.select)
-			.listeners.add("change-name", this.updateJson)
+			.listeners.add("change-name", event => {
+				this.select(event, false);
+				this.updateJson();
+			})
 			.appendTo(this.characterWrapper);
 	}
 
@@ -164,10 +167,10 @@ export default class CharacterEditor extends Component {
 		this.emit("choose", event => event.data = this.startingCharacter);
 	}
 
-	private select (event: Event): void;
-	private select (character: number | BasicCharacter): void;
+	private select (event: Event, focus?: boolean): void;
+	private select (character: number | BasicCharacter, focus?: boolean): void;
 	@Bound
-	private select (eventOrCharacter: Event | number | BasicCharacter) {
+	private select (eventOrCharacter: Event | number | BasicCharacter, focus = true) {
 		let characterButton: Character;
 
 		if (typeof eventOrCharacter === "object") {
@@ -181,8 +184,9 @@ export default class CharacterEditor extends Component {
 				.first()!;
 		}
 
+		if (focus) characterButton.focus();
+
 		characterButton.classes.add("selected")
-			.focus()
 			.siblings()
 			.forEach(sibling => sibling.classes.remove("selected"));
 	}

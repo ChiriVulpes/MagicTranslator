@@ -52,6 +52,11 @@ export default class Character extends Component {
 		this.refreshText();
 	}
 
+	public focusInput () {
+		const textarea = this.child(0);
+		if (textarea) textarea.focus();
+	}
+
 	@Bound
 	private getCharacterName () {
 		return typeof this._character === "object" ? this._character.name : new Translation(`character-${this._character.toLowerCase()}`).get();
@@ -59,7 +64,9 @@ export default class Character extends Component {
 
 	@Bound
 	private changeName (event: Event) {
-		(this._character as CharacterData).name = Component.get(event).element<HTMLTextAreaElement>().value;
+		const textarea = Component.get(event).element<HTMLTextAreaElement>();
+		const value = textarea.value;
+		(this._character as CharacterData).name = value.endsWith("\n") ? textarea.value = value.trim() : value;
 		this.emit("change-name");
 	}
 }
