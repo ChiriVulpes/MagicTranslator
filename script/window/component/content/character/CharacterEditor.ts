@@ -184,6 +184,8 @@ export default class CharacterEditor extends Component {
 				.first()!;
 		}
 
+		if (characterButton.classes.has("selected")) return;
+
 		if (focus) characterButton.focus();
 
 		characterButton.classes.add("selected")
