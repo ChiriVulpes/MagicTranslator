@@ -188,6 +188,10 @@
 		pointer-events: all;
 	}
 	
+	textarea:not(:focus) + textarea:not(:focus) ~ :not(:focus-within) > &.empty > * {
+		pointer-events: none;
+	}
+	
 	/*
 	.sorting > :not(.sorting) > * > * > &, :not(:hover):not(:focus-within):not(.sorting) > * > * > & {
 		display: none;
@@ -215,3 +219,48 @@
 		max-width: 13vw;
 	}
 }
+
+////////////////////////////////////
+// "Read" display mode
+//
+
+.display-mode-read {
+	.capture {
+		grid-template-rows: auto 1fr;
+		min-height: auto;
+		
+		> :first-child > img, 
+		.japanese, 
+		.notes {
+			display: none;
+		}
+	}
+	
+	.capture-action-row {
+		order: -1;
+		display: block;
+	}
+	
+	.capture-action-row > :not(.character) {
+		display: none;
+	}
+	
+	.character {
+		pointer-events: none;
+		font-size: 24pt;
+		margin-top: -10px;
+		margin-bottom: 20px;
+     	left: -40px;
+		
+		&::before {
+			left: -20px;
+			width: 50px;
+			height: 50px;
+			top: 10px;
+		}
+	}
+	
+	.repeat-character .capture-action-row {
+		display: none;
+	}
+} 

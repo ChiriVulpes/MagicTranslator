@@ -1,4 +1,5 @@
 import Component from "component/Component";
+import { BasicCharacter } from "component/content/character/Character";
 import CharacterEditor from "component/content/character/CharacterEditor";
 import Capture, { CaptureData } from "component/content/extractor/Capture";
 import Header from "component/header/Header";
@@ -47,6 +48,9 @@ export default class Extractor extends Component {
 				.append(new Component("button")
 					.setText("back")
 					.listeners.add("click", () => this.emit("quit")))
+				.append(new Component("button")
+					.setText(() => new Translation(this.classes.has("display-mode-read") ? "translation-mode" : "read-mode").get())
+					.listeners.add("click", this.readMode))
 				.append(new Component("button")
 					.classes.add("float-right")
 					.setText("next-page")
@@ -265,6 +269,21 @@ export default class Extractor extends Component {
 		});
 
 		await this.updateJSON();
+	}
+
+	@Bound
+	private readMode (event: Event) {
+		this.classes.toggle("display-mode-read");
+		Component.get(event).refreshText();
+
+		if (this.classes.has("display-mode-read")) {
+			let lastCharacter: number | BasicCharacter | undefined;
+			for (const capture of this.capturesWrapper.children<Capture>()) {
+				const thisCharacter = capture.getData().character;
+				capture.classes.toggle(thisCharacter === lastCharacter, "repeat-character");
+				lastCharacter = thisCharacter;
+			}
+		}
 	}
 
 	private async saveCapture (path: string, canvas: HTMLCanvasElement, size: Vector) {
