@@ -2,7 +2,7 @@ import Component from "component/Component";
 import Character, { BasicCharacter } from "component/content/character/Character";
 import CharacterEditor from "component/content/character/CharacterEditor";
 import Note from "component/content/extractor/Note";
-import SortableList, { SortableListItem } from "component/shared/SortableList";
+import SortableList, { SortableListEvent, SortableListItem } from "component/shared/SortableList";
 import Bound from "util/Bound";
 import Collectors from "util/Collectors";
 import { tuple } from "util/IterableIterator";
@@ -52,7 +52,8 @@ export default class Capture extends SortableListItem {
 				.listeners.add("contextmenu", this.copy)
 				.schedule(this.updateTextareaHeight))
 			.append(this.notes = new SortableList()
-				.classes.add("notes"))
+				.classes.add("notes")
+				.listeners.add(SortableListEvent.SortComplete, () => this.emit("capture-change")))
 			.appendTo(this);
 
 		new Component()

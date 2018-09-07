@@ -1,5 +1,6 @@
 import Component from "component/Component";
 import CharacterEditor from "component/content/character/CharacterEditor";
+import { SortableListItem } from "component/shared/SortableList";
 import Bound from "util/Bound";
 import { pad } from "util/string/String";
 import Translation from "util/string/Translation";
@@ -16,7 +17,7 @@ export enum BasicCharacter {
 	Unknown = "unknown",
 }
 
-export default class Character extends Component {
+export default class Character extends SortableListItem {
 	private _character: CharacterData | BasicCharacter;
 
 	public get character () { return this._character; }
@@ -27,15 +28,17 @@ export default class Character extends Component {
 
 		this.setCharacter(character);
 
+		const content = new Component().appendTo(this);
+
 		if (editable) {
 			new Component("textarea")
 				.attributes.set("rows", "1")
 				.attributes.set("placeholder", new Translation("name").get())
 				.setText(this.getCharacterName)
 				.listeners.add(["change", "keyup", "paste", "input", "focus"], this.changeName)
-				.appendTo(this);
+				.appendTo(content);
 		} else {
-			this.setText(this.getCharacterName);
+			content.setText(this.getCharacterName);
 		}
 	}
 

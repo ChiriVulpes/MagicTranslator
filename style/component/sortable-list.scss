@@ -1,4 +1,6 @@
 .sortable-list {
+	position: relative;
+	
 	&.sorting {
 		&, & * {
 			cursor: -webkit-grabbing;
@@ -22,6 +24,7 @@
 		position: fixed;
 		width: var(--width);
 		top: var(--drag-y);
+		left: var(--left);
 		pointer-events: none;
 	}
 	

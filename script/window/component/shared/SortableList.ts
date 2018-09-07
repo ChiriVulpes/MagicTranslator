@@ -16,11 +16,12 @@ export class SortableListItem extends Component {
 	private scrollStart: number;
 	private lastMoveEvent?: MouseEvent;
 
-	public constructor() {
-		super();
+	public constructor(tagname?: string) {
+		super(tagname);
 		this.classes.add("sortable-list-item");
 
 		this.listeners.add("mousedown", this.mouseDown);
+		this.listeners.add("click", this.mouseUp);
 	}
 
 	@Bound
@@ -29,6 +30,8 @@ export class SortableListItem extends Component {
 		this.dragEnd = Vector.get(event!);
 
 		this.classes.add("sorting");
+		this.parent!.classes.add("sorting");
+
 		const y = this.positionStart! + (this.dragEnd.y - this.dragStart!.y) + (this.parent!.element().scrollTop - this.scrollStart);
 		this.style.set("--drag-y", y - this.parent!.element().scrollTop + this.parent!.box().top);
 
@@ -40,16 +43,16 @@ export class SortableListItem extends Component {
 	@Bound
 	private mouseDown (event: MouseEvent) {
 		if (Component.get(event) !== this) return;
+		if (this.parent && !(this.parent instanceof SortableList)) return;
 
 		const box = this.box();
 		this.scrollStart = this.parent!.element().scrollTop;
 		this.positionStart = box.top - this.parent!.box().top + this.scrollStart;
 		this.dragStart = Vector.get(event);
 		this.style.set("--width", box.width);
+		this.style.set("--left", box.left);
 
-		this.parent!
-			.classes.add("sorting")
-			.style.set("--sorting-wrapper-height", `${this.parent!.element().scrollHeight}px`);
+		this.parent!.style.set("--sorting-wrapper-height", `${this.parent!.element().scrollHeight}px`);
 
 		Component.window.listeners.add<MouseEvent>("mousemove", this.mouseMove);
 		Component.window.listeners.add<MouseEvent>("mouseup", this.mouseUp);
@@ -57,11 +60,13 @@ export class SortableListItem extends Component {
 
 	@Bound
 	private mouseUp (event: MouseEvent) {
-		const y = this.mouseMove(event);
-		this.classes.remove("sorting");
-
 		Component.window.listeners.remove<MouseEvent>("mousemove", this.mouseMove);
 		Component.window.listeners.remove<MouseEvent>("mouseup", this.mouseUp);
+
+		if (!this.classes.has("sorting")) return;
+
+		const y = this.mouseMove(event);
+		this.classes.remove("sorting");
 
 		this.emit<[SortableListItem, number]>(SortableListEvent.SortComplete, completeEvent => completeEvent.data = tuple(this, y));
 

@@ -52,7 +52,7 @@ export default class Component {
 	private observerForRemoval: MutationObserver;
 
 	public constructor(element: Element);
-	public constructor(tagType: string);
+	public constructor(tagType?: string);
 	public constructor();
 	public constructor(element: string | Element = "div") {
 		this.internalElement = typeof element === "string" ? document.createElement(element) : element as HTMLElement;

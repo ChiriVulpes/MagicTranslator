@@ -40,6 +40,7 @@
 			--height: 75px;
 			font-size: calc(var(--height) / 2);
 			font-weight: 100;
+			padding: 5px 0;
 		}
 	}
 }
@@ -69,40 +70,51 @@
 }
 
 .character {
-	padding-left: calc(var(--height) * 1.25);
-	margin: 5px 0;
+	--height: 31px;
+	--background: transparent;
+		
 	text-align: left;
 	position: relative;
-	
 	width: 100%;
-	--height: 31px;
-	height: var(--height);
+	background: none !important;
+	padding: 0;
+	margin: 0;
 	
-	--background: transparent;
-	background: var(--background);
+	> * {
+		position: relative;
+		min-height: var(--height);
+		padding: .3em .5em;
+		padding-left: calc(var(--height) * 1.25);
+		box-sizing: border-box;
+		background: var(--background);
+		pointer-events: none;
 	
+		&::before {
+			content: "";
+			display: block;
+			position: absolute;
+			height: var(--height);
+			width: var(--height);
+			top: 0;
+			left: 0;
+			background: var(--headshot);
+			background-size: contain;
+		}
+	}
+		
 	&:hover, &:focus {
-		background: #5559
+		> * {
+			background: #5559
+		}
 	}
 	
-	&.selected {
+	&.selected > * {
 		box-shadow: 0 0 0 3px #318bff;
 	}
 	
 	textarea {
 		margin: 0;
 		width: 100%;
-	}
-	
-	&::before {
-		content: "";
-		display: block;
-		position: absolute;
-		height: var(--height);
-		width: var(--height);
-		top: 0;
-		left: 0;
-		background: var(--headshot);
-		background-size: contain;
+		pointer-events: all;
 	}
 }

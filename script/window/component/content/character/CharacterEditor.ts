@@ -1,5 +1,6 @@
 import Component from "component/Component";
 import Character, { BasicCharacter, CharacterData } from "component/content/character/Character";
+import SortableList, { SortableListEvent } from "component/shared/SortableList";
 import Bound from "util/Bound";
 import Collectors from "util/Collectors";
 import Enums from "util/Enums";
@@ -49,8 +50,9 @@ export default class CharacterEditor extends Component {
 
 		const content = new Component().appendTo(this);
 
-		this.characterWrapper = new Component()
+		this.characterWrapper = new SortableList()
 			.classes.add("character-wrapper")
+			.listeners.add(SortableListEvent.SortComplete, this.updateJson)
 			.appendTo(content);
 
 		new Component("button")
