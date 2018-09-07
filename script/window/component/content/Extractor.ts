@@ -1,4 +1,5 @@
 import Component from "component/Component";
+import CharacterEditor from "component/content/character/CharacterEditor";
 import Capture, { CaptureData } from "component/content/extractor/Capture";
 import Header from "component/header/Header";
 import SortableList, { SortableListEvent } from "component/shared/SortableList";
@@ -7,7 +8,6 @@ import Collectors from "util/Collectors";
 import { Vector } from "util/math/Geometry";
 import { pad } from "util/string/String";
 import Translation from "util/string/Translation";
-import CharacterEditor from "component/content/character/CharacterEditor";
 
 interface TranslationData {
 	captureId: number;

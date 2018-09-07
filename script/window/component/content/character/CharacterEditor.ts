@@ -20,9 +20,9 @@ export default class CharacterEditor extends Component {
 			.first()!;
 	}
 
-	public static async chooseCharacter (startingCharacter: number | BasicCharacter = BasicCharacter.Unknown) {
-		const characterEditor = Component.get<CharacterEditor>("#character-editor");
-		characterEditor.show().select(startingCharacter);
+	public static async chooseCharacter (startingCharacter?: number | BasicCharacter) {
+		const characterEditor = Component.get<CharacterEditor>("#character-editor").show();
+		if (startingCharacter !== undefined) characterEditor.select(startingCharacter);
 
 		return new Promise<number | BasicCharacter>(resolve => {
 			characterEditor.listeners.until("choose")
@@ -42,25 +42,27 @@ export default class CharacterEditor extends Component {
 		super();
 		this.setId("character-editor");
 
+		const content = new Component().appendTo(this);
+
 		this.characterWrapper = new Component()
 			.classes.add("character-wrapper")
-			.appendTo(this);
+			.appendTo(content);
 
 		new Component("button")
 			.classes.add("character-new")
 			.setText("character-new")
 			.listeners.add("click", this.newCharacter)
-			.appendTo(this);
+			.appendTo(content);
 
 		new Component("button")
 			.setText("cancel")
 			.listeners.add("click", this.cancel)
-			.appendTo(this);
+			.appendTo(content);
 
 		new Component("button")
 			.setText("choose")
 			.listeners.add("click", this.choose)
-			.appendTo(this);
+			.appendTo(content);
 	}
 
 	public async waitForCharacters () {
