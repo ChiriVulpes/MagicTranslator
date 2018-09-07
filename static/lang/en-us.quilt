@@ -20,5 +20,6 @@ character-new: Add New Character
 prompt-cap-2-text-cli: Choose Capture2Text Folder (Folder Containing Capture2Text_CLI.exe)
 prompt-root-folder: Choose Root Folder (Folder Containing vol##/ch### folders)
 prompt-character-headshot: Choose the Headshot Image for the Character (Prefer Square Images)
-read-mode: Read Mode
-translation-mode: Translation Mode
+read-mode: Read
+translation-mode: Translate
+export: Export

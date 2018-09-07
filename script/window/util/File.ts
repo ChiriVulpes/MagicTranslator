@@ -3,9 +3,15 @@ module File {
 		return (await fetch(path)).text();
 	}
 
-	export async function shader (path: string) {
-		const shaderText = await (await fetch("./shader/" + path)).text();
-		return shaderText.replace(/\/\/ threejs:start(.|\n|\r)*\/\/ threejs:end/, "");
+	export function download (name: string, data: string) {
+		const objectUrl = URL.createObjectURL(new Blob([data], { type: "text/plain" }));
+
+		const linkElement = document.createElement("a");
+		linkElement.href = objectUrl;
+		linkElement.download = name;
+
+		linkElement.click();
+		linkElement.remove();
 	}
 }
 

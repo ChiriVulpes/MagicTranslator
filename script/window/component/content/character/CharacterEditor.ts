@@ -20,6 +20,11 @@ export default class CharacterEditor extends Component {
 			.first()!;
 	}
 
+	public static getName (character: number | BasicCharacter | CharacterData) {
+		if (typeof character === "number") character = CharacterEditor.getCharacter(character);
+		return typeof character === "object" ? character.name : new Translation(`character-${character.toLowerCase()}`).get();
+	}
+
 	public static async chooseCharacter (startingCharacter?: number | BasicCharacter) {
 		const characterEditor = Component.get<CharacterEditor>("#character-editor").show();
 		if (startingCharacter !== undefined) characterEditor.select(characterEditor.startingCharacter = startingCharacter);

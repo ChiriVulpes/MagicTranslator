@@ -3,6 +3,16 @@
     height: 100%;
     display: grid;
 	grid-template-columns: 1fr auto;
+	
+	--textarea-font-size-main: 1.1vw;
+	--textarea-font-size-note: 0.8vw;
+}
+
+@media screen and (max-width: 1450px) {
+	#extractor {
+		--textarea-font-size-main: 1.5vw;
+		--textarea-font-size-note: 1.3vw;
+	}
 }
 
 .page-wrapper {
@@ -65,8 +75,8 @@
 .extraction-drawer {
 	position: relative;
 	z-index: 1;
-	width: 40vw;
-    max-width: 600px;
+	width: 50vw;
+    max-width: 780px;
 	display: grid;
 	grid-template-rows: auto 1fr;
 }
@@ -140,7 +150,7 @@
 	textarea {
 		height: calc(var(--height) * 1.2em + 1.1vh);
 		width: 100%;
-		font-size: 1.5vw;
+		font-size: var(--textarea-font-size-main);
 		font-weight: 100;
 	}
 	
@@ -159,6 +169,10 @@
 		position: relative;
 		--sorting-wrapper-height: auto;
 		height: var(--sorting-wrapper-height);
+		
+		textarea {
+			font-size: var(--textarea-font-size-note);
+		}
 	}
 }
 
@@ -181,7 +195,7 @@
 	textarea:not(:focus) + textarea:not(:focus) ~ :not(:focus-within) > &.empty {
 		opacity: 0;
 		pointer-events: none;
-		margin-bottom: -100%;
+		height: 0;
 	}
 	
 	&:not(.empty), & > * {

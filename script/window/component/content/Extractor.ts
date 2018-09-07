@@ -9,6 +9,7 @@ import Collectors from "util/Collectors";
 import { Vector } from "util/math/Geometry";
 import { pad } from "util/string/String";
 import Translation from "util/string/Translation";
+import File from "util/File";
 
 interface TranslationData {
 	captureId: number;
@@ -49,18 +50,21 @@ export default class Extractor extends Component {
 					.setText("back")
 					.listeners.add("click", () => this.emit("quit")))
 				.append(new Component("button")
-					.setText(() => new Translation(this.classes.has("display-mode-read") ? "translation-mode" : "read-mode").get())
-					.listeners.add("click", this.readMode))
+					.setText("previous-page")
+					.classes.toggle(!hasPreviousPage, "disabled")
+					.listeners.add("click", () => this.emit("previous")))
 				.append(new Component("button")
-					.classes.add("float-right")
 					.setText("next-page")
 					.classes.toggle(!hasNextPage, "disabled")
 					.listeners.add("click", () => this.emit("next")))
 				.append(new Component("button")
 					.classes.add("float-right")
-					.setText("previous-page")
-					.classes.toggle(!hasPreviousPage, "disabled")
-					.listeners.add("click", () => this.emit("previous"))))
+					.setText(() => new Translation(this.classes.has("display-mode-read") ? "translation-mode" : "read-mode").get())
+					.listeners.add("click", this.readMode))
+				.append(new Component("button")
+					.classes.add("float-right")
+					.setText("export")
+					.listeners.add("click", this.export)))
 			.append(new Component()
 				.classes.add("extraction-captures-wrapper")
 				.append(this.capturesWrapper = new SortableList()
@@ -284,6 +288,34 @@ export default class Extractor extends Component {
 				lastCharacter = thisCharacter;
 			}
 		}
+	}
+
+	@Bound
+	private export () {
+		let result = `Volume ${+this.volume.slice(3)}, Chapter ${+this.chapter.slice(2)}, Page ${+this.page.slice(0, -4)}\n\n`;
+
+		let lastCharacter: number | BasicCharacter | undefined;
+		for (const capture of this.capturesWrapper.children<Capture>()) {
+			const data = capture.getData();
+			if (data.character && data.character !== lastCharacter) {
+				result += `## ${CharacterEditor.getName(data.character)}\n\n`;
+				lastCharacter = data.character;
+			}
+
+			result += data.text.trim()
+				.split(/\r?\n/)
+				.map(line => "> " + line)
+				.join("\n") + "\n\n";
+
+			if (data.translation) result += data.translation + "\n\n";
+
+			const notes = data.notes.filter(([f, n]) => f && n);
+			if (notes.length) result += notes
+				.map(([f, n]) => `- \`${f}\` — ${n}`)
+				.join("\n") + "\n\n";
+		}
+
+		File.download(`dialog-${this.volume}-${this.chapter}-${this.page.slice(0, -4)}.md`, result);
 	}
 
 	private async saveCapture (path: string, canvas: HTMLCanvasElement, size: Vector) {

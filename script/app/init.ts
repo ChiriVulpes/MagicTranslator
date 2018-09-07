@@ -28,7 +28,7 @@ async function init () {
 	const win = mainWindow = new BrowserWindow({
 		show: false,
 		frame: false,
-		minWidth: 800,
+		minWidth: 1000,
 		minHeight: 600,
 		width,
 		height,
