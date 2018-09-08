@@ -104,15 +104,15 @@ export default class Explorer extends Component {
 		this.addBackButton(this.showVolumes);
 
 		new Component("button")
-			.classes.toggle(volume === Volumes.size - 1, "disabled")
-			.setText("next-volume")
-			.listeners.add("click", () => this.showChapters(volume + 1))
-			.appendTo(this.actionWrapper);
-
-		new Component("button")
 			.classes.toggle(volume === 0, "disabled")
 			.setText("prev-volume")
 			.listeners.add("click", () => this.showChapters(volume - 1))
+			.appendTo(this.actionWrapper);
+
+		new Component("button")
+			.classes.toggle(volume === Volumes.size - 1, "disabled")
+			.setText("next-volume")
+			.listeners.add("click", () => this.showChapters(volume + 1))
 			.appendTo(this.actionWrapper);
 
 		const [volumePath] = Volumes.getPaths(volume);
@@ -142,15 +142,15 @@ export default class Explorer extends Component {
 		const chapters = Volumes.getByIndex(volume)!;
 
 		new Component("button")
-			.classes.toggle(chapter === chapters.size - 1, "disabled")
-			.setText("next-chapter")
-			.listeners.add("click", () => this.showPages(volume, chapter + 1))
-			.appendTo(this.actionWrapper);
-
-		new Component("button")
 			.classes.toggle(chapter === 0, "disabled")
 			.setText("prev-chapter")
 			.listeners.add("click", () => this.showPages(volume, chapter - 1))
+			.appendTo(this.actionWrapper);
+
+		new Component("button")
+			.classes.toggle(chapter === chapters.size - 1, "disabled")
+			.setText("next-chapter")
+			.listeners.add("click", () => this.showPages(volume, chapter + 1))
 			.appendTo(this.actionWrapper);
 
 		new Component("button")
