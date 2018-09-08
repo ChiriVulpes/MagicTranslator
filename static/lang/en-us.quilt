@@ -23,3 +23,7 @@ prompt-character-headshot: Choose the Headshot Image for the Character (Prefer S
 read-mode: Read
 translation-mode: Translate
 export: Export
+next-volume: Next Volume
+prev-volume: Previous Volume
+next-chapter: Next Chapter
+prev-chapter: Previous Chapter
