@@ -1,23 +1,14 @@
 import Component from "component/Component";
-import Character, { BasicCharacter } from "component/content/character/Character";
+import Character from "component/content/character/Character";
 import CharacterEditor from "component/content/character/CharacterEditor";
 import Note from "component/content/extractor/Note";
 import SortableList, { SortableListEvent, SortableListItem } from "component/shared/SortableList";
+import { CaptureData } from "data/Captures";
 import Bound from "util/Bound";
 import Collectors from "util/Collectors";
 import { tuple } from "util/IterableIterator";
 import { pad } from "util/string/String";
 import Translation from "util/string/Translation";
-
-export interface CaptureData {
-	id: number;
-	position: { x: number; y: number };
-	size: { x: number; y: number };
-	text: string;
-	translation: string;
-	notes: [string, string][];
-	character?: number | BasicCharacter;
-}
 
 export default class Capture extends SortableListItem {
 

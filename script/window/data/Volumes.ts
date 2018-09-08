@@ -10,6 +10,7 @@ export class VolumesImpl extends IndexedMap<string, IndexedMap<string, string[]>
 	public getPaths (volume: number): [string];
 	public getPaths (volume: number, chapter: number): [string, string];
 	public getPaths (volume: number, chapter: number, page: number): [string, string, string];
+	public getPaths (volume: number, chapter: number, page?: number): [string, string, string?];
 	public getPaths (volume: number, chapter?: number, page?: number): [string, string?, string?];
 	public getPaths (volume: number, chapter?: number, page?: number): [string, string?, string?] {
 		const volumeString = this.getKey(volume);
@@ -26,6 +27,7 @@ export class VolumesImpl extends IndexedMap<string, IndexedMap<string, string[]>
 	public getNumbers (volume: number): [number];
 	public getNumbers (volume: number, chapter: number): [number, number];
 	public getNumbers (volume: number, chapter: number, page: number): [number, number, number];
+	public getNumbers (volume: number, chapter: number, page?: number): [number, number, number?];
 	public getNumbers (volume: number, chapter?: number, page?: number): [number, number?, number?];
 	public getNumbers (volume: number, chapter?: number, page?: number): [number, number?, number?] {
 		const [volumeString, chapterString, pageString] = this.getPaths(volume, chapter, page);

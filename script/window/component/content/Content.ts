@@ -2,7 +2,7 @@ import Component from "component/Component";
 import CharacterEditor from "component/content/character/CharacterEditor";
 import Explorer from "component/content/Explorer";
 import Extractor from "component/content/Extractor";
-import Volumes from "component/content/Volumes";
+import Volumes from "data/Volumes";
 import Bound from "util/Bound";
 import { tuple } from "util/IterableIterator";
 import { ComponentEvent } from "util/Manipulator";

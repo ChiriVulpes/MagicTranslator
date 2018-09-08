@@ -1,6 +1,7 @@
 import Component from "component/Component";
-import Character, { BasicCharacter, CharacterData } from "component/content/character/Character";
+import Character from "component/content/character/Character";
 import SortableList, { SortableListEvent } from "component/shared/SortableList";
+import { BasicCharacter, CharacterData } from "data/Characters";
 import Bound from "util/Bound";
 import Collectors from "util/Collectors";
 import Enums from "util/Enums";

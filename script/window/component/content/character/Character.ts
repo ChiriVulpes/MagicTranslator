@@ -1,21 +1,10 @@
 import Component from "component/Component";
 import CharacterEditor from "component/content/character/CharacterEditor";
 import { SortableListItem } from "component/shared/SortableList";
+import { BasicCharacter, CharacterData } from "data/Characters";
 import Bound from "util/Bound";
 import { pad } from "util/string/String";
 import Translation from "util/string/Translation";
-
-export interface CharacterData {
-	id: number;
-	name: string;
-}
-
-export enum BasicCharacter {
-	Sfx = "sfx",
-	Narrator = "narrator",
-	ChapterTitle = "chapter-title",
-	Unknown = "unknown",
-}
 
 export default class Character extends SortableListItem {
 	private _character: CharacterData | BasicCharacter;

@@ -1,21 +1,17 @@
 import Component from "component/Component";
-import { BasicCharacter } from "component/content/character/Character";
 import CharacterEditor from "component/content/character/CharacterEditor";
-import Capture, { CaptureData } from "component/content/extractor/Capture";
-import Volumes from "component/content/Volumes";
+import Capture from "component/content/extractor/Capture";
 import Header from "component/header/Header";
 import SortableList, { SortableListEvent } from "component/shared/SortableList";
+import Captures, { CaptureData, TranslationData } from "data/Captures";
+import { BasicCharacter } from "data/Characters";
+import Volumes from "data/Volumes";
 import Bound from "util/Bound";
 import Collectors from "util/Collectors";
-import File from "util/File";
 import { Vector } from "util/math/Geometry";
 import { pad } from "util/string/String";
 import Translation from "util/string/Translation";
-
-interface TranslationData {
-	captureId: number;
-	captures: CaptureData[];
-}
+import Dialog from "data/Dialog";
 
 export default class Extractor extends Component {
 	private readonly pageImage: Component;
@@ -82,14 +78,11 @@ export default class Extractor extends Component {
 	}
 
 	private async initialize () {
-		const jsonData = await fs.readFile(`${this.getCapturePagePath()}.json`, "utf8")
-			.catch(() => { });
+		const { captureId, captures } = await Captures.load(this.volume, this.chapter, this.page);
 
-		const translationData: TranslationData = JSON.parse(jsonData || "{}");
+		this.captureId = captureId;
 
-		this.captureId = translationData.captureId || 0;
-
-		for (const capture of translationData.captures || []) {
+		for (const capture of captures) {
 			this.addCapture(capture);
 		}
 
@@ -188,14 +181,12 @@ export default class Extractor extends Component {
 
 	@Bound
 	private async updateJSON () {
-		const translationData: TranslationData = {
+		await Captures.save(this.volume, this.chapter, this.page, {
 			captureId: this.captureId,
 			captures: this.capturesWrapper.children<Capture>()
 				.map(component => component.getData())
 				.collect(Collectors.toArray),
-		};
-
-		await fs.writeFile(`${this.getCapturePagePath()}.json`, JSON.stringify(translationData));
+		});
 	}
 
 	@Bound
@@ -295,33 +286,8 @@ export default class Extractor extends Component {
 	}
 
 	@Bound
-	private export () {
-		const [volume, chapter, page] = Volumes.getNumbers(this.volume, this.chapter, this.page);
-
-		let result = `Volume ${volume}, Chapter ${chapter}, Page ${page}\n\n`;
-
-		let lastCharacter: number | BasicCharacter | undefined;
-		for (const capture of this.capturesWrapper.children<Capture>()) {
-			const data = capture.getData();
-			if (data.character && data.character !== lastCharacter) {
-				result += `## ${CharacterEditor.getName(data.character)}\n\n`;
-				lastCharacter = data.character;
-			}
-
-			result += data.text.trim()
-				.split(/\r?\n/)
-				.map(line => "> " + line)
-				.join("\n") + "\n\n";
-
-			if (data.translation) result += data.translation + "\n\n";
-
-			const notes = data.notes.filter(([f, n]) => f && n);
-			if (notes.length) result += notes
-				.map(([f, n]) => `- \`${f}\` — ${n}`)
-				.join("\n") + "\n\n";
-		}
-
-		File.download(`dialog-${volume}-${chapter}-${page}.md`, result);
+	private async export () {
+		await Dialog.export(this.volume, this.chapter, this.page);
 	}
 
 	private async saveCapture (path: string, canvas: HTMLCanvasElement, size: Vector) {
@@ -350,7 +316,6 @@ export default class Extractor extends Component {
 	}
 
 	private getCapturePagePath () {
-		const [volume, chapter, page] = Volumes.getPaths(this.volume, this.chapter, this.page);
-		return `${options.root}/${volume}/${chapter}/capture/${page.slice(0, -4)}`;
+		return Captures.getCapturePagePath(this.volume, this.chapter, this.page);
 	}
 }

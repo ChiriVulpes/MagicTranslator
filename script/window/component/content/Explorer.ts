@@ -1,10 +1,11 @@
 import Component from "component/Component";
-import Volumes from "component/content/Volumes";
+import Volumes from "data/Volumes";
 import { sleep } from "util/Async";
 import Bound from "util/Bound";
 import { tuple } from "util/IterableIterator";
 import Translation from "util/string/Translation";
 import Header from "../header/Header";
+import Dialog from "data/Dialog";
 
 /*
 async function getImageData (path: string) {
@@ -103,14 +104,12 @@ export default class Explorer extends Component {
 		this.addBackButton(this.showVolumes);
 
 		new Component("button")
-			.classes.add("float-right")
 			.classes.toggle(volume === Volumes.size - 1, "disabled")
 			.setText("next-volume")
 			.listeners.add("click", () => this.showChapters(volume + 1))
 			.appendTo(this.actionWrapper);
 
 		new Component("button")
-			.classes.add("float-right")
 			.classes.toggle(volume === 0, "disabled")
 			.setText("prev-volume")
 			.listeners.add("click", () => this.showChapters(volume - 1))
@@ -143,17 +142,21 @@ export default class Explorer extends Component {
 		const chapters = Volumes.getByIndex(volume)!;
 
 		new Component("button")
-			.classes.add("float-right")
 			.classes.toggle(chapter === chapters.size - 1, "disabled")
 			.setText("next-chapter")
 			.listeners.add("click", () => this.showPages(volume, chapter + 1))
 			.appendTo(this.actionWrapper);
 
 		new Component("button")
-			.classes.add("float-right")
 			.classes.toggle(chapter === 0, "disabled")
 			.setText("prev-chapter")
 			.listeners.add("click", () => this.showPages(volume, chapter - 1))
+			.appendTo(this.actionWrapper);
+
+		new Component("button")
+			.classes.add("float-right")
+			.setText("export")
+			.listeners.add("click", () => this.export(volume, chapter))
 			.appendTo(this.actionWrapper);
 
 		const [volumePath, chapterPath] = Volumes.getPaths(volume, chapter);
@@ -174,5 +177,10 @@ export default class Explorer extends Component {
 		}
 
 		Header.setTitle(() => new Translation("title").get({ volume: volumeNumber, chapter: chapterNumber }));
+	}
+
+	@Bound
+	private async export (volume: number, chapter: number) {
+		await Dialog.export(volume, chapter);
 	}
 }
