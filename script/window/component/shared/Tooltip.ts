@@ -1,7 +1,7 @@
 import Component from "component/Component";
 import { ResolvablePromise } from "util/Async";
 import Bound from "util/Bound";
-import Map2 from "util/Map";
+import IndexedMap from "util/Map";
 import { Vector } from "util/math/Geometry";
 
 export type TooltipHandler = (tooltip: Tooltip) => Tooltip;
@@ -12,7 +12,7 @@ export interface TooltipRegistration {
 }
 
 export default class Tooltip extends Component {
-	private static readonly registry = new Map2<Component, TooltipRegistration>();
+	private static readonly registry = new IndexedMap<Component, TooltipRegistration>();
 	private static readonly tooltipContainer = new Component()
 		.setId("tooltips")
 		.appendTo(Component.get(document.body));

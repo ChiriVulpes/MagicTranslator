@@ -22,24 +22,13 @@ export default class Character extends SortableListItem {
 
 	public get character () { return this._character; }
 
-	public constructor(character: number | BasicCharacter | CharacterData = BasicCharacter.Unknown, editable = false) {
+	public constructor(character: number | BasicCharacter | CharacterData = BasicCharacter.Unknown, private editable = false) {
 		super("button");
 		this.classes.add("character");
 
+		new Component().appendTo(this);
+
 		this.setCharacter(character);
-
-		const content = new Component().appendTo(this);
-
-		if (editable) {
-			new Component("textarea")
-				.attributes.set("rows", "1")
-				.attributes.set("placeholder", new Translation("name").get())
-				.setText(this.getCharacterName)
-				.listeners.add(["change", "keyup", "paste", "input", "focus"], this.changeName)
-				.appendTo(content);
-		} else {
-			content.setText(this.getCharacterName);
-		}
 	}
 
 	public setCharacter (character: number | CharacterData | BasicCharacter) {
@@ -52,7 +41,17 @@ export default class Character extends SortableListItem {
 			this.style.remove("--headshot");
 		}
 
-		this.refreshText();
+		if (typeof character !== "string" && this.editable) {
+			this.child(0)!
+				.dump()
+				.append(new Component("textarea")
+					.attributes.set("rows", "1")
+					.attributes.set("placeholder", new Translation("name").get())
+					.setText(this.getCharacterName)
+					.listeners.add(["change", "keyup", "paste", "input", "focus"], this.changeName));
+		} else {
+			this.child(0)!.setText(this.getCharacterName);
+		}
 	}
 
 	public focusInput () {
@@ -62,7 +61,7 @@ export default class Character extends SortableListItem {
 
 	@Bound
 	private getCharacterName () {
-		return typeof this._character === "object" ? this._character.name : new Translation(`character-${this._character.toLowerCase()}`).get();
+		return !this._character ? "" : typeof this._character === "object" ? this._character.name : new Translation(`character-${this._character.toLowerCase()}`).get();
 	}
 
 	@Bound

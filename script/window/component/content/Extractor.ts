@@ -2,6 +2,7 @@ import Component from "component/Component";
 import { BasicCharacter } from "component/content/character/Character";
 import CharacterEditor from "component/content/character/CharacterEditor";
 import Capture, { CaptureData } from "component/content/extractor/Capture";
+import Volumes from "component/content/Volumes";
 import Header from "component/header/Header";
 import SortableList, { SortableListEvent } from "component/shared/SortableList";
 import Bound from "util/Bound";
@@ -24,16 +25,19 @@ export default class Extractor extends Component {
 	private captureStart: Vector;
 	private captureEnd: Vector;
 
-	public constructor(private readonly volume: string, private readonly chapter: string, private readonly page: string, hasPreviousPage = true, hasNextPage = true) {
+	public constructor(private readonly volume: number, private readonly chapter: number, private readonly page: number, hasPreviousPage = true, hasNextPage = true) {
 		super();
 		this.setId("extractor");
+
+		const [volumePath, chapterPath, pagePath] = Volumes.getPaths(volume, chapter, page);
+		const [volumeNumber, chapterNumber, pageNumber] = Volumes.getNumbers(volume, chapter, page);
 
 		new Component()
 			.classes.add("page-wrapper")
 			.append(new Component()
 				.append(this.pageImage = new Component("img")
 					.hide(true)
-					.attributes.set("src", `${options.root}/${volume}/${chapter}/raw/${page}`)
+					.attributes.set("src", `${options.root}/${volumePath}/${chapterPath}/raw/${pagePath}`)
 					.listeners.add("load", () => {
 						const image = this.pageImage.element<HTMLImageElement>();
 						this.pageImage.style.set("--natural-width", `${image.naturalWidth}px`);
@@ -72,7 +76,7 @@ export default class Extractor extends Component {
 					.classes.add("extraction-captures")))
 			.appendTo(this);
 
-		Header.setTitle(() => new Translation("title").get({ volume: +volume.slice(3), chapter: +chapter.slice(2), page: parseInt(page) }));
+		Header.setTitle(() => new Translation("title").get({ volume: volumeNumber, chapter: chapterNumber, page: pageNumber }));
 
 		this.initialize();
 	}
@@ -191,7 +195,7 @@ export default class Extractor extends Component {
 				.collect(Collectors.toArray),
 		};
 
-		await fs.writeFile(`${options.root}/${this.volume}/${this.chapter}/capture/${this.page.slice(0, -4)}.json`, JSON.stringify(translationData));
+		await fs.writeFile(`${this.getCapturePagePath()}.json`, JSON.stringify(translationData));
 	}
 
 	@Bound
@@ -292,7 +296,9 @@ export default class Extractor extends Component {
 
 	@Bound
 	private export () {
-		let result = `Volume ${+this.volume.slice(3)}, Chapter ${+this.chapter.slice(2)}, Page ${+this.page.slice(0, -4)}\n\n`;
+		const [volume, chapter, page] = Volumes.getNumbers(this.volume, this.chapter, this.page);
+
+		let result = `Volume ${volume}, Chapter ${chapter}, Page ${page}\n\n`;
 
 		let lastCharacter: number | BasicCharacter | undefined;
 		for (const capture of this.capturesWrapper.children<Capture>()) {
@@ -315,7 +321,7 @@ export default class Extractor extends Component {
 				.join("\n") + "\n\n";
 		}
 
-		File.download(`dialog-${this.volume}-${this.chapter}-${this.page.slice(0, -4)}.md`, result);
+		File.download(`dialog-${volume}-${chapter}-${page}.md`, result);
 	}
 
 	private async saveCapture (path: string, canvas: HTMLCanvasElement, size: Vector) {
@@ -344,6 +350,7 @@ export default class Extractor extends Component {
 	}
 
 	private getCapturePagePath () {
-		return `${options.root}/${this.volume}/${this.chapter}/capture/${this.page.slice(0, -4)}`;
+		const [volume, chapter, page] = Volumes.getPaths(this.volume, this.chapter, this.page);
+		return `${options.root}/${volume}/${chapter}/capture/${page.slice(0, -4)}`;
 	}
 }

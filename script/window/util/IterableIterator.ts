@@ -21,7 +21,7 @@ declare global {
 		 * Returns an iterable of type X, using the given map function
 		 * @param mapper A function that maps an entry of type T to its corresponding type X
 		 */
-		map<X> (mapper: (val: T) => X): IterableIterator<X>;
+		map<X> (mapper: (val: T, index: number) => X): IterableIterator<X>;
 
 		/**
 		 * Returns an iterable that will loop only over the entries that match the given filter
@@ -65,12 +65,12 @@ declare global {
 		 * Loops the values of this iterable and calls the given function with each value.
 		 * @param user A function that takes a value. If the function returns `false`, iteration will not continue.
 		 */
-		forEach (user: (val: T) => any, continueGenerate?: false): void;
+		forEach (user: (val: T, index: number) => any, continueGenerate?: false): void;
 		/**
 		 * Loops the values of this iterable and calls the given function with each value.
 		 * @param user A function that takes a value. If the function returns `false`, iteration will not continue.
 		 */
-		forEach (user: (val: T) => any, continueGenerate: true): IterableIterator<T>;
+		forEach (user: (val: T, index: number) => any, continueGenerate: true): IterableIterator<T>;
 
 		/**
 		 * Returns the first value in this iterator, or undefined if there are no values.
@@ -439,9 +439,10 @@ const iteratorImpl = {
 		}
 	},
 
-	*map (this: IterableIterator<any>, mapper: (val: any) => any) {
+	*map (this: IterableIterator<any>, mapper: (val: any, index: number) => any) {
+		let index = 0;
 		for (const val of this) {
-			yield mapper(val);
+			yield mapper(val, index++);
 		}
 	},
 
@@ -591,13 +592,14 @@ const iteratorImpl = {
 		return all[Math.floor(Math.random() * all.length)];
 	},
 
-	forEach (this: IterableIterator<any>, user: (val: any) => boolean | undefined, continueGeneration: boolean) {
+	forEach (this: IterableIterator<any>, user: (val: any, index: number) => boolean | undefined, continueGeneration: boolean) {
 		if (continueGeneration) {
 			return (this as any).forEachContinue(user);
 		}
 
+		let index = 0;
 		for (const value of this) {
-			if (user(value) === false) {
+			if (user(value, index++) === false) {
 				return;
 			}
 		}

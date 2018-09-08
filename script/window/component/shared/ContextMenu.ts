@@ -1,6 +1,6 @@
 import Component from "component/Component";
 import { ResolvablePromise } from "util/Async";
-import Map2 from "util/Map";
+import IndexedMap from "util/Map";
 import { Vector } from "util/math/Geometry";
 
 export type ContextMenuHandler = (contextMenu: ContextMenu) => ContextMenu;
@@ -11,7 +11,7 @@ export interface ContextMenuRegistration {
 }
 
 export default class ContextMenu extends Component {
-	private static readonly registry = new Map2<Component, ContextMenuRegistration>();
+	private static readonly registry = new IndexedMap<Component, ContextMenuRegistration>();
 	private static readonly contextMenuContainer = new Component()
 		.setId("context-menus")
 		.appendTo(Component.get(document.body));

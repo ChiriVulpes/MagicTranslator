@@ -1,13 +1,13 @@
 import Component from "component/Component";
 import { construct } from "util/IterableIterator";
-import Map2 from "util/Map";
+import IndexedMap from "util/Map";
 import Translation from "util/string/Translation";
 
 export type ActionInitializer = (actionButton: ActionButton) => ActionButton;
 export type Action<K extends string | number = string | number> = [K, ActionInitializer];
 
 export default class ActionBar<K extends string | number = string | number> extends Component {
-	private actions: Map2<K, ActionButton>;
+	private actions: IndexedMap<K, ActionButton>;
 
 	public constructor(...actions: Action<K>[]) {
 		super();
@@ -25,7 +25,7 @@ export default class ActionBar<K extends string | number = string | number> exte
 				.listeners.add("click", () => this.emit<K2>("action", event => event.data = id))
 				.schedule(initializer)
 				.appendTo(this)])
-			.collect(construct(Map2));
+			.collect(construct(IndexedMap));
 
 		return this as any as ActionBar<K2>;
 	}

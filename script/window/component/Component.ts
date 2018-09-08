@@ -157,6 +157,8 @@ export default class Component {
 		while (this.element().lastChild) {
 			this.element().removeChild(this.element().lastChild!);
 		}
+
+		return this;
 	}
 
 	public get parent () {

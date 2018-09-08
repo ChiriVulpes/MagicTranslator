@@ -1,4 +1,5 @@
 import Component from "component/Component";
+import Volumes from "component/content/Volumes";
 import { sleep } from "util/Async";
 import Bound from "util/Bound";
 import { tuple } from "util/IterableIterator";
@@ -33,7 +34,7 @@ export default class Explorer extends Component {
 	private readonly explorerWrapper: Component;
 	private readonly actionWrapper: Component;
 
-	public constructor(private readonly volumes: Map<string, Map<string, string[]>>, private readonly startLocation?: [string, string]) {
+	public constructor(private readonly startLocation?: [number, number]) {
 		super();
 		this.setId("explorer");
 
@@ -70,73 +71,86 @@ export default class Explorer extends Component {
 		this.actionWrapper.dump();
 		this.explorerWrapper.dump();
 
-		for (const [volume, chapters] of this.volumes.entries()) {
+		for (const [volumeIndex, volume, chapters] of Volumes.indexedEntries()) {
 			const [firstChapterName, firstChapterPages] = chapters.entries().first()!;
 			const firstPage = firstChapterPages.first();
 
 			new ImageButton(`${options.root}/${volume}/${firstChapterName}/raw/${firstPage}`)
 				.setText(() => new Translation("volume").get(+volume.slice(3)))
-				.listeners.add("click", () => this.showChapters(volume))
+				.listeners.add("click", () => this.showChapters(volumeIndex))
 				.appendTo(this.explorerWrapper);
 		}
 
 		Header.setTitle(() => new Translation("title").get());
 	}
 
-	private bindBack (handler: () => void) {
+	private addBackButton (handler: () => void) {
+		new Component("button")
+			.setText("back")
+			.listeners.add("click", handler)
+			.appendTo(this.actionWrapper);
+
 		Component.window.listeners.until(this.listeners.waitFor("back"))
 			.add("keyup", this.keyup, true);
 
 		this.listeners.until("back").add("back", () => sleep(0.001).then(handler));
 	}
 
-	private showChapters (volume: string) {
+	private showChapters (volume: number) {
 		this.actionWrapper.dump();
 		this.explorerWrapper.dump();
 
+		this.addBackButton(this.showVolumes);
+
+		/*
 		new Component("button")
+			.classes.add("float-right")
 			.setText("back")
-			.listeners.add("click", this.showVolumes)
+			.listeners.add("click", () => this.showChapters(`vol${+volume.slice(3)}`))
 			.appendTo(this.actionWrapper);
+		*/
 
-		this.bindBack(this.showVolumes);
+		const [volumePath] = Volumes.getPaths(volume);
+		const [volumeNumber] = Volumes.getNumbers(volume);
+		const chapters = Volumes.getByIndex(volume)!;
 
-		const chapters = this.volumes.get(volume)!;
-		for (const [chapter, pages] of chapters.entries()) {
+		for (const [index, chapter, pages] of chapters.indexedEntries()) {
 			const firstPage = pages.first();
 
-			new ImageButton(`${options.root}/${volume}/${chapter}/raw/${firstPage}`)
-				.setText(() => new Translation("chapter").get(+chapter.slice(2)))
-				.listeners.add("click", () => this.showPages(volume, chapter))
+			const [, chapterNumber] = Volumes.getNumbers(volume, index);
+
+			new ImageButton(`${options.root}/${volumePath}/${chapter}/raw/${firstPage}`)
+				.setText(() => new Translation("chapter").get(chapterNumber))
+				.listeners.add("click", () => this.showPages(volume, index))
 				.appendTo(this.explorerWrapper);
 		}
 
-		Header.setTitle(() => new Translation("title").get({ volume: +volume.slice(3) }));
+		Header.setTitle(() => new Translation("title").get({ volume: volumeNumber }));
 	}
 
-	private async showPages (volume: string, chapter: string) {
+	private async showPages (volume: number, chapter: number) {
 		this.actionWrapper.dump();
 		this.explorerWrapper.dump();
 
-		new Component("button")
-			.setText("back")
-			.listeners.add("click", () => this.showChapters(volume))
-			.appendTo(this.actionWrapper);
+		this.addBackButton(() => this.showChapters(volume));
 
-		this.bindBack(() => this.showChapters(volume));
-
-		const pages = await this.volumes.get(volume)!.get(chapter)!;
+		const [volumePath, chapterPath] = Volumes.getPaths(volume, chapter);
+		const [volumeNumber, chapterNumber] = Volumes.getNumbers(volume, chapter);
+		const pages = await Volumes.getByIndex(volume)!.getByIndex(chapter)!;
 
 		for (let i = 0; i < pages.length; i++) {
 			const page = pages[i];
-			new ImageButton(`${options.root}/${volume}/${chapter}/raw/${page}`)
-				.setText(() => new Translation("page").get(parseInt(page)))
+
+			const [, , pageNumber] = Volumes.getNumbers(volume, chapter, i);
+
+			new ImageButton(`${options.root}/${volumePath}/${chapterPath}/raw/${page}`)
+				.setText(() => new Translation("page").get(pageNumber))
 				.listeners.add("click", () => this
-					.emit<[string, string, string, boolean, boolean]>("extract", event => event
-						.data = tuple(volume, chapter, page, i > 0, i < pages.length - 1)))
+					.emit<[number, number, number, boolean, boolean]>("extract", event => event
+						.data = tuple(volume, chapter, i, i > 0, i < pages.length - 1)))
 				.appendTo(this.explorerWrapper);
 		}
 
-		Header.setTitle(() => new Translation("title").get({ volume: +volume.slice(3), chapter: +chapter.slice(2) }));
+		Header.setTitle(() => new Translation("title").get({ volume: volumeNumber, chapter: chapterNumber }));
 	}
 }
