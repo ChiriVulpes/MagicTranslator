@@ -3,15 +3,15 @@ import CharacterEditor from "component/content/character/CharacterEditor";
 import Capture from "component/content/extractor/Capture";
 import Header from "component/header/Header";
 import SortableList, { SortableListEvent } from "component/shared/SortableList";
-import Captures, { CaptureData, TranslationData } from "data/Captures";
+import Captures, { CaptureData } from "data/Captures";
 import { BasicCharacter } from "data/Characters";
+import Dialog from "data/Dialog";
 import Volumes from "data/Volumes";
 import Bound from "util/Bound";
 import Collectors from "util/Collectors";
 import { Vector } from "util/math/Geometry";
 import { pad } from "util/string/String";
 import Translation from "util/string/Translation";
-import Dialog from "data/Dialog";
 
 export default class Extractor extends Component {
 	private readonly pageImage: Component;
@@ -290,7 +290,7 @@ export default class Extractor extends Component {
 		await Dialog.export(this.volume, this.chapter, this.page);
 	}
 
-	private async saveCapture (path: string, canvas: HTMLCanvasElement, size: Vector) {
+	private async saveCapture (capturePath: string, canvas: HTMLCanvasElement, size: Vector) {
 		const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve));
 
 		const buffer = await new Promise<Buffer>(resolve => {
@@ -303,10 +303,11 @@ export default class Extractor extends Component {
 			reader.readAsArrayBuffer(blob!);
 		});
 
-		await fs.mkdir(`${options.root}/${this.volume}/${this.chapter}/capture`);
-		await fs.mkdir(this.getCapturePagePath());
+		const capturePagePath = this.getCapturePagePath();
+		await fs.mkdir(path.dirname(capturePagePath));
+		await fs.mkdir(capturePagePath);
 
-		const cropPath = `${this.getCapturePagePath()}/${path}`;
+		const cropPath = `${capturePagePath}/${capturePath}`;
 		await fs.writeFile(cropPath, buffer);
 
 		const vertical = size.x < size.y;

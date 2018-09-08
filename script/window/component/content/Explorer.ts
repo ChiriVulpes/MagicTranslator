@@ -1,11 +1,11 @@
 import Component from "component/Component";
+import Header from "component/header/Header";
+import Dialog from "data/Dialog";
 import Volumes from "data/Volumes";
 import { sleep } from "util/Async";
 import Bound from "util/Bound";
 import { tuple } from "util/IterableIterator";
 import Translation from "util/string/Translation";
-import Header from "../header/Header";
-import Dialog from "data/Dialog";
 
 /*
 async function getImageData (path: string) {
