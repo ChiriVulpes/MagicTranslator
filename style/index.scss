@@ -100,6 +100,10 @@ body {
 	cursor: default;
 }
 
+* {
+	white-space: pre-wrap;
+}
+
 .hidden {
 	display: none;
 }
@@ -179,6 +183,7 @@ textarea, input {
 @import "component/action-button";
 @import "component/tooltips";
 @import "component/sortable-list";
+@import "component/interrupt";
 
 ////////////////////////////////////
 // Main

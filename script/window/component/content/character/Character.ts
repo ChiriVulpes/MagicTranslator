@@ -1,14 +1,16 @@
 import Component from "component/Component";
 import CharacterEditor from "component/content/character/CharacterEditor";
+import Interrupt from "component/shared/Interrupt";
 import { SortableListItem } from "component/shared/SortableList";
-import { BasicCharacter, CharacterData } from "data/Characters";
+import Characters, { BasicCharacter, CharacterData } from "data/Characters";
 import Bound from "util/Bound";
 import { pad } from "util/string/String";
 import Translation from "util/string/Translation";
 
 export default class Character extends SortableListItem {
-	private _character: CharacterData | BasicCharacter;
+	private name?: Component;
 
+	private _character: CharacterData | BasicCharacter;
 	public get character () { return this._character; }
 
 	public constructor(character: number | BasicCharacter | CharacterData = BasicCharacter.Unknown, private editable = false) {
@@ -20,12 +22,15 @@ export default class Character extends SortableListItem {
 		this.setCharacter(character);
 	}
 
-	public setCharacter (character: number | CharacterData | BasicCharacter) {
+	public setCharacter (character: number | CharacterData | BasicCharacter): void;
+	public setCharacter (character: number | CharacterData | BasicCharacter | undefined) {
 		if (typeof character === "number") character = CharacterEditor.getCharacter(character);
+		if (character === undefined) character = BasicCharacter.Unknown;
+
 		this._character = character;
 
 		if (typeof this._character === "object") {
-			this.style.set("--headshot", `url("${options.root}/character/${pad(this._character.id, 3)}.png")`);
+			this.style.set("--headshot", `url("${Characters.getCharactersPath()}/${pad(this._character.id, 3)}.png")`);
 		} else {
 			this.style.remove("--headshot");
 		}
@@ -33,19 +38,23 @@ export default class Character extends SortableListItem {
 		if (typeof character !== "string" && this.editable) {
 			this.child(0)!
 				.dump()
-				.append(new Component("textarea")
+				.append(this.name = new Component("textarea")
 					.attributes.set("rows", "1")
 					.attributes.set("placeholder", new Translation("name").get())
 					.setText(this.getCharacterName)
-					.listeners.add(["change", "keyup", "paste", "input", "focus"], this.changeName));
+					.listeners.add(["change", "keyup", "paste", "input", "focus"], this.changeName))
+				.append(new Component()
+					.classes.add("character-action-row")
+					.append(new Component("button")
+						.setText("remove")
+						.listeners.add("click", this.removeCharacter)));
 		} else {
 			this.child(0)!.setText(this.getCharacterName);
 		}
 	}
 
 	public focusInput () {
-		const textarea = this.child(0);
-		if (textarea) textarea.focus();
+		if (this.name) this.name.focus();
 	}
 
 	@Bound
@@ -59,5 +68,22 @@ export default class Character extends SortableListItem {
 		const value = textarea.value;
 		(this._character as CharacterData).name = value.endsWith("\n") ? textarea.value = value.trim() : value;
 		this.emit("change-name");
+	}
+
+	@Bound
+	private async removeCharacter () {
+		const confirm = await Interrupt.confirm(interrupt => interrupt
+			.setTitle(() => new Translation("confirm-remove-character").get(this.getCharacterName()))
+			.setDescription("confirm-remove-character-description"));
+
+		if (!confirm) return;
+
+		this.remove();
+		this.emit("change-name");
+
+		if (typeof this.character === "object") {
+			await fs.unlink(`${Characters.getCharactersPath()}/${pad(this.character.id, 3)}.png`)
+				.catch(() => { });
+		}
 	}
 }

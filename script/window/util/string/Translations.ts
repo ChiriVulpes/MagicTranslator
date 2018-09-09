@@ -7,4 +7,5 @@ export default interface Translations {
 	"previous-page" (): string;
 	"next-page" (): string;
 	title (location?: { volume?: number; chapter?: number; page?: number }): string;
+	"confirm-remove-character" (name: string): string;
 }

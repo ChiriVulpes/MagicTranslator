@@ -73,6 +73,34 @@ declare global {
 		forEach (user: (val: T, index: number) => any, continueGenerate: true): IterableIterator<T>;
 
 		/**
+		 * Loops through the values of this iterable until the predicate returns `true` for an entry.
+		 * @param predicate A function that will return `true` or `false` for an entry in this iterable.
+		 * @returns Whether the predicate ever returned `true`.
+		 */
+		any (predicate: (val: T, index: number) => boolean): boolean;
+
+		/**
+		 * Loops through the values of this iterable until the predicate returns `false` for an entry.
+		 * @param predicate A function that will return `true` or `false` for an entry in this iterable.
+		 * @returns Whether the predicate ever returned `false`.
+		 */
+		nevery (predicate: (val: T, index: number) => boolean): boolean;
+
+		/**
+		 * Loops through the values of this iterable until the predicate returns `false` for an entry.
+		 * @param predicate A function that will return `true` or `false` for an entry in this iterable.
+		 * @returns Whether the predicate always returned `true`.
+		 */
+		every (predicate: (val: T, index: number) => boolean): boolean;
+
+		/**
+		 * Loops through the values of this iterable until the predicate returns `true` for an entry.
+		 * @param predicate A function that will return `true` or `false` for an entry in this iterable.
+		 * @returns Whether the predicate always returned `false`.
+		 */
+		none (predicate: (val: T, index: number) => boolean): boolean;
+
+		/**
 		 * Returns the first value in this iterator, or undefined if there are no values.
 		 */
 		first (): T | undefined;
@@ -299,16 +327,6 @@ declare global {
 		slice (startIndex: number, endIndex?: number): IterableIterator<T>;
 
 		/**
-		 * Returns whether at least one entry in this iterable satisfies the predicate.
-		 */
-		anyMatch (predicate: (val: T) => boolean): boolean;
-
-		/**
-		 * Returns whether all entries in this iterable satisfy the predicate.
-		 */
-		allMatch (predicate: (val: T) => boolean): boolean;
-
-		/**
 		 * Returns an iterator for the values of this iterator (it returns itself).
 		 */
 		values (): IterableIterator<T>;
@@ -530,6 +548,50 @@ const iteratorImpl = {
 		return result;
 	},
 
+	any (this: IterableIterator<any>, predicate: (val: any, index: number) => boolean) {
+		let index = 0;
+		for (const val of this) {
+			if (predicate(val, index++)) {
+				return true;
+			}
+		}
+
+		return false;
+	},
+
+	nevery (this: IterableIterator<any>, predicate: (val: any, index: number) => boolean) {
+		let index = 0;
+		for (const val of this) {
+			if (!predicate(val, index++)) {
+				return true;
+			}
+		}
+
+		return false;
+	},
+
+	every (this: IterableIterator<any>, predicate: (val: any, index: number) => boolean) {
+		let index = 0;
+		for (const val of this) {
+			if (!predicate(val, index++)) {
+				return false;
+			}
+		}
+
+		return true;
+	},
+
+	none (this: IterableIterator<any>, predicate: (val: any, index: number) => boolean) {
+		let index = 0;
+		for (const val of this) {
+			if (predicate(val, index++)) {
+				return false;
+			}
+		}
+
+		return true;
+	},
+
 	anyMatch (this: IterableIterator<any>, predicate: (value: any) => boolean) {
 		for (const val of this) {
 			if (predicate(val)) {
@@ -541,13 +603,6 @@ const iteratorImpl = {
 	},
 
 	allMatch (this: IterableIterator<any>, predicate: (value: any) => boolean) {
-		for (const val of this) {
-			if (!predicate(val)) {
-				return false;
-			}
-		}
-
-		return true;
 	},
 
 	collect (collector: (val: any) => any, iterable = false) {

@@ -1,7 +1,7 @@
 import Component from "component/Component";
 import Character from "component/content/character/Character";
 import SortableList, { SortableListEvent } from "component/shared/SortableList";
-import { BasicCharacter, CharacterData } from "data/Characters";
+import Characters, { BasicCharacter, CharacterData } from "data/Characters";
 import Bound from "util/Bound";
 import Collectors from "util/Collectors";
 import Enums from "util/Enums";
@@ -19,12 +19,13 @@ export default class CharacterEditor extends Component {
 			.children<Character>()
 			.map(button => button.character)
 			.filter(character => typeof character === "object" && character.id === id)
-			.first()!;
+			.first();
 	}
 
-	public static getName (character: number | BasicCharacter | CharacterData) {
+	public static getName (character: number | BasicCharacter | CharacterData): string;
+	public static getName (character: number | BasicCharacter | CharacterData | undefined) {
 		if (typeof character === "number") character = CharacterEditor.getCharacter(character);
-		return typeof character === "object" ? character.name : new Translation(`character-${character.toLowerCase()}`).get();
+		return !character ? "" : typeof character === "object" ? character.name : new Translation(`character-${character.toLowerCase()}`).get();
 	}
 
 	public static async chooseCharacter (startingCharacter?: number | BasicCharacter) {
@@ -48,6 +49,7 @@ export default class CharacterEditor extends Component {
 	public constructor() {
 		super();
 		this.setId("character-editor");
+		this.classes.add("interrupt");
 
 		const content = new Component().appendTo(this);
 
@@ -78,13 +80,11 @@ export default class CharacterEditor extends Component {
 	}
 
 	public async waitForCharacters () {
-		const jsonData = await fs.readFile(`${options.root}/characters.json`, "utf8")
-			.catch(() => { });
+		const { characterId, characters } = await Characters.load();
 
-		const characterData = JSON.parse(jsonData || "{}") as { characterId?: number; characters?: CharacterData[] };
-		this.characterId = characterData.characterId || 0;
+		this.characterId = characterId;
 
-		pipe(characterData.characters)
+		pipe(characters)
 			.flat()
 			.filter<undefined>(character => character)
 			.include(Enums.values(BasicCharacter))
@@ -119,9 +119,10 @@ export default class CharacterEditor extends Component {
 			reader.readAsArrayBuffer(blob!);
 		});
 
-		await fs.mkdir(`${options.root}/character`);
+		const charactersPath = Characters.getCharactersPath();
+		await fs.mkdir(charactersPath);
 
-		await fs.writeFile(`${options.root}/character/${pad(this.characterId, 3)}.png`, buffer);
+		await fs.writeFile(`${charactersPath}/${pad(this.characterId, 3)}.png`, buffer);
 
 		this.addCharacter({
 			id: this.characterId++,
@@ -133,24 +134,30 @@ export default class CharacterEditor extends Component {
 
 	@Bound
 	private addCharacter (character: CharacterData | BasicCharacter) {
-		return new Character(character, typeof character === "object")
+		const characterButton = new Character(character, typeof character === "object")
 			.listeners.add("click", this.select)
 			.listeners.add("change-name", event => {
 				this.select(event, false);
 				this.updateJson();
 			})
 			.appendTo(this.characterWrapper);
+
+		for (const oldButton of characterButton.siblings<Character>().filter(button => typeof button.character === "string").collect(Collectors.toArray)) {
+			oldButton.appendTo(this.characterWrapper);
+		}
+
+		return characterButton;
 	}
 
 	@Bound
 	private async updateJson () {
-		await fs.writeFile(`${options.root}/characters.json`, JSON.stringify({
+		await Characters.save({
 			characterId: this.characterId,
 			characters: this.characterWrapper.children<Character>()
 				.map(button => button.character)
 				.filter<BasicCharacter>(character => typeof character === "object")
 				.collect(Collectors.toArray),
-		}));
+		});
 	}
 
 	@Bound
@@ -187,6 +194,11 @@ export default class CharacterEditor extends Component {
 				.first()!;
 		}
 
+		if (!characterButton) {
+			console.warn("Tried to select an invalid character", eventOrCharacter);
+			return;
+		}
+
 		if (characterButton.classes.has("selected")) return;
 
 		if (focus) characterButton.focus();
@@ -198,6 +210,8 @@ export default class CharacterEditor extends Component {
 
 	@Bound
 	private keyup (event: KeyboardEvent) {
+		if (!Component.get("#interrupt").classes.has("hidden")) return;
+
 		if (event.code === "Enter") this.choose();
 		if (event.code === "Escape") this.cancel();
 	}

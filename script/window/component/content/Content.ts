@@ -8,6 +8,7 @@ import { tuple } from "util/IterableIterator";
 import { ComponentEvent } from "util/Manipulator";
 import Options from "util/Options";
 import Language from "util/string/Language";
+import Interrupt from "component/shared/Interrupt";
 
 export default class Content extends Component {
 	public constructor() {
@@ -19,6 +20,8 @@ export default class Content extends Component {
 
 	public async initialize () {
 		await Language.waitForLanguage();
+
+		new Interrupt().hide().appendTo(this);
 
 		await Promise.all([
 			Options.waitForOptions(),
@@ -33,7 +36,7 @@ export default class Content extends Component {
 	}
 
 	private showExplorer (startLocation?: [number, number]) {
-		this.children(1).forEach(child => child.remove());
+		this.children(2).forEach(child => child.remove());
 
 		new Explorer(startLocation)
 			.listeners.add("extract", this.extractPage)
@@ -42,7 +45,7 @@ export default class Content extends Component {
 
 	@Bound
 	private extractPage ({ data }: ComponentEvent<[number, number, number, boolean, boolean]>) {
-		this.children(1).forEach(child => child.remove());
+		this.children(2).forEach(child => child.remove());
 
 		const [volume, chapter, page] = data;
 		const pages = Volumes.getByIndex(volume)!.getByIndex(chapter)!;

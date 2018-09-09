@@ -39,6 +39,7 @@ export default class Language {
 		return "";
 	}
 
+	// tslint:disable cyclomatic-complexity
 	private importQuilt (quiltText: string) {
 		let inside: "key" | "value" = "key";
 
@@ -51,6 +52,13 @@ export default class Language {
 				i++;
 				if (quiltText[i] === " ") i++;
 				inside = "value";
+			}
+
+			if (quiltText[i] === "\\" && inside === "value") {
+				if (quiltText[++i] === "n") {
+					kv[inside] += "\n";
+					continue;
+				}
 			}
 
 			if (quiltText[i] === "\n") {

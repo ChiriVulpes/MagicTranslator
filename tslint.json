@@ -23,6 +23,7 @@
 		"strict-boolean-expressions": false,
 		"return-undefined": false,
 		"no-use-before-declare": false,
+		"no-unused-expression": false,
 		
 		"padding-line-between-statements": [
 			true,

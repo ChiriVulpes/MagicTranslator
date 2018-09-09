@@ -10,6 +10,12 @@ import { sleep } from "util/Async";
 import { Box } from "util/math/Geometry";
 import Translation from "util/string/Translation";
 
+/**
+ * If string, used as a translation key.
+ * If a function, not used as a key.
+ */
+export type TextGenerator = string | Translation<string> | (() => string | number);
+
 export default class Component {
 	public static window = {
 		get listeners (): EventListenerManipulator<(typeof Component)["window"]> {
@@ -94,7 +100,7 @@ export default class Component {
 		return this;
 	}
 
-	public setText (translation: string | Translation<string> | (() => string | number)) {
+	public setText (translation: TextGenerator) {
 		if (typeof translation === "string") translation = new Translation(translation);
 		this.textGenerator = translation instanceof Translation ? translation.get : translation;
 		this.refreshText();
@@ -218,7 +224,7 @@ export default class Component {
 	public *siblings<C extends Component = Component> () {
 		if (!this.parent) return;
 
-		for (const child of this.parent.children().filter(c => c !== this)) {
+		for (const child of this.parent.children<C>().filter(c => c !== this as any)) {
 			yield child;
 		}
 	}
