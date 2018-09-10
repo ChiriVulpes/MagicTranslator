@@ -203,7 +203,9 @@ export default class Extractor extends Component {
 		this.classes.add("selecting");
 
 		const position = Vector.min(this.captureStart, this.captureEnd);
-		const size = Vector.size(this.captureStart, this.captureEnd);
+		let size = Vector.size(this.captureStart, this.captureEnd);
+
+		if (event.altKey) size = new Vector(Math.min(size.x, size.y));
 
 		this.style.set("--capture-x", position.x);
 		this.style.set("--capture-y", position.y);
@@ -252,6 +254,16 @@ export default class Extractor extends Component {
 			return;
 		}
 
+		if (event.altKey) {
+			const path = await this.saveImage("temp.png", canvas);
+
+			await CharacterEditor.createCharacter(path);
+
+			await fs.unlink(path);
+
+			return;
+		}
+
 		const [character, text] = await Promise.all([
 			CharacterEditor.chooseCharacter(),
 			this.saveCapture(`cap${pad(this.captureId++, 3)}.png`, canvas, size),
@@ -290,7 +302,7 @@ export default class Extractor extends Component {
 		await Dialog.export(this.volume, this.chapter, this.page);
 	}
 
-	private async saveCapture (capturePath: string, canvas: HTMLCanvasElement, size: Vector) {
+	private async saveImage (capturePath: string, canvas: HTMLCanvasElement) {
 		const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve));
 
 		const buffer = await new Promise<Buffer>(resolve => {
@@ -307,12 +319,18 @@ export default class Extractor extends Component {
 		await fs.mkdir(path.dirname(capturePagePath));
 		await fs.mkdir(capturePagePath);
 
-		const cropPath = `${capturePagePath}/${capturePath}`;
-		await fs.writeFile(cropPath, buffer);
+		capturePath = `${capturePagePath}/${capturePath}`;
+		await fs.writeFile(capturePath, buffer);
+
+		return capturePath;
+	}
+
+	private async saveCapture (capturePath: string, canvas: HTMLCanvasElement, size: Vector) {
+		capturePath = await this.saveImage(capturePath, canvas);
 
 		const vertical = size.x < size.y;
 
-		const [out] = await childProcess.exec(`${options.capture2TextCLIPath} --language Japanese --image ${cropPath} --line-breaks${vertical ? " --vertical" : ""}`);
+		const [out] = await childProcess.exec(`${options.capture2TextCLIPath} --language Japanese --image ${capturePath} --line-breaks${vertical ? " --vertical" : ""}`);
 		return out.toString("utf8").trim();
 	}
 

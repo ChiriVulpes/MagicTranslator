@@ -29,7 +29,7 @@ export default class CharacterEditor extends Component {
 	}
 
 	public static async chooseCharacter (startingCharacter?: number | BasicCharacter) {
-		const characterEditor = Component.get<CharacterEditor>("#character-editor").show();
+		const characterEditor = Component.get<CharacterEditor>("#character-editor").showChoosing();
 		if (startingCharacter !== undefined) characterEditor.select(characterEditor.startingCharacter = startingCharacter);
 
 		return new Promise<number | BasicCharacter>(resolve => {
@@ -41,9 +41,21 @@ export default class CharacterEditor extends Component {
 		});
 	}
 
+	public static async createCharacter (path: string) {
+		if (!await fs.exists(path)) {
+			console.warn(`Could not create a character, headshot path ${path} is invalid`);
+			return;
+		}
+
+		const characterEditor = Component.get<CharacterEditor>("#character-editor");
+		const character = await characterEditor.createCharacter(path);
+		characterEditor.showViewing(character);
+	}
+
 	private characterId = 0;
 
 	private readonly characterWrapper: Component;
+	private readonly actionRow: Component;
 	private startingCharacter: number | BasicCharacter = BasicCharacter.Unknown;
 
 	public constructor() {
@@ -64,14 +76,8 @@ export default class CharacterEditor extends Component {
 			.listeners.add("click", this.newCharacter)
 			.appendTo(content);
 
-		new Component("button")
-			.setText("cancel")
-			.listeners.add("click", this.cancel)
-			.appendTo(content);
-
-		new Component("button")
-			.setText("choose")
-			.listeners.add("click", this.choose)
+		this.actionRow = new Component()
+			.classes.add("character-editor-action-row")
 			.appendTo(content);
 
 		this.listeners.add("show", () =>
@@ -93,11 +99,7 @@ export default class CharacterEditor extends Component {
 		this.select(BasicCharacter.Unknown);
 	}
 
-	@Bound
-	private async newCharacter () {
-		const file = await Options.chooseFile("prompt-character-headshot", result => /\.(png|jpg|jpeg)/.test(result) && fs.exists(result));
-		if (!file) return;
-
+	public async createCharacter (file: string) {
 		const img = new Image();
 		img.src = file; // `data:image/${path.extname(file)};base64,${new Buffer(await fs.readFile(file)).toString("base64")}`;
 		await new Promise(resolve => img.onload = resolve);
@@ -122,14 +124,56 @@ export default class CharacterEditor extends Component {
 		const charactersPath = Characters.getCharactersPath();
 		await fs.mkdir(charactersPath);
 
-		await fs.writeFile(`${charactersPath}/${pad(this.characterId, 3)}.png`, buffer);
+		const id = this.characterId++;
 
-		this.addCharacter({
-			id: this.characterId++,
-			name: "",
-		}).focusInput();
+		await fs.writeFile(`${charactersPath}/${pad(id, 3)}.png`, buffer);
+
+		this.addCharacter({ id, name: "" }).focusInput();
 
 		this.updateJson();
+
+		return id;
+	}
+
+	private showChoosing () {
+		this.actionRow.dump()
+			.append(new Component("button")
+				.setText("cancel")
+				.listeners.add("click", this.cancel))
+			.append(new Component("button")
+				.classes.add("float-right")
+				.setText("choose")
+				.listeners.add("click", this.choose));
+
+		return this.show();
+	}
+
+	private showViewing (characterId?: number) {
+		this.actionRow.dump()
+			.append(new Component("button")
+				.classes.add("float-right")
+				.setText("done")
+				.listeners.add("click", () => this.hide()));
+
+		this.show();
+
+		if (characterId !== undefined) {
+			const showButton = this.characterWrapper.children<Character>()
+				.filter(button => typeof button.character === "object" && button.character.id === characterId)
+				.first()!;
+
+			if (showButton) showButton.focusInput();
+		}
+
+		return this;
+	}
+
+	@Bound
+	private async newCharacter () {
+		const file = await Options.chooseFile("prompt-character-headshot", result => /\.(png|jpg|jpeg)/.test(result) && fs.exists(result));
+		if (!file) return;
+
+		await this.createCharacter(file);
 	}
 
 	@Bound

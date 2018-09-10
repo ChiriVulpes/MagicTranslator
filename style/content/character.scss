@@ -8,12 +8,7 @@
 		max-height: calc(100vh - 100px);
 		text-align: center; 
 		display: grid;
-		grid-template-columns: auto 1fr auto;
 		grid-template-rows: 1fr auto auto;
-		
-		> :last-child {
-			grid-column: 3;
-		}
 		
 		.character {
 			--background: #0003;
@@ -26,15 +21,18 @@
 	}
 }
 
+.character-editor-action-row {
+	width: 100%;
+	text-align: left;
+}
+
 .character-wrapper {
-	grid-column: 1/4;
 	margin-bottom: 15px;
 	overflow: auto;
 	padding: 0 15px;
 }
 
 .character-new {
-	grid-column: 1/4;
 	height: 75px;
 	
 	margin: 10px 15px 20px;
