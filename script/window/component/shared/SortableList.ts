@@ -29,13 +29,15 @@ export class SortableListItem extends Component {
 		this.lastMoveEvent = event;
 		this.dragEnd = Vector.get(event!);
 
-		this.classes.add("sorting");
-		this.parent!.classes.add("sorting");
-
 		const y = this.positionStart! + (this.dragEnd.y - this.dragStart!.y) + (this.parent!.element().scrollTop - this.scrollStart);
 		this.style.set("--drag-y", y - this.parent!.element().scrollTop + this.parent!.box().top);
 
-		this.emit<[SortableListItem, number]>(SortableListEvent.SortUpdate, updateEvent => updateEvent.data = tuple(this, y));
+		if (!this.classes.has("sorting") && Math.abs(this.dragStart!.y - this.dragEnd.y) > 5) {
+			this.classes.add("sorting");
+			this.parent!.classes.add("sorting");
+
+			this.emit<[SortableListItem, number]>(SortableListEvent.SortUpdate, updateEvent => updateEvent.data = tuple(this, y));
+		}
 
 		return y;
 	}
