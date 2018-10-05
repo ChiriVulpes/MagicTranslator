@@ -224,7 +224,7 @@ export default class Extractor extends Component {
 		const scale = this.pageImage.box().size().over(Vector.getNaturalSize(this.pageImage.element<HTMLImageElement>()));
 
 		const size = Vector.size(this.captureStart, this.captureEnd).over(scale);
-		if (size.x < 30 || size.y < 30) {
+		if (size.x < 20 || size.y < 20) {
 			return;
 		}
 
