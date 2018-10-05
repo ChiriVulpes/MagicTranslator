@@ -100,7 +100,7 @@ export default class Capture extends SortableListItem {
 	@Bound
 	private noteBlur (event: Event) {
 		const note = Component.get<Note>(event);
-		const activeComponent = Component.get(document.activeElement);
+		const activeComponent = Component.get(document.activeElement!);
 		if (activeComponent.isDescendantOf(note)) return;
 
 		if (note.isBlank()) {

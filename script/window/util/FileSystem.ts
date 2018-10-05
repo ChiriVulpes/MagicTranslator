@@ -5,8 +5,10 @@ export default class FileSystem {
 	public async readdir (dir: string) {
 		return new Promise<string[]>((resolve, reject) => {
 			this.nodefs.readdir(dir, (err: NodeJS.ErrnoException | undefined, files) => {
-				if (err) reject(err);
-				else resolve(files);
+				if (err) {
+					if (err.code === "ENOENT") resolve([]);
+					else reject(err);
+				} else resolve(files);
 			});
 		});
 	}

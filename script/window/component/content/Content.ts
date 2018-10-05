@@ -2,18 +2,20 @@ import Component from "component/Component";
 import CharacterEditor from "component/content/character/CharacterEditor";
 import Explorer from "component/content/Explorer";
 import Extractor from "component/content/Extractor";
+import Interrupt from "component/shared/Interrupt";
 import Volumes from "data/Volumes";
 import Bound from "util/Bound";
 import { tuple } from "util/IterableIterator";
 import { ComponentEvent } from "util/Manipulator";
 import Options from "util/Options";
 import Language from "util/string/Language";
-import Interrupt from "component/shared/Interrupt";
 
 export default class Content extends Component {
 	public constructor() {
 		super();
 		this.setId("content");
+
+		window.send("window-toggle-devtools");
 
 		this.initialize();
 	}

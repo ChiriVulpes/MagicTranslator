@@ -52,7 +52,7 @@ export default class WindowControls extends Component {
 		const maximized = await window.send<boolean>("window-is-maximized");
 		const fullscreen = await window.send<boolean>("window-is-fullscreen");
 		this.maximizeButton.attributes.set("action", maximized ? "restore" : "maximize");
-		Component.get(document.documentElement).classes.toggle(maximized, "is-maximized");
-		Component.get(document.documentElement).classes.toggle(fullscreen, "is-fullscreen");
+		Component.get(document.documentElement!).classes.toggle(maximized, "is-maximized");
+		Component.get(document.documentElement!).classes.toggle(fullscreen, "is-fullscreen");
 	}
 }
