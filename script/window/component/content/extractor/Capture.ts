@@ -100,6 +100,8 @@ export default class Capture extends SortableListItem {
 				this.addNote();
 			}
 		}
+
+		this.emit("capture-change");
 	}
 
 	@Bound
