@@ -78,11 +78,9 @@ export default class Extractor extends Component {
 	}
 
 	public async addCapture (capture: CaptureData) {
-		console.log(capture.id, this.captureId);
 		if (capture.id === undefined) {
 			capture.id = this.captureId++;
 		}
-		console.log(capture.id, this.captureId);
 
 		const captureComponent = new Capture(this.getCapturePagePath(), capture)
 			.listeners.add("capture-change", this.updateJSON)
@@ -359,12 +357,10 @@ export default class Extractor extends Component {
 
 	private async waitForCapture (id: number) {
 		this.classes.add("waiting-for-capture");
-		console.log("waiting for capture", id);
 		return new Promise<[Vector, Vector]>(resolve => {
 			this.waitingForCapture = tuple(id, (captureData: [Vector, Vector]) => {
 				resolve(captureData);
 				this.classes.remove("waiting-for-capture");
-				console.log("stopped waiting for capture", id);
 			});
 		});
 	}
