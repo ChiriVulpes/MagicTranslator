@@ -108,7 +108,7 @@ export class DialogImpl {
 	}
 
 	private parseNotes (notes: string) {
-		notes = notes.replace(/(.|\n|r)*--- \|\r?\n/m, "");
+		notes = notes.replace(/(.|\n|\r)*--- \|\r?\n/m, "");
 
 		return /\| (.*?) \| (.*?) \|/g.matches(notes)
 			.map(([, foreign, note]) => tuple(foreign, note));
