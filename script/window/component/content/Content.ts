@@ -37,26 +37,32 @@ export default class Content extends Component {
 		this.showExplorer();
 	}
 
-	private showExplorer (startLocation?: [number, number]) {
+	public showExplorer (startLocation?: [number, number]) {
 		this.children(2).forEach(child => child.remove());
 
 		new Explorer(startLocation)
-			.listeners.add("extract", this.extractPage)
+			.listeners.add("extract", this.onExtractPage)
 			.appendTo(this);
 	}
 
+	public async extractPage (volume: number, chapter: number, page: number) {
+		const pages = Volumes.getByIndex(volume)!.getByIndex(chapter)!;
+		return this.onExtractPage({ data: [volume, chapter, page, page > 0, page < pages.length - 1] } as any);
+	}
+
 	@Bound
-	private extractPage ({ data }: ComponentEvent<[number, number, number, boolean, boolean]>) {
+	private async onExtractPage ({ data }: ComponentEvent<[number, number, number, boolean, boolean]>): Promise<Extractor> {
 		this.children(2).forEach(child => child.remove());
 
 		const [volume, chapter, page] = data;
 		const pages = Volumes.getByIndex(volume)!.getByIndex(chapter)!;
 
-		new Extractor(...data)
+		return new Extractor(...data)
 			.listeners.add("quit", () => this.showExplorer(tuple(volume, chapter)))
-			.listeners.add("previous", () => this.extractPage({ data: [volume, chapter, page - 1, page > 1, true] } as any))
-			.listeners.add("next", () => this.extractPage({ data: [volume, chapter, page + 1, true, page < pages.length - 2] } as any))
-			.appendTo(this);
+			.listeners.add("previous", () => this.onExtractPage({ data: [volume, chapter, page - 1, page > 1, true] } as any))
+			.listeners.add("next", () => this.onExtractPage({ data: [volume, chapter, page + 1, true, page < pages.length - 2] } as any))
+			.appendTo(this)
+			.initialize();
 	}
 
 	@Bound

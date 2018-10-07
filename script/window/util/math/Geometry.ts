@@ -53,6 +53,7 @@ export class Vector {
 	public constructor(xAndY: number);
 	public constructor(vector: { x: number; y: number });
 	public constructor(x: number, y: number);
+	public constructor(x: number | { x: number; y: number }, y?: number);
 	public constructor(x: number | { x: number; y: number }, y = x as number) {
 		if (typeof x === "object") {
 			this.x = x.x;

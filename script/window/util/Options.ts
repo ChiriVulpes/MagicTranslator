@@ -63,15 +63,15 @@ export default class Options {
 		return new Promise(resolve => this.waitForOptionsHandlers.push(resolve));
 	}
 
-	public static async chooseFile (title: string, validator: ((result: string) => boolean | Promise<boolean>) | undefined, retryOnCancel: true): Promise<string>;
+	public static async chooseFile (title: string, validator: ((result: string) => boolean | Promise<boolean>) | undefined, retryOnCancel: true, ...args: any[]): Promise<string>;
 	public static async chooseFile (title: string, validator?: (result: string) => boolean | Promise<boolean>): Promise<string | undefined>;
-	public static async chooseFile (title: string, validator?: (result: string) => boolean | Promise<boolean>, retryOnCancel?: boolean): Promise<string | undefined>;
-	public static async chooseFile (title: string, validator?: (result: string) => boolean | Promise<boolean>, retryOnCancel = false) {
+	public static async chooseFile (title: string, validator?: (result: string) => boolean | Promise<boolean>, retryOnCancel?: boolean, ...args: any[]): Promise<string | undefined>;
+	public static async chooseFile (title: string, validator?: (result: string) => boolean | Promise<boolean>, retryOnCancel = false, ...args: any[]) {
 		let file: string | undefined;
 		while (true) {
 			const result = await new Promise<string[] | undefined>(resolve => Dialog.showOpenDialog({
 				properties: ["openFile"],
-				title: new Translation(title).get(),
+				title: new Translation(title).get(...args),
 			}, resolve));
 
 			if (!result) {
@@ -94,7 +94,7 @@ export default class Options {
 		while (true) {
 			const result = await new Promise<string[] | undefined>(resolve => Dialog.showOpenDialog({
 				properties: ["openDirectory"],
-				title,
+				title: new Translation(title).get(),
 			}, resolve));
 
 			if (!result) {

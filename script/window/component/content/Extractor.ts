@@ -9,6 +9,7 @@ import Dialog from "data/Dialog";
 import Volumes from "data/Volumes";
 import Bound from "util/Bound";
 import Collectors from "util/Collectors";
+import { tuple } from "util/IterableIterator";
 import { Vector } from "util/math/Geometry";
 import { pad } from "util/string/String";
 import Translation from "util/string/Translation";
@@ -20,6 +21,7 @@ export default class Extractor extends Component {
 	private captureId = 0;
 	private captureStart: Vector;
 	private captureEnd: Vector;
+	private waitingForCapture?: [number, (value: [Vector, Vector]) => void];
 
 	public constructor(private readonly volume: number, private readonly chapter: number, private readonly page: number, hasPreviousPage = true, hasNextPage = true) {
 		super();
@@ -73,17 +75,47 @@ export default class Extractor extends Component {
 			.appendTo(this);
 
 		Header.setTitle(() => new Translation("title").get({ volume: volumeNumber, chapter: chapterNumber, page: pageNumber }));
-
-		this.initialize();
 	}
 
-	private async initialize () {
+	public async addCapture (capture: CaptureData) {
+		console.log(capture.id, this.captureId);
+		if (capture.id === undefined) {
+			capture.id = this.captureId++;
+		}
+		console.log(capture.id, this.captureId);
+
+		const captureComponent = new Capture(this.getCapturePagePath(), capture)
+			.listeners.add("capture-change", this.updateJSON)
+			.listeners.add<MouseEvent>("mouseenter", this.mouseEnterCapture)
+			.listeners.add("remove-capture", this.removeCapture)
+			.appendTo(this.capturesWrapper);
+
+		if (capture.position === undefined || capture.size === undefined) {
+			const [position, size] = await this.waitForCapture(capture.id);
+			capture.position = position;
+			capture.size = size;
+		}
+
+		captureComponent.refreshImage();
+	}
+
+	@Bound
+	public async updateJSON () {
+		await Captures.save(this.volume, this.chapter, this.page, {
+			captureId: this.captureId,
+			captures: this.capturesWrapper.children<Capture>()
+				.map(component => component.getData())
+				.collect(Collectors.toArray),
+		});
+	}
+
+	public async initialize () {
 		const { captureId, captures } = await Captures.load(this.volume, this.chapter, this.page);
 
 		this.captureId = captureId;
 
 		for (const capture of captures) {
-			this.addCapture(capture);
+			await this.addCapture(capture);
 		}
 
 		this.pageImage.listeners.add("mousedown", this.mouseDown);
@@ -92,6 +124,8 @@ export default class Extractor extends Component {
 			.add("keyup", this.keyup, true);
 		Component.window.listeners.until(this.listeners.waitFor("remove"))
 			.add("mousewheel", this.scroll, true);
+
+		return this;
 	}
 
 	@Bound
@@ -100,21 +134,13 @@ export default class Extractor extends Component {
 		this.updateJSON();
 	}
 
-	private addCapture (capture: CaptureData) {
-		new Capture(this.getCapturePagePath(), capture)
-			.listeners.add("capture-change", this.updateJSON)
-			.listeners.add<MouseEvent>("mouseenter", this.mouseEnterCapture)
-			.listeners.add("remove-capture", this.removeCapture)
-			.appendTo(this.capturesWrapper);
-	}
-
 	@Bound
 	private removeCapture (event: Event) {
 		const component = Component.get<Capture>(event);
 		component.remove();
 
 		const capture = component.getData();
-		fs.unlink(`${this.getCapturePagePath()}/cap${pad(capture.id, 3)}.png`);
+		fs.unlink(`${this.getCapturePagePath()}/cap${pad(capture.id!, 3)}.png`);
 
 		// we were just hovering over a capture, but now it's gone, so the "leave" event will never fire
 		this.classes.remove("selecting");
@@ -158,8 +184,8 @@ export default class Extractor extends Component {
 		const scale = this.pageImage.box().size().over(Vector.getNaturalSize(this.pageImage.element<HTMLImageElement>()));
 
 		const capture = component.getData();
-		const position = new Vector(capture.position).times(scale);
-		const size = new Vector(capture.size).times(scale);
+		const position = new Vector(capture.position || 0).times(scale);
+		const size = new Vector(capture.size || 0).times(scale);
 
 		this.style.set("--capture-x", position.x + this.pageImage.box().left);
 		this.style.set("--capture-y", position.y + this.pageImage.box().top);
@@ -177,16 +203,6 @@ export default class Extractor extends Component {
 				.first()!
 				.schedule(this.mouseEnterCapture);
 		}
-	}
-
-	@Bound
-	private async updateJSON () {
-		await Captures.save(this.volume, this.chapter, this.page, {
-			captureId: this.captureId,
-			captures: this.capturesWrapper.children<Capture>()
-				.map(component => component.getData())
-				.collect(Collectors.toArray),
-		});
 	}
 
 	@Bound
@@ -237,6 +253,14 @@ export default class Extractor extends Component {
 
 		context.drawImage(this.pageImage.element<HTMLImageElement>(), -position.x, -position.y);
 
+		if (this.waitingForCapture) {
+			const [captureId, resolve] = this.waitingForCapture;
+			await this.saveCapture(`cap${pad(captureId, 3)}.png`, canvas, size);
+			resolve(tuple(position, size));
+			delete this.waitingForCapture;
+			return;
+		}
+
 		if (event.ctrlKey) {
 			const textarea = document.createElement("textarea");
 			textarea.style.setProperty("position", "fixed");
@@ -266,11 +290,10 @@ export default class Extractor extends Component {
 
 		const [character, text] = await Promise.all([
 			CharacterEditor.chooseCharacter(),
-			this.saveCapture(`cap${pad(this.captureId++, 3)}.png`, canvas, size),
+			this.saveCapture(`cap${pad(this.captureId, 3)}.png`, canvas, size),
 		]);
 
-		this.addCapture({
-			id: this.captureId - 1,
+		await this.addCapture({
 			position: position.raw(),
 			size: size.raw(),
 			text,
@@ -332,6 +355,18 @@ export default class Extractor extends Component {
 
 		const [out] = await childProcess.exec(`${options.capture2TextCLIPath} --language Japanese --image ${capturePath} --line-breaks${vertical ? " --vertical" : ""}`);
 		return out.toString("utf8").trim();
+	}
+
+	private async waitForCapture (id: number) {
+		this.classes.add("waiting-for-capture");
+		console.log("waiting for capture", id);
+		return new Promise<[Vector, Vector]>(resolve => {
+			this.waitingForCapture = tuple(id, (captureData: [Vector, Vector]) => {
+				resolve(captureData);
+				this.classes.remove("waiting-for-capture");
+				console.log("stopped waiting for capture", id);
+			});
+		});
 	}
 
 	private getCapturePagePath () {

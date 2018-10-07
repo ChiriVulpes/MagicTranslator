@@ -1,8 +1,12 @@
 import CharacterEditor from "component/content/character/CharacterEditor";
+import Extractor from "component/content/Extractor";
 import Captures from "data/Captures";
-import { BasicCharacter } from "data/Characters";
+import { BasicCharacter, CharacterData } from "data/Characters";
 import Volumes from "data/Volumes";
+import Collectors from "util/Collectors";
 import File from "util/File";
+import { tuple } from "util/IterableIterator";
+import Options from "util/Options";
 
 export class DialogImpl {
 	public async export (volume: number, chapter: number, page?: number) {
@@ -22,6 +26,20 @@ export class DialogImpl {
 
 
 		File.download(`dialog-${volumeString}-${chapterString}${pageNumber !== undefined ? `-${pageNumber}` : ""}.md`, result);
+	}
+
+	public async import (volume: number, chapter: number) {
+		const file = await Options.chooseFile("prompt-dialog-file", result => result.endsWith(".md"));
+
+		if (!file) return;
+
+		const text = await fs.readFile(file, "utf8");
+
+		const pageMatcher = /# Page (\d+)((?:(?:.|\r|\n)(?!# Page))*)/gm;
+
+		for (const [, pageNumber, pageContent] of pageMatcher.matches(text)) {
+			await this.importPage(volume, chapter, +pageNumber - 1, pageContent);
+		}
 	}
 
 	private async exportPage (volume: number, chapter: number, page: number) {
@@ -51,6 +69,49 @@ export class DialogImpl {
 		}
 
 		return result;
+	}
+
+	private async importPage (volume: number, chapter: number, page: number, content: string) {
+		const extractor = await app.extractPage(volume, chapter, page);
+
+		const characterDialogMatcher = /## (.*?):((?:(?:.|\r|\n)(?!## .*?:))*)/gm;
+
+		for (const [, character, dialogs] of characterDialogMatcher.matches(content)) {
+			await this.importForCharacter(character, dialogs, extractor);
+		}
+
+		await extractor.updateJSON();
+	}
+
+	private async importForCharacter (characterName: string, content: string, extractor: Extractor) {
+		let character = CharacterEditor.findCharacterByName(characterName) as CharacterData | number | BasicCharacter | undefined;
+		if (character === undefined) character = await CharacterEditor.createCharacter(undefined, characterName);
+		character = character === undefined ? BasicCharacter.Unknown : typeof character === "object" ? character.id : character;
+
+		const dialogMatcher = /((?:> .*\r?\n)+)([^|]*)((?:(?:.|\r|\n)(?!> ))*)/gm;
+
+		for (const [, dialog, translation, notesText] of dialogMatcher.matches(content)) {
+			const japanese = this.parseDialog(dialog);
+			const notes = this.parseNotes(notesText);
+
+			await extractor.addCapture({
+				text: japanese,
+				translation: translation.trim(),
+				notes: notes.collect(Collectors.toArray),
+				character,
+			});
+		}
+	}
+
+	private parseDialog (dialog: string) {
+		return dialog.replace(/> /g, "");
+	}
+
+	private parseNotes (notes: string) {
+		notes = notes.replace(/(.|\n|r)*--- \|\r?\n/m, "");
+
+		return /\| (.*?) \| (.*?) \|/g.matches(notes)
+			.map(([, foreign, note]) => tuple(foreign, note));
 	}
 }
 

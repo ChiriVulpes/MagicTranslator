@@ -159,6 +159,12 @@ export default class Explorer extends Component {
 			.listeners.add("click", () => this.export(volume, chapter))
 			.appendTo(this.actionWrapper);
 
+		new Component("button")
+			.classes.add("float-right")
+			.setText("import")
+			.listeners.add("click", () => this.import(volume, chapter))
+			.appendTo(this.actionWrapper);
+
 		const [volumePath, chapterPath] = Volumes.getPaths(volume, chapter);
 		const [volumeNumber, chapterNumber] = Volumes.getNumbers(volume, chapter);
 		const pages = await Volumes.getByIndex(volume)!.getByIndex(chapter)!;
@@ -183,4 +189,17 @@ export default class Explorer extends Component {
 	private async export (volume: number, chapter: number) {
 		await Dialog.export(volume, chapter);
 	}
+
+	@Bound
+	private async import (volume: number, chapter: number) {
+		await Dialog.import(volume, chapter);
+	}
 }
+
+// regexes for converting old dialog.md to importable dialog.md
+// \n\-(?!--)(?:\s*(.*?):(?!\/\/))?\s*(.*?)(?=\n)
+// replace: \n| $1 | $2 |
+// ([^\|])(\n\|)
+// replace: $1\n| Text | Note |\n| --- | --- |$2
+// \[Page.*?raw/(\d+).png\)\n---
+// replace: # Page $1

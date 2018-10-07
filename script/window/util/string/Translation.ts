@@ -4,7 +4,7 @@ import Language from "util/string/Language";
 import Translations from "util/string/Translations";
 
 export default class Translation<K extends string = keyof Translations> {
-	public get: K extends keyof Translations ? Translations[K] : () => string;
+	public get: K extends keyof Translations ? Translations[K] : (...args: any[]) => string;
 
 	private readonly translationKey: K;
 

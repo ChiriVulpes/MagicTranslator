@@ -2,9 +2,9 @@ import { BasicCharacter } from "data/Characters";
 import Volumes from "data/Volumes";
 
 export interface CaptureData {
-	id: number;
-	position: { x: number; y: number };
-	size: { x: number; y: number };
+	id?: number;
+	position?: { x: number; y: number };
+	size?: { x: number; y: number };
 	text: string;
 	translation: string;
 	notes: [string, string][];
@@ -30,7 +30,9 @@ export class CapturesImpl {
 	}
 
 	public async save (volume: number, chapter: number, page: number, data: TranslationData) {
-		await fs.writeFile(`${this.getCapturePagePath(volume, chapter, page)}.json`, JSON.stringify(data));
+		const capturePagePath = this.getCapturePagePath(volume, chapter, page);
+		await fs.mkdir(path.dirname(capturePagePath));
+		await fs.writeFile(`${capturePagePath}.json`, JSON.stringify(data, undefined, "\t"));
 	}
 
 	public getCapturePagePath (volume: number, chapter: number, page: number) {

@@ -19,7 +19,7 @@ name: Name
 character-new: Add New Character
 prompt-cap-2-text-cli: Choose Capture2Text Folder (Folder Containing Capture2Text_CLI.exe)
 prompt-root-folder: Choose Root Folder (Folder Containing vol##/ch### folders)
-prompt-character-headshot: Choose the Headshot Image for the Character (Prefer Square Images)
+prompt-character-headshot: Choose the Headshot Image for {0?{0}:the Character} (Prefer Square Images)
 read-mode: Read
 translation-mode: Translate
 export: Export
@@ -33,3 +33,5 @@ dismiss: Dismiss
 confirm-remove-character: Are you sure you\nwant to remove "{0}"?
 confirm-remove-character-description: Any capture that has this character will be changed to "N/A".\nThere is no undo.
 done: Done
+prompt-dialog-file: Choose dialog.md file. The file must be properly formatted. It must have the ".md" file extension.
+import: Import

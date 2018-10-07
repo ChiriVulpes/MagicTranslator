@@ -12,6 +12,7 @@ import Translation from "util/string/Translation";
 
 export default class Capture extends SortableListItem {
 
+	private readonly img: Component;
 	private readonly notes: SortableList;
 
 	public constructor(root: string, private readonly capture: CaptureData) {
@@ -19,8 +20,8 @@ export default class Capture extends SortableListItem {
 		this.classes.add("capture");
 
 		new Component()
-			.append(new Component("img")
-				.attributes.set("src", `${root}/cap${pad(capture.id, 3)}.png`))
+			.append(this.img = new Component("img")
+				.attributes.set("src", `${root}/cap${pad(capture.id!, 3)}.png`))
 			.appendTo(this);
 
 		new Component()
@@ -70,6 +71,10 @@ export default class Capture extends SortableListItem {
 			...this.capture,
 			notes: notes.length === 0 ? [["", ""]] : notes,
 		};
+	}
+
+	public refreshImage () {
+		this.img.attributes.set("src", this.img.attributes.get("src")! + "?cachebuster");
 	}
 
 	@Bound

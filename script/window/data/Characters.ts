@@ -29,7 +29,7 @@ export class CharactersImpl {
 	}
 
 	public async save (data: CharactersData) {
-		await fs.writeFile(`${this.getCharactersPath()}/characters.json`, JSON.stringify(data));
+		await fs.writeFile(`${this.getCharactersPath()}/characters.json`, JSON.stringify(data, undefined, "\t"));
 	}
 
 	public getCharactersPath () {

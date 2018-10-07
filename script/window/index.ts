@@ -29,6 +29,7 @@ declare global {
 	const path: typeof import("path");
 	const fs: FileSystem;
 	const childProcess: typeof import("mz/child_process");
+	const app: Content;
 }
 
 (window as any).send = async (event: WindowEvent, ...args: any[]) => {
@@ -111,5 +112,5 @@ const actionBar = new ActionBar();
 
 Component.get(document.body)
 	.append(new Header())
-	.append(new Content())
+	.append((window as any).app = new Content())
 	.append(actionBar);

@@ -6,6 +6,13 @@
 	
 	--textarea-font-size-main: 1.1vw;
 	--textarea-font-size-note: 0.8vw;
+	
+	&.waiting-for-capture {
+		button {
+			opacity: .3;
+			pointer-events: none;
+		}
+	} 
 }
 
 @media screen and (max-width: 1450px) {

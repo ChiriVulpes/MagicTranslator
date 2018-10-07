@@ -22,6 +22,21 @@ export default class CharacterEditor extends Component {
 			.first();
 	}
 
+	public static findCharacterByName (name: string) {
+		const basicCharacter = Enums.values(BasicCharacter)
+			.filter(character => new Translation(`character-${character}`).get().toLowerCase() === name.toLowerCase())
+			.first();
+
+		if (basicCharacter !== undefined) return basicCharacter;
+
+		return Component.get<CharacterEditor>("#character-editor")
+			.characterWrapper
+			.children<Character>()
+			.map(button => button.character)
+			.filter(character => typeof character === "object" && character.name === name)
+			.first();
+	}
+
 	public static getName (character: number | BasicCharacter | CharacterData): string;
 	public static getName (character: number | BasicCharacter | CharacterData | undefined) {
 		if (typeof character === "number") character = CharacterEditor.getCharacter(character);
@@ -41,15 +56,22 @@ export default class CharacterEditor extends Component {
 		});
 	}
 
-	public static async createCharacter (path: string) {
+	public static async createCharacter (path?: string, name?: string) {
+		if (!path) {
+			path = await Options.chooseFile("prompt-character-headshot", result => /\.(png|jpg|jpeg)/.test(result) && fs.exists(result), undefined, name);
+			if (!path) return;
+		}
+
 		if (!await fs.exists(path)) {
 			console.warn(`Could not create a character, headshot path ${path} is invalid`);
 			return;
 		}
 
 		const characterEditor = Component.get<CharacterEditor>("#character-editor");
-		const character = await characterEditor.createCharacter(path);
+		const character = await characterEditor.createCharacter(path, name);
 		characterEditor.showViewing(character);
+
+		return CharacterEditor.getCharacter(character);
 	}
 
 	private characterId = 0;
@@ -73,7 +95,7 @@ export default class CharacterEditor extends Component {
 		new Component("button")
 			.classes.add("character-new")
 			.setText("character-new")
-			.listeners.add("click", this.newCharacter)
+			.listeners.add("click", () => CharacterEditor.createCharacter())
 			.appendTo(content);
 
 		this.actionRow = new Component()
@@ -99,7 +121,7 @@ export default class CharacterEditor extends Component {
 		this.select(BasicCharacter.Unknown);
 	}
 
-	public async createCharacter (file: string) {
+	public async createCharacter (file: string, name = "") {
 		const img = new Image();
 		img.src = file; // `data:image/${path.extname(file)};base64,${new Buffer(await fs.readFile(file)).toString("base64")}`;
 		await new Promise(resolve => img.onload = resolve);
@@ -128,7 +150,7 @@ export default class CharacterEditor extends Component {
 
 		await fs.writeFile(`${charactersPath}/${pad(id, 3)}.png`, buffer);
 
-		this.addCharacter({ id, name: "" }).focusInput();
+		this.addCharacter({ id, name }).focusInput();
 
 		this.updateJson();
 
@@ -166,14 +188,6 @@ export default class CharacterEditor extends Component {
 		}
 
 		return this;
-	}
-
-	@Bound
-	private async newCharacter () {
-		const file = await Options.chooseFile("prompt-character-headshot", result => /\.(png|jpg|jpeg)/.test(result) && fs.exists(result));
-		if (!file) return;
-
-		await this.createCharacter(file);
 	}
 
 	@Bound
