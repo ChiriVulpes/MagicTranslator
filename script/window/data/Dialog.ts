@@ -104,7 +104,7 @@ export class DialogImpl {
 	}
 
 	private parseDialog (dialog: string) {
-		return dialog.replace(/> /g, "");
+		return dialog.replace(/> /g, "").trim();
 	}
 
 	private parseNotes (notes: string) {
