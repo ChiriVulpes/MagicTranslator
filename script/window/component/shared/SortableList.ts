@@ -36,6 +36,9 @@ export class SortableListItem extends Component {
 			this.classes.add("sorting");
 			this.parent!.classes.add("sorting");
 
+		}
+
+		if (this.classes.has("sorting")) {
 			this.emit<[SortableListItem, number]>(SortableListEvent.SortUpdate, updateEvent => updateEvent.data = tuple(this, y));
 		}
 
