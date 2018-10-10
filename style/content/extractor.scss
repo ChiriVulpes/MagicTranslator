@@ -170,8 +170,11 @@
 		padding: 5px 0;
 		box-sizing: border-box;
 		position: relative;
-		--sorting-wrapper-height: auto;
-		height: var(--sorting-wrapper-height);
+		height: auto;
+		
+		&.sorting {
+			height: var(--sorting-wrapper-height);
+		}
 		
 		textarea {
 			font-size: var(--textarea-font-size-note);
