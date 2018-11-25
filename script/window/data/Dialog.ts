@@ -62,9 +62,9 @@ export class DialogImpl {
 
 			if (capture.translation) result += capture.translation + "\n\n";
 
-			const notes = capture.notes.filter(([f, n]) => f && n);
+			const notes = capture.notes.filter(([f, n]) => f || n);
 			if (notes.length) result += "| Text | Note |\n| --- | --- |\n" + notes
-				.map(([f, n]) => `| \`${f.replace(/\s*\r?\n\s*/g, " ")}\` | ${n.replace(/\s*\r?\n\s*/g, " ")} |`)
+				.map(([f, n]) => `| ${f ? "`" : ""}${f.replace(/\s*\r?\n\s*/g, " ")}${f ? "`" : ""} | ${n.replace(/\s*\r?\n\s*/g, " ")} |`)
 				.join("\n") + "\n\n";
 		}
 
