@@ -74,7 +74,7 @@ Options.initialize(req);
 
 import FileSystem from "util/FileSystem";
 
-(window as any).fs = new FileSystem(req<typeof import("fs")>("fs"));
+(window as any).fs = new FileSystem(req<typeof import("fs")>("fs"), req<typeof import("path")>("path"));
 
 
 delete (window as any).nodeRequire;
