@@ -14,9 +14,18 @@ import { Vector } from "util/math/Geometry";
 import { pad } from "util/string/String";
 import Translation from "util/string/Translation";
 
+const enum DisplayMode {
+	Translate = "translation-mode",
+	Read = "read-mode",
+}
+
 export default class Extractor extends Component {
+
+	private static displayMode = DisplayMode.Translate;
+
 	private readonly pageImage: Component;
 	private readonly capturesWrapper: SortableList;
+	private readonly displayModebutton: Component;
 
 	private captureId = 0;
 	private captureStart: Vector;
@@ -59,10 +68,10 @@ export default class Extractor extends Component {
 					.setText("next-page")
 					.classes.toggle(!hasNextPage, "disabled")
 					.listeners.add("click", () => this.emit("next")))
-				.append(new Component("button")
+				.append(this.displayModebutton = new Component("button")
 					.classes.add("float-right")
-					.setText(() => new Translation(this.classes.has("display-mode-read") ? "translation-mode" : "read-mode").get())
-					.listeners.add("click", this.readMode))
+					.setText(() => new Translation(Extractor.displayMode === DisplayMode.Read ? DisplayMode.Translate : DisplayMode.Read).get())
+					.listeners.add("click", () => this.toggleDisplayMode()))
 				.append(new Component("button")
 					.classes.add("float-right")
 					.setText("export")
@@ -122,6 +131,8 @@ export default class Extractor extends Component {
 			.add("keyup", this.keyup, true);
 		Component.window.listeners.until(this.listeners.waitFor("remove"))
 			.add("mousewheel", this.scroll, true);
+
+		this.toggleDisplayMode(Extractor.displayMode);
 
 		return this;
 	}
@@ -304,11 +315,13 @@ export default class Extractor extends Component {
 	}
 
 	@Bound
-	private readMode (event: Event) {
-		this.classes.toggle("display-mode-read");
-		Component.get(event).refreshText();
+	private toggleDisplayMode (mode = Extractor.displayMode === DisplayMode.Read ? DisplayMode.Translate : DisplayMode.Read) {
+		Extractor.displayMode = mode;
 
-		if (this.classes.has("display-mode-read")) {
+		this.classes.toggle(Extractor.displayMode === DisplayMode.Read, "display-mode-read");
+		this.displayModebutton.refreshText();
+
+		if (Extractor.displayMode === DisplayMode.Read) {
 			let lastCharacter: number | BasicCharacter | undefined;
 			for (const capture of this.capturesWrapper.children<Capture>()) {
 				const thisCharacter = capture.getData().character;
