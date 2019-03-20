@@ -3,19 +3,19 @@ import Character from "component/content/character/Character";
 import CharacterEditor from "component/content/character/CharacterEditor";
 import Note from "component/content/extractor/Note";
 import SortableList, { SortableListEvent, SortableListItem } from "component/shared/SortableList";
+import Textarea from "component/shared/Textarea";
 import { CaptureData } from "data/Captures";
 import Bound from "util/Bound";
 import Collectors from "util/Collectors";
 import { tuple } from "util/IterableIterator";
 import { pad } from "util/string/String";
-import Translation from "util/string/Translation";
 
 export default class Capture extends SortableListItem {
 
 	private readonly img: Component;
 	private readonly notes: SortableList;
 
-	public constructor(root: string, private readonly capture: CaptureData) {
+	public constructor (root: string, private readonly capture: CaptureData) {
 		super();
 		this.classes.add("capture");
 
@@ -25,24 +25,16 @@ export default class Capture extends SortableListItem {
 			.appendTo(this);
 
 		new Component()
-			.append(new Component("textarea")
+			.append(new Textarea()
 				.classes.add("japanese")
-				.attributes.set("rows", "1")
-				.attributes.set("placeholder", new Translation("source-placeholder").get())
+				.listeners.add(["change", "blur"], this.changeTextarea)
 				.setText(() => capture.text)
-				.listeners.add(["change", "keyup", "paste", "input"], this.changeTextarea)
-				.listeners.add("blur", this.blurTextarea)
-				.listeners.add("contextmenu", this.copy)
-				.schedule(this.updateTextareaHeight))
-			.append(new Component("textarea")
+				.setPlaceholder("source-placeholder"))
+			.append(new Textarea()
 				.classes.add("translation")
-				.attributes.set("rows", "1")
-				.attributes.set("placeholder", new Translation("translation-placeholder").get())
 				.setText(() => capture.translation || "")
-				.listeners.add(["change", "keyup", "paste", "input"], this.changeTextarea)
-				.listeners.add("blur", this.blurTextarea)
-				.listeners.add("contextmenu", this.copy)
-				.schedule(this.updateTextareaHeight))
+				.setPlaceholder("translation-placeholder")
+				.listeners.add(["change", "blur"], this.changeTextarea))
 			.append(this.notes = new SortableList()
 				.classes.add("notes")
 				.listeners.add(SortableListEvent.SortComplete, () => this.emit("capture-change")))
@@ -119,32 +111,8 @@ export default class Capture extends SortableListItem {
 
 	@Bound
 	private changeTextarea (event: Event) {
-		const component = Component.get(event);
-		this.capture[component.classes.has("japanese") ? "text" : "translation"] = component.element<HTMLTextAreaElement>().value;
-		this.updateTextareaHeight(component);
+		const textarea = Component.get<Textarea>(event);
+		this.capture[textarea.classes.has("japanese") ? "text" : "translation"] = textarea.getText();
 		this.emit("capture-change");
-	}
-
-	@Bound
-	private blurTextarea (event: Event) {
-		const component = Component.get(event);
-		const textarea = component.element<HTMLTextAreaElement>();
-		this.capture[component.classes.has("japanese") ? "text" : "translation"] = textarea.value = textarea.value.trim();
-		this.updateTextareaHeight(component);
-		this.emit("capture-change");
-	}
-
-	@Bound
-	private updateTextareaHeight (textareaComponent: Component) {
-		const lines = textareaComponent.element<HTMLTextAreaElement>().value.split("\n").length;
-		textareaComponent.style.set("--height", Math.min(2.75862069, lines));
-		textareaComponent.classes.toggle(lines > 4, "overflow");
-	}
-
-	@Bound
-	private copy (event: MouseEvent) {
-		const textarea = Component.get(event);
-		textarea.element<HTMLTextAreaElement>().select();
-		document.execCommand("copy");
 	}
 }

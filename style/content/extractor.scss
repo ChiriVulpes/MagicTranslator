@@ -150,19 +150,17 @@
 		}
 	}
 	
-	textarea {
-		height: calc(var(--height) * 1.2em + 1.1vh);
-		width: 100%;
-		font-size: var(--textarea-font-size-main);
-		font-weight: 100;
+	.textarea {
+		margin: 4px 0;
+		&, & > * {
+			width: 100%;
+			font-size: var(--textarea-font-size-main);
+			font-weight: 100;
+		}
 	}
 	
 	.japanese {
 		font-family: var(--font-ja);
-	}
-	
-	.translation {
-		height: calc(var(--height) * 1.4em + 1.1vh);
 	}
 	
 	.notes {
@@ -175,10 +173,6 @@
 		&.sorting {
 			height: var(--sorting-wrapper-height);
 		}
-		
-		textarea {
-			font-size: var(--textarea-font-size-note);
-		}
 	}
 }
 
@@ -188,17 +182,53 @@
 	gap: 10px;
 }
 
-.note {
-	> textarea {
-		margin: 2px 0;
-		font-family: var(--font-ja);
+.textarea {
+	position: relative;
+	
+	> * {
+		margin: 0;
+		word-break: break-word;
 	}
+	> textarea {
+		height: var(--height);
+		max-width: 100%;
+		color: transparent;
+		caret-color: white;
+		background: none;
+	}
+	> div {
+		pointer-events: none;
+		padding: 5px 10px;
+		box-sizing: border-box;
+		font-family: inherit;
+		font-size: inherit;
+		font-weight: inherit;
+		margin-top: calc(var(--height) * -1);
+		background: #0003;
+	}
+}
 
-	> .translation {
-		height: calc(var(--height) * 1.2em + 1.1vh);
+.note {
+	font-family: var(--font-ja);
+	position: relative;
+	
+	> .textarea {
+		margin: 2px 0;
+		&, & > * {
+			font-size: var(--textarea-font-size-note);
+		}
+		
+		> textarea {
+			height: var(--height);
+			max-width: 100%;
+		}
+		> div {
+			pointer-events: none;
+			min-height: 27px;
+		}
 	}
 	
-	textarea:not(:focus) + textarea:not(:focus) ~ :not(:focus-within) > &.empty {
+	.textarea:not(:focus-within) + .textarea:not(:focus-within) ~ :not(:focus-within) > &.empty {
 		opacity: 0;
 		pointer-events: none;
 		height: 0;
@@ -208,7 +238,7 @@
 		pointer-events: all;
 	}
 	
-	textarea:not(:focus) + textarea:not(:focus) ~ :not(:focus-within) > &.empty > * {
+	.textarea:not(:focus-within) + .textarea:not(:focus-within) ~ :not(:focus-within) > &.empty > * {
 		pointer-events: none;
 	}
 	
@@ -237,6 +267,7 @@
 	
 	.japanese {
 		max-width: 13vw;
+		width: 197px;
 	}
 }
 

@@ -1,35 +1,32 @@
 import Component from "component/Component";
 import { SortableListItem } from "component/shared/SortableList";
+import Textarea from "component/shared/Textarea";
 import { sleep } from "util/Async";
 import Bound from "util/Bound";
-import Translation from "util/string/Translation";
 
 export default class Note extends SortableListItem {
-	public constructor(private readonly noteData: [string, string] = ["", ""]) {
+
+	private readonly ja = new Textarea()
+		.classes.add("japanese")
+		.listeners.add("change", this.changeTextarea)
+		.listeners.add("blur", this.blurTextarea)
+		// .setHandleHeight(false)
+		.setText(() => this.noteData[0])
+		.setPlaceholder("source-placeholder")
+		.appendTo(this);
+
+	private readonly en = new Textarea()
+		.classes.add("translation")
+		.listeners.add("change", this.changeTextarea)
+		.listeners.add("blur", this.blurTextarea)
+		// .setHandleHeight(false)
+		.setText(() => this.noteData[1])
+		.setPlaceholder("note-placeholder")
+		.appendTo(this);
+
+	public constructor (private readonly noteData: [string, string] = ["", ""]) {
 		super();
 		this.classes.add("note");
-
-		new Component("textarea")
-			.classes.add("japanese")
-			.attributes.set("rows", "1")
-			.attributes.set("placeholder", new Translation("source-placeholder").get())
-			.setText(() => noteData[0])
-			.listeners.add(["change", "keyup", "paste", "input", "focus"], this.changeTextarea)
-			.listeners.add("blur", this.blurTextarea)
-			.listeners.add("contextmenu", this.copy)
-			.appendTo(this)
-			.schedule(this.updateTextareaHeight);
-
-		new Component("textarea")
-			.classes.add("translation")
-			.attributes.set("rows", "1")
-			.attributes.set("placeholder", new Translation("note-placeholder").get())
-			.setText(() => noteData[1])
-			.listeners.add(["change", "keyup", "paste", "input", "focus"], this.changeTextarea)
-			.listeners.add("blur", this.blurTextarea)
-			.listeners.add("contextmenu", this.copy)
-			.appendTo(this)
-			.schedule(this.updateTextareaHeight);
 
 		this.classes.toggle(this.isBlank(), "empty");
 	}
@@ -44,33 +41,21 @@ export default class Note extends SortableListItem {
 
 	@Bound
 	private changeTextarea (event: Event) {
-		const component = Component.get(event);
-		this.noteData[component.classes.has("japanese") ? 0 : 1] = component.element<HTMLTextAreaElement>().value;
-		this.updateTextareaHeight(component);
+		const textarea = Component.get<Textarea>(event);
+		const ja = textarea.classes.has("japanese");
+		this.noteData[ja ? 0 : 1] = textarea.getText();
+		sleep(0.3).then(() => {
+			const height = Math.max(this.ja.getHeight(), this.en.getHeight());
+			[this.en, this.ja].forEach(t => t.setHeight(height));
+		});
 		this.emit("note-change");
 	}
 
 	@Bound
 	private blurTextarea (event: Event) {
-		const component = Component.get(event);
-		const textarea = component.element<HTMLTextAreaElement>();
-		this.noteData[component.classes.has("japanese") ? 0 : 1] = textarea.value = textarea.value.trim();
-		this.updateTextareaHeight(component);
+		const textarea = Component.get<Textarea>(event);
+		this.noteData[textarea.classes.has("japanese") ? 0 : 1] = textarea.getText();
 		sleep(0.01).then(() => this.emit("note-blur"));
 		this.classes.toggle(this.isBlank(), "empty");
-	}
-
-	@Bound
-	private updateTextareaHeight (textareaComponent: Component) {
-		const lines = textareaComponent.element<HTMLTextAreaElement>().value.split("\n").length;
-		textareaComponent.style.set("--height", Math.min(2.75862069, lines));
-		textareaComponent.classes.toggle(lines > 4, "overflow");
-	}
-
-	@Bound
-	private copy (event: MouseEvent) {
-		const textarea = Component.get(event);
-		textarea.element<HTMLTextAreaElement>().select();
-		document.execCommand("copy");
 	}
 }
