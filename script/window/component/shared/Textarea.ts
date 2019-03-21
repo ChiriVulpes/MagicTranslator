@@ -60,7 +60,11 @@ export default class Textarea extends Component {
 	}
 
 	@Bound
-	private onChange () {
+	private onChange (event: Event) {
+		if (event.type === "change") {
+			event.stopPropagation();
+		}
+
 		this.setHiddenTextareaText();
 		if (this.handleHeight) sleep(0.01).then(() => this.setHeight());
 		this.emit("change");
