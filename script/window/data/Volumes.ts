@@ -1,5 +1,4 @@
-import Collectors from "util/Collectors";
-import { tuple } from "util/IterableIterator";
+import { tuple } from "util/Arrays";
 import IndexedMap from "util/Map";
 
 export class VolumesImpl extends IndexedMap<string, IndexedMap<string, string[]>> {
@@ -44,7 +43,7 @@ export class VolumesImpl extends IndexedMap<string, IndexedMap<string, string[]>
 			.values()
 			.filter(volume => /vol\d\d/.test(volume))
 			.map(async volume => tuple(volume, await this.getChapters(volume)))
-			.awaitAll();
+			.rest();
 	}
 
 	private async getChapters (volume: string) {
@@ -53,16 +52,13 @@ export class VolumesImpl extends IndexedMap<string, IndexedMap<string, string[]>
 			.values()
 			.filter(chapter => /ch\d\d\d/.test(chapter))
 			.map(async chapter => tuple(chapter, await this.getPages(volume, chapter)))
-			.awaitAll()
 			.collect(IndexedMap.createAsync);
 	}
 
 	private async getPages (volume: string, chapter: string) {
 		return (await fs.readdir(`${options.root}/${volume}/${chapter}/raw`))
 			.sort()
-			.values()
-			.filter(page => /\d\d\d\.png/.test(page))
-			.collect(Collectors.toArray);
+			.filter(page => /\d\d\d\.png/.test(page));
 	}
 }
 

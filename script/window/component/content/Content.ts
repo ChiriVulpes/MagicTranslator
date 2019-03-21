@@ -4,14 +4,15 @@ import Explorer from "component/content/Explorer";
 import Extractor from "component/content/Extractor";
 import Interrupt from "component/shared/Interrupt";
 import Volumes from "data/Volumes";
+import { tuple } from "util/Arrays";
 import Bound from "util/Bound";
-import { tuple } from "util/IterableIterator";
 import { ComponentEvent } from "util/Manipulator";
 import Options from "util/Options";
 import Language from "util/string/Language";
 
 export default class Content extends Component {
-	public constructor() {
+
+	public constructor () {
 		super();
 		this.setId("content");
 
@@ -38,7 +39,7 @@ export default class Content extends Component {
 	}
 
 	public showExplorer (startLocation?: [number, number]) {
-		this.children(2).forEach(child => child.remove());
+		this.children().drop(2).collectStream().forEach(child => child.remove());
 
 		new Explorer(startLocation)
 			.listeners.add("extract", this.onExtractPage)
@@ -52,7 +53,7 @@ export default class Content extends Component {
 
 	@Bound
 	private async onExtractPage ({ data }: ComponentEvent<[number, number, number, boolean, boolean]>): Promise<Extractor> {
-		this.children(2).forEach(child => child.remove());
+		this.children().drop(2).collectStream().forEach(child => child.remove());
 
 		const [volume, chapter, page] = data;
 		const pages = Volumes.getByIndex(volume)!.getByIndex(chapter)!;

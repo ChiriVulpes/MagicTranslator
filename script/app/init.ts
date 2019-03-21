@@ -103,7 +103,12 @@ async function init () {
 			delete window.exports;
 			delete window.module;
 		</script>
-		<script src="script/vendor/require.js" data-main="script/index.js"></script>
+		<script src="script/vendor/require.js"></script>
+		<script>
+			requirejs(["script/init.js"], () => {
+				requirejs(["script/index.js"]);
+			});
+		</script>
 	`), { baseURLForDataURL: `file://${__dirname}/out`, extraHeaders: "pragma: no-cache\n" });
 
 	win.on("ready-to-show", () => win.show());

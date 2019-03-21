@@ -5,9 +5,8 @@ import Note from "component/content/extractor/Note";
 import SortableList, { SortableListEvent, SortableListItem } from "component/shared/SortableList";
 import Textarea from "component/shared/Textarea";
 import { CaptureData } from "data/Captures";
+import { tuple } from "util/Arrays";
 import Bound from "util/Bound";
-import Collectors from "util/Collectors";
-import { tuple } from "util/IterableIterator";
 import { pad } from "util/string/String";
 
 export default class Capture extends SortableListItem {
@@ -60,7 +59,7 @@ export default class Capture extends SortableListItem {
 		const notes = this.notes.children<Note>()
 			.filter(note => !note.isBlank())
 			.map(note => note.getData())
-			.collect(Collectors.toArray);
+			.toArray();
 
 		return {
 			...this.capture,

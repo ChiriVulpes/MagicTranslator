@@ -68,12 +68,6 @@ import FileSystem from "util/FileSystem";
 
 (window as any).fs = new FileSystem(req<typeof import("fs")>("fs"), req<typeof import("path")>("path"));
 
-////////////////////////////////////
-// Initialize IterableIterator support
-//
-
-import IterableIterator = require("util/IterableIterator");
-IterableIterator.pipe();
 
 ////////////////////////////////////
 // Initialize the Language

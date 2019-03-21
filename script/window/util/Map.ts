@@ -1,26 +1,29 @@
+import { tuple } from "util/Arrays";
 import Bound from "util/Bound";
-import { tuple } from "util/IterableIterator";
+import Stream from "util/stream/Stream";
 
 export default class IndexedMap<K, V> extends Map<K, V> {
-	public static create<K, V> (entriesIterable: IterableOf<[K, V]>) {
+	public static create<K, V> (entriesIterable: Iterable<[K, V]>) {
 		const result = new IndexedMap<K, V>();
-		result.setAll(entriesIterable);
+		result.addAll(entriesIterable);
 		return result;
 	}
 
-	public static createAsync<K, V> (entriesIterable: AsyncIterableIterator<[K, V]>) {
+	public static createAsync<K, V> (entriesIterable: AsyncIterable<[K, V]>) {
 		return new Promise<IndexedMap<K, V>>(async resolve => {
 			const result = new IndexedMap<K, V>();
-			await result.setAll(entriesIterable);
+			await result.addAllAsync(entriesIterable);
 			resolve(result);
 		});
 	}
 
 	private readonly indexMap: K[] = [];
 
-	public constructor(...entriesIterable: IterableIterator<[K, V]>[]) {
+	public constructor (entriesIterable?: Iterable<[K, V]>) {
 		super();
-		this.addAll(...entriesIterable);
+		if (entriesIterable) {
+			this.addAll(entriesIterable);
+		}
 	}
 
 	@Bound
@@ -64,9 +67,9 @@ export default class IndexedMap<K, V> extends Map<K, V> {
 	 * Sets multiple entries in this map from an iterable of entries
 	 */
 	@Bound
-	public addAll (...entriesIterable: IterableOf<[K, V]>[]) {
-		entriesIterable.values()
-			.flat<[K, V]>(1)
+	public addAll (...entriesIterable: Iterable<[K, V]>[]) {
+		Stream.from(entriesIterable)
+			.flatMap()
 			.forEach(([k, v]) => this.set(k, v));
 
 		return this;
@@ -76,7 +79,7 @@ export default class IndexedMap<K, V> extends Map<K, V> {
 	 * Sets multiple entries in this map from an iterable of entries
 	 */
 	@Bound
-	public async addAllAsync (...entriesIterable: (AsyncIterableIterator<[K, V]> | Promise<AsyncIterableIterator<[K, V]>>)[]) {
+	public async addAllAsync (...entriesIterable: (AsyncIterable<[K, V]> | Promise<AsyncIterable<[K, V]>>)[]) {
 		for (const iterable of entriesIterable) {
 			for await (const [k, v] of await iterable) {
 				this.set(k, v);
@@ -89,7 +92,7 @@ export default class IndexedMap<K, V> extends Map<K, V> {
 	/**
 	 * Returns an iterator for the entries of this map, and the index of each.
 	 */
-	public indexedEntries (): IterableIterator<[number, K, V]> {
+	public indexedEntries () {
 		return this.entries().map(([k, v]) => tuple(this.indexMap.indexOf(k), k, v));
 	}
 }

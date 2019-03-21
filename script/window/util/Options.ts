@@ -45,7 +45,7 @@ export default class Options {
 
 		for (const handler of this.waitForOptionsHandlers) handler();
 		delete this.waitForOptionsHandlers;
-		Options.waitForOptions = Promise.resolve.bind(Promise);
+		Options.waitForOptions = Promise.resolve.bind(Promise) as any;
 	}
 
 	public static async reset (init = true) {

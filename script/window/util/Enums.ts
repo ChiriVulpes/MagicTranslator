@@ -1,32 +1,29 @@
+import { tuple } from "util/Arrays";
+import Stream from "util/stream/Stream";
 
 module Enums {
+
 	/**
 	 * Iterate over the names of the entries in an enum.
 	 */
-	export function* keys<E, K extends string> (enumObject: { [key in K]: E }): IterableIterator<K> {
-		for (const key in enumObject) {
-			if (isNaN(+key)) {
-				yield key as K;
-			}
-		}
+	export function keys<T> (enumObject: T): Stream<keyof T> {
+		return Stream.keys(enumObject)
+			.filter(key => isNaN(+key)) as any;
 	}
 
 	/**
 	 * Iterate over the values in an enum.
 	 */
-	export function* values<E, K extends string> (enumObject: { [key in K]: E }): IterableIterator<E> {
-		for (const key of keys(enumObject)) {
-			yield enumObject[key];
-		}
+	export function values<T> (enumObject: T): Stream<T[keyof T]> {
+		return keys(enumObject).map(key => enumObject[key]);
 	}
 
 	/**
 	 * Iterate over the entries in an enum. Yields a tuple containing the name and value of each entry.
 	 */
-	export function* entries<E, K extends string> (enumObject: { [key in K]: E }): IterableIterator<[K, E]> {
-		for (const key of keys(enumObject)) {
-			yield [key, enumObject[key]];
-		}
+	export function entries<T> (enumObject: T): Stream<[keyof T, T[keyof T]]> {
+		return keys(enumObject)
+			.map(key => tuple(key, enumObject[key]));
 	}
 }
 

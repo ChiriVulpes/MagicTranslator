@@ -1,13 +1,7 @@
-import {
-	AttributeManipulator,
-	ClassManipulator,
-	ComponentEvent,
-	DataManipulator,
-	EventListenerManipulator,
-	StyleManipulator,
-} from "component/ComponentManipulator";
+import { AttributeManipulator, ClassManipulator, ComponentEvent, DataManipulator, EventListenerManipulator, StyleManipulator } from "component/ComponentManipulator";
 import { sleep } from "util/Async";
 import { Box } from "util/math/Geometry";
+import Stream from "util/stream/Stream";
 import Translation from "util/string/Translation";
 
 /**
@@ -57,10 +51,10 @@ export default class Component {
 
 	private observerForRemoval: MutationObserver;
 
-	public constructor(element: Element);
-	public constructor(tagType?: string);
-	public constructor();
-	public constructor(element: string | Element = "div") {
+	public constructor (element: Element);
+	public constructor (tagType?: string);
+	public constructor ();
+	public constructor (element: string | Element = "div") {
 		this.internalElement = typeof element === "string" ? document.createElement(element) : element as HTMLElement;
 
 		if (Component.map.get(this.internalElement)) {
@@ -147,8 +141,8 @@ export default class Component {
 		return this;
 	}
 
-	public append (...what: ArrayOfTOrIterablesOfT<Component | undefined>) {
-		for (const component of what.values().flat()) {
+	public append (...what: ArrayOfIterablesOr<Component | undefined>) {
+		for (const component of what.stream().flatMap()) {
 			if (component) component.appendTo(this);
 		}
 
@@ -175,22 +169,10 @@ export default class Component {
 		return this.element().childElementCount;
 	}
 
-	public *children<C extends Component = Component> (start = 0, end = Infinity, step = 1) {
-		if (start < 0) start = this.element().children.length + start; // negative start
-
-		if (start < 0) return; // no elements
-
-		if (end < 0) end = this.element().children.length + end; // negative end
-
-		end = Math.min(this.element().children.length, end);
-
-		step = Math.round(step);
-		step = step === 0 ? 1 : step;
-
-		const stepSign = Math.sign(step);
-		for (let i = start; Math.sign(end - i) === stepSign; i += step) {
-			yield Component.get<C>(this.element().children[i]);
-		}
+	public children<C extends Component = Component> (step = 1) {
+		return Array.from(this.element().children)
+			.stream(step)
+			.map(child => Component.get<C>(child));
 	}
 
 	public child<C extends Component = Component> (n: number): C | undefined {
@@ -199,16 +181,9 @@ export default class Component {
 		return this.element().children[n] && Component.get<C>(this.element().children[n]);
 	}
 
-	public *descendants<C extends Component = Component> (selector: string) {
-		const first = this.element().querySelector(selector);
-		if (!first) return;
-
-		yield Component.get<C>(first);
-
-		const all = this.element().querySelectorAll(selector);
-		for (let i = 1; i < all.length; i++) {
-			yield Component.get<C>(all[i]);
-		}
+	public descendants<C extends Component = Component> (selector: string) {
+		return Stream.from(this.element().querySelectorAll(selector))
+			.map(descendant => Component.get<C>(descendant));
 	}
 
 	public *ancestors<C extends Component = Component> (selector: string) {
@@ -221,12 +196,10 @@ export default class Component {
 		}
 	}
 
-	public *siblings<C extends Component = Component> () {
-		if (!this.parent) return;
-
-		for (const child of this.parent.children<C>().filter(c => c !== this as any)) {
-			yield child;
-		}
+	public siblings<C extends Component = Component> () {
+		if (!this.parent) return Stream.empty;
+		return this.parent.children<C>()
+			.filter(c => c !== this as any);
 	}
 
 	public isDescendantOf (component: Component) {

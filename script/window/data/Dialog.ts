@@ -3,9 +3,8 @@ import Extractor from "component/content/Extractor";
 import Captures from "data/Captures";
 import { BasicCharacter, CharacterData } from "data/Characters";
 import Volumes from "data/Volumes";
-import Collectors from "util/Collectors";
+import { tuple } from "util/Arrays";
 import File from "util/File";
-import { tuple } from "util/IterableIterator";
 import Options from "util/Options";
 
 export class DialogImpl {
@@ -97,7 +96,7 @@ export class DialogImpl {
 			await extractor.addCapture({
 				text: japanese,
 				translation: translation.trim(),
-				notes: notes.collect(Collectors.toArray),
+				notes: notes.toArray(),
 				character,
 			});
 		}

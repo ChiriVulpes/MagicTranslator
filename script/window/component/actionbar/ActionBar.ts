@@ -1,5 +1,4 @@
 import Component from "component/Component";
-import { construct } from "util/IterableIterator";
 import IndexedMap from "util/Map";
 import Translation from "util/string/Translation";
 
@@ -9,7 +8,7 @@ export type Action<K extends string | number = string | number> = [K, ActionInit
 export default class ActionBar<K extends string | number = string | number> extends Component {
 	private actions: IndexedMap<K, ActionButton>;
 
-	public constructor(...actions: Action<K>[]) {
+	public constructor (...actions: Action<K>[]) {
 		super();
 		this.classes.add("action-bar");
 
@@ -25,7 +24,7 @@ export default class ActionBar<K extends string | number = string | number> exte
 				.listeners.add("click", () => this.emit<K2>("action", event => event.data = id))
 				.schedule(initializer)
 				.appendTo(this)])
-			.collect(construct(IndexedMap));
+			.collect(stream => new IndexedMap(stream)) as any;
 
 		return this as any as ActionBar<K2>;
 	}
@@ -58,7 +57,7 @@ export default class ActionBar<K extends string | number = string | number> exte
 export class ActionButton extends Component {
 	private text: Component | undefined;
 
-	public constructor(id: any) {
+	public constructor (id: any) {
 		super();
 		this.classes.add("action-button");
 		this.attributes.set("action-id", id);

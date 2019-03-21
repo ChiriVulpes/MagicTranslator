@@ -2,6 +2,7 @@
 	"name": "window-deps",
 	"version": "0.0.1",
 	"dependencies": {
-		"electron-store": "2.0.0"
+		"electron-store": "2.0.0",
+		"typescript": "3.4.0-rc"
 	}
 }

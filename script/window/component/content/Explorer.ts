@@ -2,9 +2,9 @@ import Component from "component/Component";
 import Header from "component/header/Header";
 import Dialog from "data/Dialog";
 import Volumes from "data/Volumes";
+import { tuple } from "util/Arrays";
 import { sleep } from "util/Async";
 import Bound from "util/Bound";
-import { tuple } from "util/IterableIterator";
 import Translation from "util/string/Translation";
 
 /*
@@ -14,7 +14,7 @@ async function getImageData (path: string) {
 */
 
 class ImageButton extends Component {
-	public constructor(private readonly path: string) {
+	public constructor (private readonly path: string) {
 		super("a");
 		this.classes.add("image-button");
 		this.attributes.set("href", "#");
@@ -35,7 +35,7 @@ export default class Explorer extends Component {
 	private readonly explorerWrapper: Component;
 	private readonly actionWrapper: Component;
 
-	public constructor(private readonly startLocation?: [number, number]) {
+	public constructor (private readonly startLocation?: [number, number]) {
 		super();
 		this.setId("explorer");
 
@@ -73,8 +73,8 @@ export default class Explorer extends Component {
 		this.explorerWrapper.dump();
 
 		for (const [volumeIndex, volume, chapters] of Volumes.indexedEntries()) {
-			const [firstChapterName, firstChapterPages] = chapters.entries().first()!;
-			const firstPage = firstChapterPages.first();
+			const [firstChapterName, firstChapterPages] = chapters.entryStream().first()!;
+			const firstPage = firstChapterPages[0];
 
 			new ImageButton(`${options.root}/${volume}/${firstChapterName}/raw/${firstPage}`)
 				.setText(() => new Translation("volume").get(+volume.slice(3)))
@@ -120,7 +120,7 @@ export default class Explorer extends Component {
 		const chapters = Volumes.getByIndex(volume)!;
 
 		for (const [index, chapter, pages] of chapters.indexedEntries()) {
-			const firstPage = pages.first();
+			const firstPage = pages[0];
 
 			const [, chapterNumber] = Volumes.getNumbers(volume, index);
 

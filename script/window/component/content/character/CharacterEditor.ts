@@ -3,9 +3,7 @@ import Character from "component/content/character/Character";
 import SortableList, { SortableListEvent } from "component/shared/SortableList";
 import Characters, { BasicCharacter, CharacterData } from "data/Characters";
 import Bound from "util/Bound";
-import Collectors from "util/Collectors";
 import Enums from "util/Enums";
-import { pipe } from "util/IterableIterator";
 import { ComponentEvent } from "util/Manipulator";
 import Options from "util/Options";
 import { pad } from "util/string/String";
@@ -80,7 +78,7 @@ export default class CharacterEditor extends Component {
 	private readonly actionRow: Component;
 	private startingCharacter: number | BasicCharacter = BasicCharacter.Unknown;
 
-	public constructor() {
+	public constructor () {
 		super();
 		this.setId("character-editor");
 		this.classes.add("interrupt");
@@ -112,10 +110,9 @@ export default class CharacterEditor extends Component {
 
 		this.characterId = characterId;
 
-		pipe(characters)
-			.flat()
+		characters.stream()
 			.filter<undefined>(character => character)
-			.include(Enums.values(BasicCharacter))
+			.merge(Enums.values(BasicCharacter))
 			.forEach(this.addCharacter);
 
 		this.select(BasicCharacter.Unknown);
@@ -200,7 +197,7 @@ export default class CharacterEditor extends Component {
 			})
 			.appendTo(this.characterWrapper);
 
-		for (const oldButton of characterButton.siblings<Character>().filter(button => typeof button.character === "string").collect(Collectors.toArray)) {
+		for (const oldButton of characterButton.siblings<Character>().filter(button => typeof button.character === "string").toArray()) {
 			oldButton.appendTo(this.characterWrapper);
 		}
 
@@ -214,7 +211,7 @@ export default class CharacterEditor extends Component {
 			characters: this.characterWrapper.children<Character>()
 				.map(button => button.character)
 				.filter<BasicCharacter>(character => typeof character === "object")
-				.collect(Collectors.toArray),
+				.toArray(),
 		});
 	}
 

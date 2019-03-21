@@ -1,7 +1,7 @@
 // tslint:disable cyclomatic-complexity FIXME
 
 import FollowKeys from "util/FollowKeys";
-import { isIterable } from "util/IterableIterator";
+import { isIterable } from "util/Iterables";
 
 export interface SegmentApi {
 	interpolate (str: string, ...args: any[]): StringSection[];
@@ -11,7 +11,7 @@ export interface Segment {
 	startChar?: string;
 	endChar?: string;
 	regex: RegExp;
-	handle (match: RegExpMatchArray, segment: string, api: SegmentApi, ...args: any[]): string | StringSection | IterableOf<StringSection>;
+	handle (match: RegExpMatchArray, segment: string, api: SegmentApi, ...args: any[]): string | StringSection | Iterable<StringSection>;
 }
 
 export interface StringSection {
@@ -22,7 +22,7 @@ class Interpolator {
 	private readonly _segments: Segment[];
 	public get segments () { return [...this._segments]; }
 
-	public constructor(...segments: Segment[]) {
+	public constructor (...segments: Segment[]) {
 		this._segments = segments.map(segment => ({ ...segment }));
 
 		this.interpolate = this.interpolate.bind(this);
@@ -111,10 +111,10 @@ class Interpolator {
 				result = isIterable(result) ? [...result] : [result];
 
 				// filter out the empty sections
-				result = result.filter(s => s.content.length > 0);
+				result = (result as StringSection[]).filter(s => s.content.length > 0);
 
 				// only do things if there are actually sections left
-				if (result.length > 0) {
+				if ((result as StringSection[]).length > 0) {
 					// create a new "last section" to append to, first appending all the new sections that the segment gave us
 					section = { content: "" };
 					sections.push(...result, section);
@@ -240,7 +240,7 @@ export const argumentSegment: Segment = {
 	regex: /^[a-zA-Z0-9_-]+(?:\.[a-zA-Z0-9_-]+)*$/,
 	handle: (_, segment, api, ...args) => {
 		const result = Interpolator.getArgument(segment, ...args);
-		return result === undefined ? "" : isIterable(result) ? result as IterableOf<StringSection> : `${result}`;
+		return result === undefined ? "" : isIterable(result) ? result : `${result}`;
 	},
 };
 

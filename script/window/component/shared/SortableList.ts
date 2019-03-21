@@ -1,7 +1,7 @@
 import Component from "component/Component";
 import { ComponentEvent } from "component/ComponentManipulator";
+import { tuple } from "util/Arrays";
 import Bound from "util/Bound";
-import { tuple } from "util/IterableIterator";
 import { Vector } from "util/math/Geometry";
 
 export const enum SortableListEvent {
@@ -16,7 +16,7 @@ export class SortableListItem extends Component {
 	private scrollStart: number;
 	private lastMoveEvent?: MouseEvent;
 
-	public constructor(tagname?: string) {
+	public constructor (tagname?: string) {
 		super(tagname);
 		this.classes.add("sortable-list-item");
 
@@ -89,7 +89,7 @@ export default class SortableList<I extends SortableListItem = SortableListItem>
 		return this._isSorting;
 	}
 
-	public constructor() {
+	public constructor () {
 		super();
 		this.classes.add("sortable-list");
 

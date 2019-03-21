@@ -7,9 +7,8 @@ import Captures, { CaptureData } from "data/Captures";
 import { BasicCharacter } from "data/Characters";
 import Dialog from "data/Dialog";
 import Volumes from "data/Volumes";
+import { tuple } from "util/Arrays";
 import Bound from "util/Bound";
-import Collectors from "util/Collectors";
-import { tuple } from "util/IterableIterator";
 import { Vector } from "util/math/Geometry";
 import { pad } from "util/string/String";
 import Translation from "util/string/Translation";
@@ -32,7 +31,7 @@ export default class Extractor extends Component {
 	private captureEnd: Vector;
 	private waitingForCapture?: [number, (value: [Vector, Vector]) => void];
 
-	public constructor(private readonly volume: number, private readonly chapter: number, private readonly page: number, hasPreviousPage = true, hasNextPage = true) {
+	public constructor (private readonly volume: number, private readonly chapter: number, private readonly page: number, hasPreviousPage = true, hasNextPage = true) {
 		super();
 		this.setId("extractor");
 
@@ -112,7 +111,7 @@ export default class Extractor extends Component {
 			captureId: this.captureId,
 			captures: this.capturesWrapper.children<Capture>()
 				.map(component => component.getData())
-				.collect(Collectors.toArray),
+				.toArray(),
 		});
 	}
 
