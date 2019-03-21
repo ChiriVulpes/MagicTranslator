@@ -45,6 +45,9 @@ export default class Capture extends SortableListItem {
 			.append(new Character(capture.character)
 				.listeners.add("click", this.changeCharacter))
 			.append(new Component("button")
+				.setText("paste-notes")
+				.listeners.add("click", this.pasteNotes))
+			.append(new Component("button")
 				.setText("remove")
 				.listeners.add("click", () => this.emit("remove-capture")))
 			.appendTo(this);
@@ -73,6 +76,14 @@ export default class Capture extends SortableListItem {
 	private async changeCharacter (event: Event) {
 		Component.get<Character>(event).setCharacter(this.capture.character = await CharacterEditor.chooseCharacter(this.capture.character));
 		this.emit("capture-change");
+	}
+
+	@Bound
+	private async pasteNotes () {
+		const text = await navigator.clipboard.readText();
+		for (const [, note, translation] of (/- (.*?):(.*)/g).matches(text)) {
+			this.addNote([note, translation]);
+		}
 	}
 
 	@Bound

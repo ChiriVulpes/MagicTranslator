@@ -3,6 +3,7 @@ chapter: Chapter {0}
 page: Page {0}
 back: Back
 remove: Remove
+paste-notes: Paste Notes
 previous-page: Previous Page
 next-page: Next Page
 title: Magic Translator{volume? — Volume {volume}{chapter? — Chapter {chapter}{page? — Page {page}}}}
