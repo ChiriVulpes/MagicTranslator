@@ -1,1 +1,1 @@
-# Magical Trans! OCR
+# Magic Translator

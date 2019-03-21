@@ -27,10 +27,10 @@ interface MagicalData {
 }
 
 interface StoreModule {
-	new <O extends { [key in K]?: any } = { [key in K]?: any }, K extends string | number | symbol = keyof O>(): Store<O, K>;
+	new <O extends { [key in K]?: any }, K extends string | number | symbol = keyof O>(): Store<O, K>;
 }
 
-interface Store<O extends { [key in K]?: any } = { [key in K]?: any }, K extends string | number | symbol = keyof O> {
+interface Store<O extends { [key in K]?: any }, K extends string | number | symbol = keyof O> {
 	store: O;
 	get<GK extends K> (name: GK, defaultValue?: O[GK]): O[GK];
 	set<SK extends K> (name: SK, value: O[SK]): void;

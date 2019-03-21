@@ -1,3 +1,4 @@
+import Language from "util/string/Language";
 import Translation from "util/string/Translation";
 
 let Dialog: typeof Electron.dialog;
@@ -55,6 +56,7 @@ export default class Options {
 	}
 
 	public static async onInitialize () {
+		await Language.waitForLanguage();
 		if (!options.root) options.root = await Options.chooseRootFolder();
 		if (!options.capture2TextCLIPath) options.capture2TextCLIPath = await Options.chooseCapture2TextCLIPath();
 	}

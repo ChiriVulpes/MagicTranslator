@@ -10,7 +10,7 @@ export default class TypescriptWatch {
 	private readonly outDir: string;
 	private declaration: string | undefined;
 
-	public constructor(dir: string, outDir: string) {
+	public constructor (dir: string, outDir: string) {
 		this.inDir = path.resolve(dir);
 		this.outDir = path.resolve(outDir);
 	}
@@ -37,10 +37,10 @@ export default class TypescriptWatch {
 		const task = exec(`npx tsc --outDir ${this.outDir} --pretty --watch ${declaration}`);
 		process.chdir(ocwd);
 
-		task.stderr.on("data", data => process.stderr.write(data));
+		task.stderr!.on("data", data => process.stderr.write(data));
 
 		let start: number;
-		task.stdout.on("data", data => {
+		task.stdout!.on("data", data => {
 			if (this.onDataHandler && this.onDataHandler(data.toString()) === false)
 				return;
 

@@ -34,8 +34,8 @@ module Electron {
 
 		child.on("error", err => console.error(err));
 
-		child.stdout.on("data", data => process.stdout.write(data.toString().trim()));
-		child.stderr.on("data", data => process.stdout.write(data.toString().trim()));
+		child.stdout!.on("data", data => process.stdout.write(data.toString().trim()));
+		child.stderr!.on("data", data => process.stdout.write(data.toString().trim()));
 	}
 }
 

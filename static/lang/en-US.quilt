@@ -5,7 +5,7 @@ back: Back
 remove: Remove
 previous-page: Previous Page
 next-page: Next Page
-title: Magical Trans OCR{volume? — Volume {volume}{chapter? — Chapter {chapter}{page? — Page {page}}}}
+title: Magic Translator{volume? — Volume {volume}{chapter? — Chapter {chapter}{page? — Page {page}}}}
 source-placeholder: Foreign
 translation-placeholder: Translation
 note-placeholder: Note

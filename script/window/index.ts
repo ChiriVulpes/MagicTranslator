@@ -59,14 +59,6 @@ const nodeChildProcess = req<typeof import("child_process")>("child_process");
 (window as any).path = req("path");
 
 
-////////////////////////////////////
-// Initialize the options
-//
-
-import Options from "util/Options";
-Options.initialize(req);
-
-
 
 ////////////////////////////////////
 // Initialize external dependencies for utility classes
@@ -75,9 +67,6 @@ Options.initialize(req);
 import FileSystem from "util/FileSystem";
 
 (window as any).fs = new FileSystem(req<typeof import("fs")>("fs"), req<typeof import("path")>("path"));
-
-
-delete (window as any).nodeRequire;
 
 ////////////////////////////////////
 // Initialize IterableIterator support
@@ -93,6 +82,16 @@ IterableIterator.pipe();
 import Language from "util/string/Language";
 Language.initialize();
 (window as any).Language = Language;
+
+
+////////////////////////////////////
+// Initialize the options
+//
+
+import Options from "util/Options";
+Options.initialize(req);
+
+delete (window as any).nodeRequire;
 
 
 ////////////////////////////////////

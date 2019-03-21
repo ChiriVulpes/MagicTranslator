@@ -1,4 +1,4 @@
-import * as del from "del";
+import del, { Options } from "del";
 import * as Gulp from "gulp";
 import { Task as UndertakerTask } from "undertaker";
 import { nameFunction, sleep, stringifyCall } from "./Util";
@@ -17,7 +17,7 @@ export class Series {
 	}
 
 	protected readonly series: UndertakerTask[] = [];
-	public constructor(...parallel: Tasks) {
+	public constructor (...parallel: Tasks) {
 		this.then(...parallel);
 	}
 
@@ -35,7 +35,7 @@ export default class Task extends Series {
 	private created = false;
 	private readonly name: string;
 
-	public constructor(name: string, ...parallel: Tasks) {
+	public constructor (name: string, ...parallel: Tasks) {
 		super(...parallel);
 		this.name = name;
 
@@ -57,7 +57,7 @@ export class Pipe {
 	private readonly name: string;
 	private readonly src: Gulp.Globs;
 
-	public constructor(name: string, src: Gulp.Globs) {
+	public constructor (name: string, src: Gulp.Globs) {
 		this.name = name;
 		this.src = src;
 	}
@@ -85,7 +85,7 @@ export function watch (watches: Gulp.Globs, ...parallel: Tasks) {
 	});
 }
 
-export function remove (toRemove: Gulp.Globs, options?: del.Options) {
+export function remove (toRemove: Gulp.Globs, options?: Options) {
 	return nameFunction(stringifyCall("remove", toRemove), () => del(toRemove, options));
 }
 
