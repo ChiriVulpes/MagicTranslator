@@ -2,6 +2,7 @@ import Component from "component/Component";
 import CharacterEditor from "component/content/character/CharacterEditor";
 import Capture from "component/content/extractor/Capture";
 import Header from "component/header/Header";
+import Interrupt from "component/shared/Interrupt";
 import SortableList, { SortableListEvent } from "component/shared/SortableList";
 import Captures, { CaptureData } from "data/Captures";
 import { BasicCharacter } from "data/Characters";
@@ -12,7 +13,6 @@ import Bound from "util/Bound";
 import { Vector } from "util/math/Geometry";
 import { pad } from "util/string/String";
 import Translation from "util/string/Translation";
-import Interrupt from "component/shared/Interrupt";
 
 const enum DisplayMode {
 	Translate = "translation-mode",
