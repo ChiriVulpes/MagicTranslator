@@ -31,8 +31,10 @@ prev-chapter: Previous Chapter
 no: No
 yes: Yes
 dismiss: Dismiss
-confirm-remove-character: Are you sure you\nwant to remove "{0}"?
+confirm-remove-character: Are you sure you want\nto remove "{0}"?
 confirm-remove-character-description: Any capture that has this character will be changed to "N/A".\nThere is no undo.
+confirm-remove-capture: Are you sure you want\nto remove the capture?
+confirm-remove-capture-description: {0?Translation\: "{0}"\n}{1?Text\: "{1}"\n}There is no undo.
 done: Done
 prompt-dialog-file: Choose dialog.md file. The file must be properly formatted. It must have the ".md" file extension.
 import: Import

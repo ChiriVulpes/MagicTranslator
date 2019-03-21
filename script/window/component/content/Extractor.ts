@@ -12,6 +12,7 @@ import Bound from "util/Bound";
 import { Vector } from "util/math/Geometry";
 import { pad } from "util/string/String";
 import Translation from "util/string/Translation";
+import Interrupt from "component/shared/Interrupt";
 
 const enum DisplayMode {
 	Translate = "translation-mode",
@@ -143,11 +144,17 @@ export default class Extractor extends Component {
 	}
 
 	@Bound
-	private removeCapture (event: Event) {
+	private async removeCapture (event: Event) {
 		const component = Component.get<Capture>(event);
-		component.remove();
-
 		const capture = component.getData();
+
+		const confirm = await Interrupt.confirm(interrupt => interrupt
+			.setTitle("confirm-remove-capture")
+			.setDescription(() => new Translation("confirm-remove-capture-description").get(capture.translation.replace(/\n/g, ""), capture.text.replace(/\n/g, ""))));
+
+		if (!confirm) return;
+
+		component.remove();
 		fs.unlink(`${this.getCapturePagePath()}/cap${pad(capture.id!, 3)}.png`);
 
 		// we were just hovering over a capture, but now it's gone, so the "leave" event will never fire

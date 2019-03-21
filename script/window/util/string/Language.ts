@@ -27,7 +27,7 @@ export default class Language {
 	public readonly locale: string;
 	private quilt: { [K in keyof Translations]?: string } = {};
 
-	private constructor(locale: string, quilt: string) {
+	private constructor (locale: string, quilt: string) {
 		this.locale = locale;
 		this.importQuilt(`${quilt}\n`);
 	}
@@ -55,8 +55,13 @@ export default class Language {
 			}
 
 			if (quiltText[i] === "\\" && inside === "value") {
-				if (quiltText[++i] === "n") {
+				const char = quiltText[++i];
+				if (char === "n") {
 					kv[inside] += "\n";
+					continue;
+				}
+				if (char === ":") {
+					kv[inside] += "\\:";
 					continue;
 				}
 			}
