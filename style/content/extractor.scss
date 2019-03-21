@@ -195,6 +195,7 @@
 		color: transparent;
 		caret-color: white;
 		background: none;
+		overflow: hidden;
 	}
 	> div {
 		pointer-events: none;
@@ -205,6 +206,7 @@
 		font-weight: inherit;
 		margin-top: calc(var(--height) * -1);
 		background: #0003;
+    	min-height: 1.75em;
 	}
 }
 
@@ -224,7 +226,6 @@
 		}
 		> div {
 			pointer-events: none;
-			min-height: 27px;
 		}
 	}
 	
