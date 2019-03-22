@@ -54,7 +54,7 @@ export default class Textarea extends Component {
 		this.textarea.element<HTMLTextAreaElement>().value = this.textGenerator ? `${this.textGenerator()}` : "";
 		this.setHiddenTextareaText();
 		this.attributes.set("placeholder", this.placeholderTextGenerator ? `${this.placeholderTextGenerator()}` : "");
-		if (this.handleHeight) sleep(0.3).then(() => this.setHeight());
+		if (this.handleHeight) sleep(0.2).then(() => this.setHeight());
 		this.emit("change");
 		return this;
 	}

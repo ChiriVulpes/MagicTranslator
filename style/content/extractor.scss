@@ -184,6 +184,9 @@
 
 .textarea {
 	position: relative;
+	--height: 0px;
+	overflow: hidden;
+	height: var(--height);
 	
 	> * {
 		margin: 0;
@@ -215,9 +218,6 @@
 	position: relative;
 	
 	> .textarea {
-		--height: 0px;
-		height: var(--height);
-		overflow: hidden;
 		margin: 2px 0;
 		&, & > * {
 			font-size: var(--textarea-font-size-note);

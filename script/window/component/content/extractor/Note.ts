@@ -44,7 +44,7 @@ export default class Note extends SortableListItem {
 		const textarea = Component.get<Textarea>(event);
 		const ja = textarea.classes.has("japanese");
 		this.noteData[ja ? 0 : 1] = textarea.getText();
-		sleep(0.3).then(() => {
+		sleep(0.2).then(() => {
 			const height = Math.max(this.ja.getHeight(), this.en.getHeight());
 			[this.en, this.ja].forEach(t => t.setHeight(height));
 		});
