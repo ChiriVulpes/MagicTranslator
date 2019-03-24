@@ -175,7 +175,7 @@ export default class SortableList<I extends SortableListItem = SortableListItem>
 			totalY += box.height;
 		}
 
-		const beforeComponent = this.children<SortableListItem>().at(insertIndex);
+		const beforeComponent = insertIndex === -1 ? undefined : this.children<SortableListItem>().at(insertIndex);
 
 		if (beforeComponent) {
 			this.element().insertBefore(sortingComponent.element(), beforeComponent.element());
