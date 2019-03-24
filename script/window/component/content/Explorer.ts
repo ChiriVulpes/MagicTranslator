@@ -91,7 +91,7 @@ export default class Explorer extends Component {
 			.listeners.add("click", handler)
 			.appendTo(this.actionWrapper);
 
-		Component.window.listeners.until(this.listeners.waitFor("back"))
+		Component.window.listeners.until(this.listeners.waitFor(["back", "remove"]))
 			.add("keyup", this.keyup, true);
 
 		this.listeners.until("back").add("back", () => sleep(0.001).then(handler));
