@@ -13,6 +13,7 @@ import Bound from "util/Bound";
 import { Vector } from "util/math/Geometry";
 import { pad } from "util/string/String";
 import Translation from "util/string/Translation";
+import Textarea from "component/shared/Textarea";
 
 const enum DisplayMode {
 	Translate = "translation-mode",
@@ -333,6 +334,12 @@ export default class Extractor extends Component {
 				const thisCharacter = capture.getData().character;
 				capture.classes.toggle(thisCharacter === lastCharacter, "repeat-character");
 				lastCharacter = thisCharacter;
+			}
+		}
+
+		if (Extractor.displayMode === DisplayMode.Translate) {
+			for (const textarea of this.capturesWrapper.descendants<Textarea>(".textarea")) {
+				textarea.setHeight();
 			}
 		}
 	}
