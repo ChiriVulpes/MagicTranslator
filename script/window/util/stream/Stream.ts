@@ -871,7 +871,7 @@ class StreamImplementation<T> extends Stream<T> {
 	public at (index: number, orElse: T): T;
 	public at (index: number, orElse?: T): T | undefined;
 	public at (index: number, orElse?: T) {
-		this.drop(index - 1);
+		this.drop(index);
 		return this.first(undefined, orElse);
 	}
 

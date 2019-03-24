@@ -4,6 +4,7 @@ import Capture from "component/content/extractor/Capture";
 import Header from "component/header/Header";
 import Interrupt from "component/shared/Interrupt";
 import SortableList, { SortableListEvent } from "component/shared/SortableList";
+import Textarea from "component/shared/Textarea";
 import Captures, { CaptureData } from "data/Captures";
 import { BasicCharacter } from "data/Characters";
 import Dialog from "data/Dialog";
@@ -13,7 +14,6 @@ import Bound from "util/Bound";
 import { Vector } from "util/math/Geometry";
 import { pad } from "util/string/String";
 import Translation from "util/string/Translation";
-import Textarea from "component/shared/Textarea";
 
 const enum DisplayMode {
 	Translate = "translation-mode",
