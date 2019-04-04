@@ -81,7 +81,7 @@ export default class Capture extends SortableListItem {
 	private async pasteNotes () {
 		const text = await navigator.clipboard.readText();
 		for (const [, note, translation] of (/- (.*?):(.*)/g).matches(text)) {
-			this.addNote([note, translation]);
+			this.addNote([note, translation.trim()]);
 		}
 	}
 
