@@ -1,12 +1,15 @@
 /// <reference path="../Common.d.ts" />
-import { app, BrowserWindow, ipcMain, screen } from "electron";
+import { app, BrowserWindow, ipcMain, screen, WebContents } from "electron";
 // tslint:disable-next-line
 const Store = require("electron-store") as StoreModule;
 
 
 function on (windowEvent: WindowEvent, listener: (event: IpcEvent, ...args: any[]) => any) {
 	ipcMain.on(windowEvent, (event: IpcEvent, ...args: any[]) => {
-		event.sender.send(windowEvent, listener(event, ...args));
+		const result = listener(event, ...args);
+		if (!(event.sender as WebContents).isDestroyed()) {
+			event.sender.send(windowEvent, result);
+		}
 	});
 }
 
