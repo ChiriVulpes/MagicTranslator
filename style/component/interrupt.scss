@@ -9,6 +9,10 @@
 	grid-template-rows: 1fr auto 1fr;
 	background: #333;
 	z-index: 3;
+
+	&.center {
+		text-align: center;
+	}
 		
 	&.hidden {
 		display: none;
@@ -22,10 +26,6 @@
 		grid-column: 2;
 		grid-row: 2;
 	}
-}
-
-#interrupt {
-	text-align: center;
 }
 
 .interrupt-title {

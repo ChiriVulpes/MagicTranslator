@@ -37,6 +37,9 @@ async function init () {
 		height,
 		x: Math.floor(display.x + display.width / 2 - width / 2),
 		y: Math.floor(display.height / 2 - height / 2),
+		webPreferences: {
+			nodeIntegration: true,
+		},
 	});
 
 	win.webContents.setIgnoreMenuShortcuts(true);

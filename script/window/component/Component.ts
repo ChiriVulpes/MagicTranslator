@@ -1,5 +1,6 @@
 import { AttributeManipulator, ClassManipulator, ComponentEvent, DataManipulator, EventListenerManipulator, StyleManipulator } from "component/ComponentManipulator";
 import { sleep } from "util/Async";
+import Bound from "util/Bound";
 import { Box } from "util/math/Geometry";
 import Stream from "util/stream/Stream";
 import Translation from "util/string/Translation";
@@ -33,6 +34,11 @@ export default class Component {
 		}
 
 		return (Component.map.get(element) || new Component(element)) as C;
+	}
+
+	public static all<C extends Component = Component> (selector: string) {
+		return Stream.from(document.querySelectorAll(selector))
+			.map(element => (Component.map.get(element) || new Component(element)) as C);
 	}
 
 	public readonly attributes: AttributeManipulator<this>;
@@ -101,6 +107,7 @@ export default class Component {
 		return this;
 	}
 
+	@Bound
 	public refreshText () {
 		this.element().textContent = this.textGenerator ? `${this.textGenerator()}` : "";
 		return this;
@@ -134,9 +141,15 @@ export default class Component {
 	// Interelement Location
 	//
 
-	public appendTo (where: Component) {
-		where.emit("append-child", event => event.data = this);
-		where.element().appendChild(this.element());
+	public appendTo (parent: Component, location: "beginning" | "end" | { before: Component | Node } = "end") {
+		parent.emit("append-child", event => event.data = this);
+		const parentElement = parent.element();
+		if (location === "end" || !parentElement.firstChild) parentElement.appendChild(this.element());
+		else {
+			if (location === "beginning") location = { before: parentElement.firstChild };
+			parentElement.insertBefore(this.element(), location.before instanceof Component ? location.before.element() : location.before);
+		}
+
 		this.bindObserverForRemoval();
 		return this;
 	}

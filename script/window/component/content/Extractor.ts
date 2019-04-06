@@ -171,7 +171,7 @@ export default class Extractor extends Component {
 
 	@Bound
 	private keyup (event: KeyboardEvent) {
-		if (document.querySelector("#character-editor:not(.hidden), #interrupt:not(.hidden)")) return;
+		if (Component.all(".interrupt:not(.hidden)").first()) return;
 
 		if (event.code === "Equal" && event.ctrlKey) this.zoomIn();
 		else if (event.code === "Minus" && event.ctrlKey) this.zoomOut();

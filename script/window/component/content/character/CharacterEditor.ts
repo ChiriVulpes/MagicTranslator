@@ -273,7 +273,7 @@ export default class CharacterEditor extends Component {
 
 	@Bound
 	private keyup (event: KeyboardEvent) {
-		if (!Component.get("#interrupt").classes.has("hidden")) return;
+		if (Component.all(".interrupt:not(#character-editor):not(.hidden)").first()) return;
 
 		if (event.code === "Enter") this.choose();
 		if (event.code === "Escape") this.cancel();

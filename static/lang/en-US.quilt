@@ -40,4 +40,13 @@ prompt-dialog-file: Choose dialog.md file. The file must be properly formatted. 
 import: Import
 add-root: Add Media
 confirm-remove-root: Are you sure you want to remove\n"{0}"?
-confirm-remove-root-description: There is no undo. No metadata will be deleted, so you can add this media again at a later date.
+confirm-remove-root-description: No metadata will be deleted, so you can add this media again at a later date.
+settings: Settings
+file-structure: File Structure
+volume-path: Volume Path
+chapter-path: Chapter Path
+page-path: Page Path
+example: Example
+main: Main
+directory: Directory
+restore: Restore

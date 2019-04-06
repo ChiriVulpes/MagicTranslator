@@ -1,7 +1,7 @@
 import Component, { TextGenerator } from "component/Component";
 import CharacterEditor from "component/content/character/CharacterEditor";
+import RootSettings from "component/content/RootSettings";
 import Header from "component/header/Header";
-import Interrupt from "component/shared/Interrupt";
 import Tooltip from "component/shared/Tooltip";
 import Dialog from "data/Dialog";
 import MediaRoots from "data/MediaRoots";
@@ -10,76 +10,6 @@ import { tuple } from "util/Arrays";
 import { sleep } from "util/Async";
 import Bound from "util/Bound";
 import Translation from "util/string/Translation";
-
-/*
-async function getImageData (path: string) {
-	return `data:image/png;base64,${await fs.readFile(path, "base64")}`;
-}
-*/
-
-class ImageButton extends Component {
-	protected readonly title = new Component()
-		.classes.add("title")
-		.schedule(Tooltip.register, (tooltip: Tooltip) => tooltip
-			.setText(this.textGenerator))
-		.appendTo(this);
-
-	public constructor (private readonly imagePath: string) {
-		super("a");
-		this.classes.add("image-button");
-		this.attributes.set("href", "#");
-		this.loadPreview();
-	}
-
-	public setText (text: TextGenerator) {
-		super.setText(text);
-		this.title.setText(text);
-		return this;
-	}
-
-	public refreshText () {
-		this.title.refreshText();
-		return this;
-	}
-
-	private async loadPreview () {
-		this.style.set("--preview", `url("${this.imagePath}")`);
-	}
-}
-
-class RootButton extends ImageButton {
-	private static getRootPath (root: string) {
-		const [, firstVolumeName, firstVolumeChapters] = MediaRoots.get(root)!.volumes.indexedEntries().first(undefined, tuple<any>());
-		const [firstChapterName, firstChapterPages] = (firstVolumeChapters || []).entryStream().first(undefined, tuple<any>());
-		const firstPage = (firstChapterPages || [])[0];
-		return `${root}/${firstVolumeName}/${firstChapterName}/raw/${firstPage}`;
-	}
-
-	public constructor (private readonly root: string) {
-		super(RootButton.getRootPath(root));
-		this.classes.add("root-button");
-		this.setText(() => path.basename(root));
-
-		new Component("button")
-			.setText("remove")
-			.listeners.add("click", this.onRemove)
-			.appendTo(this);
-	}
-
-	@Bound
-	private async onRemove (event: Event) {
-		event.stopPropagation();
-
-		const confirm = await Interrupt.confirm(interrupt => interrupt
-			.setTitle(() => new Translation("confirm-remove-root").get(path.basename(this.root)))
-			.setDescription("confirm-remove-root-description"));
-		if (!confirm) return;
-
-		MediaRoots.delete(this.root);
-		options.rootFolders.splice(options.rootFolders.indexOf(this.root), 1);
-		this.remove();
-	}
-}
 
 export default class Explorer extends Component {
 	private readonly explorerWrapper: Component;
@@ -117,11 +47,7 @@ export default class Explorer extends Component {
 		this.actionWrapper.dump();
 		this.explorerWrapper.dump();
 
-		for (const root of MediaRoots.keys()) {
-			new RootButton(root)
-				.listeners.add("click", () => this.showVolumes(root))
-				.appendTo(this.explorerWrapper);
-		}
+		MediaRoots.keys().forEach(this.addRootButton);
 
 		new Component("button")
 			.setText("add-root")
@@ -132,12 +58,19 @@ export default class Explorer extends Component {
 	}
 
 	@Bound
+	private addRootButton (root: string) {
+		new RootButton(root)
+			.listeners.add("click", () => this.showVolumes(root))
+			.appendTo(this.explorerWrapper);
+	}
+
+	@Bound
 	private async addRoot () {
 		const root = await Options.chooseFolder("prompt-root-folder");
 		if (root) {
 			options.rootFolders.push(root);
 			await MediaRoots.addRoot(root);
-			this.showVolumes(root);
+			this.addRootButton(root);
 		}
 	}
 
@@ -278,6 +211,64 @@ export default class Explorer extends Component {
 			.add("keyup", this.keyup, true);
 
 		this.listeners.until("back").add("back", () => sleep(0.001).then(handler));
+	}
+}
+
+class ImageButton extends Component {
+	protected readonly title = new Component()
+		.classes.add("title")
+		.schedule(Tooltip.register, (tooltip: Tooltip) => tooltip
+			.setText(this.textGenerator))
+		.appendTo(this);
+
+	public constructor (private readonly imagePath: string) {
+		super("a");
+		this.classes.add("image-button");
+		this.attributes.set("href", "#");
+		this.loadPreview();
+	}
+
+	public setText (text: TextGenerator) {
+		super.setText(text);
+		this.title.setText(text);
+		return this;
+	}
+
+	public refreshText () {
+		this.title.refreshText();
+		return this;
+	}
+
+	private async loadPreview () {
+		this.style.set("--preview", `url("${this.imagePath}")`);
+	}
+}
+
+class RootButton extends ImageButton {
+	private static getRootPath (root: string) {
+		const [, firstVolumeName, firstVolumeChapters] = MediaRoots.get(root)!.volumes.indexedEntries().first(undefined, tuple<any>());
+		const [firstChapterName, firstChapterPages] = (firstVolumeChapters || []).entryStream().first(undefined, tuple<any>());
+		const firstPage = (firstChapterPages || [])[0];
+		return `${root}/${firstVolumeName}/${firstChapterName}/raw/${firstPage}`;
+	}
+
+	public constructor (private readonly root: string) {
+		super(RootButton.getRootPath(root));
+		this.classes.add("root-button");
+		this.setText(() => MediaRoots.get(root)!.name || path.basename(root));
+
+		new Component("button")
+			.setText("settings")
+			.listeners.add("click", this.onSettings)
+			.appendTo(this);
+	}
+
+	@Bound
+	private async onSettings (event: Event) {
+		event.stopPropagation();
+		await RootSettings.show(this.root);
+		if (!MediaRoots.has(this.root)) this.remove();
+		else this.refreshText();
 	}
 }
 
