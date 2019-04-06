@@ -2,7 +2,7 @@ import CharacterEditor from "component/content/character/CharacterEditor";
 import Extractor from "component/content/Extractor";
 import Captures from "data/Captures";
 import { BasicCharacter, CharacterData } from "data/Characters";
-import Volumes from "data/Volumes";
+import MediaRoots from "data/MediaRoots";
 import Options from "Options";
 import { tuple } from "util/Arrays";
 import File from "util/File";
@@ -10,15 +10,15 @@ import FileSystem from "util/FileSystem";
 
 export class DialogImpl {
 	public async export (root: string, volume: number, chapter: number, page?: number) {
-		const [, volumeString, chapterString] = Volumes.getPaths(root, volume, chapter);
-		const [, volumeNumber, chapterNumber, pageNumber] = Volumes.getNumbers(root, volume, chapter, page);
+		const [volumeString, chapterString] = MediaRoots.get(root)!.volumes.getPaths(volume, chapter);
+		const [volumeNumber, chapterNumber, pageNumber] = MediaRoots.get(root)!.volumes.getNumbers(volume, chapter, page);
 
 		let result = `# Volume ${volumeNumber}, Chapter ${chapterNumber}`;
 
 		if (page !== undefined) {
 			result += ", " + await this.exportPage(root, volume, chapter, page);
 		} else {
-			const pages = await Promise.all(Volumes.get(root)!.volumes.getByIndex(volume)!.getByIndex(chapter)!
+			const pages = await Promise.all(MediaRoots.get(root)!.volumes.getByIndex(volume)!.getByIndex(chapter)!
 				.map((_, index) => this.exportPage(root, volume, chapter, index)));
 
 			result += "\n\n# " + pages.join("\n\n\n# ");
@@ -43,7 +43,7 @@ export class DialogImpl {
 	}
 
 	private async exportPage (root: string, volume: number, chapter: number, page: number) {
-		const [, , pageNumber] = Volumes.getNumbers(root, volume, chapter, page);
+		const [, , pageNumber] = MediaRoots.get(root)!.volumes.getNumbers(volume, chapter, page);
 		let result = `Page ${pageNumber}\n\n`;
 
 		const data = await Captures.load(root, volume, chapter, page);

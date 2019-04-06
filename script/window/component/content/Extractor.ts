@@ -8,7 +8,7 @@ import Textarea from "component/shared/Textarea";
 import Captures, { CaptureData } from "data/Captures";
 import { BasicCharacter } from "data/Characters";
 import Dialog from "data/Dialog";
-import Volumes from "data/Volumes";
+import MediaRoots from "data/MediaRoots";
 import { tuple } from "util/Arrays";
 import Bound from "util/Bound";
 import FileSystem from "util/FileSystem";
@@ -38,8 +38,8 @@ export default class Extractor extends Component {
 		super();
 		this.setId("extractor");
 
-		const [, volumePath, chapterPath, pagePath] = Volumes.getPaths(root, volume, chapter, page);
-		const [, volumeNumber, chapterNumber, pageNumber] = Volumes.getNumbers(root, volume, chapter, page);
+		const [volumePath, chapterPath, pagePath] = MediaRoots.get(root)!.volumes.getPaths(volume, chapter, page);
+		const [volumeNumber, chapterNumber, pageNumber] = MediaRoots.get(root)!.volumes.getNumbers(volume, chapter, page);
 
 		new Component()
 			.classes.add("page-wrapper")
@@ -95,7 +95,7 @@ export default class Extractor extends Component {
 
 		const roots = {
 			capture: this.getCapturePagePath(),
-			character: Volumes.get(this.root)!.characters.getCharactersPath(),
+			character: MediaRoots.get(this.root)!.characters.getCharactersPath(),
 		};
 
 		const captureComponent = new Capture(roots, capture)

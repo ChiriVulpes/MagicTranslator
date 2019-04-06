@@ -1,5 +1,5 @@
 import { BasicCharacter } from "data/Characters";
-import Volumes from "data/Volumes";
+import MediaRoots from "data/MediaRoots";
 import FileSystem from "util/FileSystem";
 
 export interface CaptureData {
@@ -37,7 +37,7 @@ export class CapturesImpl {
 	}
 
 	public getCapturePagePath (root: string, volume: number, chapter: number, page: number) {
-		const [, volumeString, chapterString, pageString] = Volumes.getPaths(root, volume, chapter, page);
+		const [volumeString, chapterString, pageString] = MediaRoots.get(root)!.volumes.getPaths(volume, chapter, page);
 		return `${root}/${volumeString}/${chapterString}/capture/${pageString.slice(0, -4)}`;
 	}
 }

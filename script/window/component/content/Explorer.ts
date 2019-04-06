@@ -4,7 +4,7 @@ import Header from "component/header/Header";
 import Interrupt from "component/shared/Interrupt";
 import Tooltip from "component/shared/Tooltip";
 import Dialog from "data/Dialog";
-import Volumes from "data/Volumes";
+import MediaRoots from "data/MediaRoots";
 import Options from "Options";
 import { tuple } from "util/Arrays";
 import { sleep } from "util/Async";
@@ -49,7 +49,7 @@ class ImageButton extends Component {
 
 class RootButton extends ImageButton {
 	private static getRootPath (root: string) {
-		const [, firstVolumeName, firstVolumeChapters] = Volumes.get(root)!.volumes.indexedEntries().first(undefined, tuple<any>());
+		const [, firstVolumeName, firstVolumeChapters] = MediaRoots.get(root)!.volumes.indexedEntries().first(undefined, tuple<any>());
 		const [firstChapterName, firstChapterPages] = (firstVolumeChapters || []).entryStream().first(undefined, tuple<any>());
 		const firstPage = (firstChapterPages || [])[0];
 		return `${root}/${firstVolumeName}/${firstChapterName}/raw/${firstPage}`;
@@ -75,7 +75,7 @@ class RootButton extends ImageButton {
 			.setDescription("confirm-remove-root-description"));
 		if (!confirm) return;
 
-		Volumes.delete(this.root);
+		MediaRoots.delete(this.root);
 		options.rootFolders.splice(options.rootFolders.indexOf(this.root), 1);
 		this.remove();
 	}
@@ -117,7 +117,7 @@ export default class Explorer extends Component {
 		this.actionWrapper.dump();
 		this.explorerWrapper.dump();
 
-		for (const root of Volumes.keys()) {
+		for (const root of MediaRoots.keys()) {
 			new RootButton(root)
 				.listeners.add("click", () => this.showVolumes(root))
 				.appendTo(this.explorerWrapper);
@@ -136,7 +136,7 @@ export default class Explorer extends Component {
 		const root = await Options.chooseFolder("prompt-root-folder");
 		if (root) {
 			options.rootFolders.push(root);
-			await Volumes.addRoot(root);
+			await MediaRoots.addRoot(root);
 			this.showVolumes(root);
 		}
 	}
@@ -149,7 +149,7 @@ export default class Explorer extends Component {
 
 		this.addBackButton(this.showRoots);
 
-		for (const [volumeIndex, volume, chapters] of Volumes.get(root)!.volumes.indexedEntries()) {
+		for (const [volumeIndex, volume, chapters] of MediaRoots.get(root)!.volumes.indexedEntries()) {
 			const [firstChapterName, firstChapterPages] = chapters.entryStream().first()!;
 			const firstPage = firstChapterPages[0];
 
@@ -168,6 +168,8 @@ export default class Explorer extends Component {
 
 		this.addBackButton(() => this.showVolumes(root));
 
+		const volumes = MediaRoots.get(root)!.volumes;
+
 		new Component("button")
 			.classes.toggle(volume === 0, "disabled")
 			.setText("prev-volume")
@@ -175,19 +177,19 @@ export default class Explorer extends Component {
 			.appendTo(this.actionWrapper);
 
 		new Component("button")
-			.classes.toggle(volume === Volumes.get(root)!.volumes.size - 1, "disabled")
+			.classes.toggle(volume === volumes.size - 1, "disabled")
 			.setText("next-volume")
 			.listeners.add("click", () => this.showChapters(root, volume + 1))
 			.appendTo(this.actionWrapper);
 
-		const [, volumePath] = Volumes.getPaths(root, volume);
-		const [, volumeNumber] = Volumes.getNumbers(root, volume);
-		const chapters = Volumes.get(root)!.volumes.getByIndex(volume)!;
+		const [volumePath] = volumes.getPaths(volume);
+		const [volumeNumber] = volumes.getNumbers(volume);
+		const chapters = volumes.getByIndex(volume)!;
 
 		for (const [index, chapter, pages] of chapters.indexedEntries()) {
 			const firstPage = pages[0];
 
-			const [, , chapterNumber] = Volumes.getNumbers(root, volume, index);
+			const [, chapterNumber] = volumes.getNumbers(volume, index);
 
 			new ImageButton(`${root}/${volumePath}/${chapter}/raw/${firstPage}`)
 				.setText(() => new Translation("chapter").get(chapterNumber))
@@ -204,7 +206,8 @@ export default class Explorer extends Component {
 
 		this.addBackButton(() => this.showChapters(root, volume));
 
-		const chapters = Volumes.get(root)!.volumes.getByIndex(volume)!;
+		const volumes = MediaRoots.get(root)!.volumes;
+		const chapters = volumes.getByIndex(volume)!;
 
 		new Component("button")
 			.classes.toggle(chapter === 0, "disabled")
@@ -230,14 +233,14 @@ export default class Explorer extends Component {
 			.listeners.add("click", () => this.import(root, volume, chapter))
 			.appendTo(this.actionWrapper);
 
-		const [, volumePath, chapterPath] = Volumes.getPaths(root, volume, chapter);
-		const [, volumeNumber, chapterNumber] = Volumes.getNumbers(root, volume, chapter);
-		const pages = await Volumes.get(root)!.volumes.getByIndex(volume)!.getByIndex(chapter)!;
+		const [volumePath, chapterPath] = volumes.getPaths(volume, chapter);
+		const [volumeNumber, chapterNumber] = volumes.getNumbers(volume, chapter);
+		const pages = await volumes.getByIndex(volume)!.getByIndex(chapter)!;
 
 		for (let i = 0; i < pages.length; i++) {
 			const page = pages[i];
 
-			const [, , , pageNumber] = Volumes.getNumbers(root, volume, chapter, i);
+			const [, , pageNumber] = volumes.getNumbers(volume, chapter, i);
 
 			new ImageButton(`${root}/${volumePath}/${chapterPath}/raw/${page}`)
 				.setText(() => new Translation("page").get(pageNumber))
