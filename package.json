@@ -2,22 +2,25 @@
 	"name": "magic-translator-builder",
 	"description": "Builder for magic translator",
 	"devDependencies": {
-		"electron": "4.1.1",
+		"electron": "4.1.4",
 		"gulp": "^4.0.0",
 		"gulp-sass": "4.0.2",
 		"gulp-run-electron": "3.0.2",
-		"typescript": "3.4.0-rc",
+		"typescript": "3.4.2",
 		"tslint-language-service": "0.9.9",
-		"tslint": "5.14.0",
+		"tslint": "5.15.0",
 		"chalk": "2.4.2",
 		"ts-node": "8.0.3",
-		"del": "4.0.0",
+		"del": "4.1.0",
 		"mz": "2.7.0",
-		"chokidar": "2.1.2",
+		"chokidar": "2.1.5",
 		"@types/mz": "0.0.32",
 		"@types/del": "4.0.0",
 		"@types/gulp": "4.0.6",
 		"@types/gulp-sass": "0.0.31",
-		"@types/node": "11.11.4"
+		"@types/node": "11.13.0"
+	},
+	"scripts": {
+		"install": "cd script/window & npm install typescript@%npm_package_devDependencies_typescript% --save"
 	}
 }
