@@ -28,35 +28,59 @@
 }
 
 .image-button {
-    display: inline-block;
-    margin: 5px;
-    padding: 15px;  
+    margin: 3px;
+    --padding: 15px;
+    padding: var(--padding);  
     color: inherit;
     text-decoration: none;
     outline: none;
-    
+    display: grid;
+    float: left;
+    --scale: .204;
+    width: calc(1114px * var(--scale));
+    overflow: hidden;
+    border: 2px solid transparent;
+
     &:focus, &:hover {
-        background: #fff3;
+        background: #fff1;
+        border-color: #318bffe6;
+    }
+
+    &::before {
+        content: "";
+        display: block;
+        width: 100%;
+        height: calc(1600px * var(--scale));
+        background: var(--preview);
+        background-size: cover;
+        background-repeat: no-repeat;
+        box-shadow: inset 0 0 0 1px #fff3, 0 0 2px 1px #0005;
+    }
+
+    & > .title {
+        content: var(--text);
+        display: block;
+        font-size: 18pt;
+        font-weight: 100;
+        margin-bottom: -5px;
+        margin-top: 3px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 }
 
-.image-button::before {
-    content: "";
-    display: block;
-    --scale: .204;
-    width: calc(1114px * var(--scale));
-    height: calc(1600px * var(--scale));
-    background: var(--preview);
-    background-size: cover;
-    background-repeat: no-repeat;
-    box-shadow: inset 0 0 0 1px #fff3, 0 0 2px 1px #0005;
-}
-
-.image-button::after {
-    content: var(--text);
-    display: block;
-    font-size: 18pt;
-    font-weight: 100;
-    margin-bottom: -5px;
-    margin-top: 3px;
+.root-button {
+    grid-template-columns: 1fr auto;
+    &::before, & > .title {
+        grid-column: 1/3; 
+    }
+    & > button {
+        grid-column: 2;
+        margin-bottom: -5px;
+    }
+    
+    & > .title {
+        margin-bottom: 5px;
+    }
 }

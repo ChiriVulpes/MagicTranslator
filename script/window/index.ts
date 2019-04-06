@@ -27,7 +27,6 @@ declare global {
 	type RequireFunction = <T = any>(module: string) => T;
 
 	const path: typeof import("path");
-	const fs: FileSystem;
 	const childProcess: typeof import("mz/child_process");
 	const app: Content;
 }
@@ -65,8 +64,7 @@ const nodeChildProcess = req<typeof import("child_process")>("child_process");
 //
 
 import FileSystem from "util/FileSystem";
-
-(window as any).fs = new FileSystem(req<typeof import("fs")>("fs"), req<typeof import("path")>("path"));
+FileSystem.initialize(req<typeof import("fs")>("fs"), req<typeof import("path")>("path"));
 
 
 ////////////////////////////////////
@@ -82,7 +80,7 @@ Language.initialize();
 // Initialize the options
 //
 
-import Options from "util/Options";
+import Options from "Options";
 Options.initialize(req);
 
 delete (window as any).nodeRequire;

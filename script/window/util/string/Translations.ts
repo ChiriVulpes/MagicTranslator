@@ -6,6 +6,6 @@ export default interface Translations {
 	remove (): string;
 	"previous-page" (): string;
 	"next-page" (): string;
-	title (location?: { volume?: number; chapter?: number; page?: number }): string;
+	title (location?: { root?: string; volume?: number; chapter?: number; page?: number }): string;
 	"confirm-remove-character" (name: string): string;
 }

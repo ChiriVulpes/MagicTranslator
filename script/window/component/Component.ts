@@ -253,7 +253,7 @@ export default class Component {
 	public schedule<_A, _B, _C, _D, _E> (s: number, handler: (component: this, _1: _A, _2: _B, _3: _C, _4: _D, _5: _E) => any, _1: _A, _2: _B, _3: _C, _4: _D, _5: _E): this;
 	// public schedule (s: number, handler: (component: this, ...args: any[]) => any, ...args: any[]): this;
 	public schedule (s: ((component: this, ...args: any[]) => any) | number, handler?: any, ...args: any[]) {
-		if (typeof s !== "number") handler = s, s = 0;
+		if (typeof s !== "number") args.unshift(handler), handler = s, s = 0;
 		sleep(s).then(() => handler(this, ...args));
 		return this;
 	}

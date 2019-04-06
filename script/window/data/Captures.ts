@@ -1,5 +1,6 @@
 import { BasicCharacter } from "data/Characters";
 import Volumes from "data/Volumes";
+import FileSystem from "util/FileSystem";
 
 export interface CaptureData {
 	id?: number;
@@ -17,8 +18,8 @@ export interface TranslationData {
 }
 
 export class CapturesImpl {
-	public async load (volume: number, chapter: number, page: number): Promise<TranslationData> {
-		const jsonData = await fs.readFile(`${this.getCapturePagePath(volume, chapter, page)}.json`, "utf8")
+	public async load (root: string, volume: number, chapter: number, page: number): Promise<TranslationData> {
+		const jsonData = await FileSystem.readFile(`${this.getCapturePagePath(root, volume, chapter, page)}.json`, "utf8")
 			.catch(() => { });
 
 		const translationData: Partial<TranslationData> = JSON.parse(jsonData || "{}");
@@ -29,15 +30,15 @@ export class CapturesImpl {
 		};
 	}
 
-	public async save (volume: number, chapter: number, page: number, data: TranslationData) {
-		const capturePagePath = this.getCapturePagePath(volume, chapter, page);
-		await fs.mkdir(path.dirname(capturePagePath));
-		await fs.writeFile(`${capturePagePath}.json`, JSON.stringify(data, undefined, "\t"));
+	public async save (root: string, volume: number, chapter: number, page: number, data: TranslationData) {
+		const capturePagePath = this.getCapturePagePath(root, volume, chapter, page);
+		await FileSystem.mkdir(path.dirname(capturePagePath));
+		await FileSystem.writeFile(`${capturePagePath}.json`, JSON.stringify(data, undefined, "\t"));
 	}
 
-	public getCapturePagePath (volume: number, chapter: number, page: number) {
-		const [volumeString, chapterString, pageString] = Volumes.getPaths(volume, chapter, page);
-		return `${options.root}/${volumeString}/${chapterString}/capture/${pageString.slice(0, -4)}`;
+	public getCapturePagePath (root: string, volume: number, chapter: number, page: number) {
+		const [, volumeString, chapterString, pageString] = Volumes.getPaths(root, volume, chapter, page);
+		return `${root}/${volumeString}/${chapterString}/capture/${pageString.slice(0, -4)}`;
 	}
 }
 

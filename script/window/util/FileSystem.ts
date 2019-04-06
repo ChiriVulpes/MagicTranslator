@@ -1,15 +1,17 @@
-export default class FileSystem {
+let nodefs: typeof import("fs");
+let path: typeof import("path");
+const fileWriteLocks = new Map<string, Promise<void>>();
 
-	private readonly fileWriteLocks = new Map<string, Promise<void>>();
+module FileSystem {
 
-	public constructor(
-		private readonly nodefs: typeof import("fs"),
-		private readonly path: typeof import("path"),
-	) { }
+	export function initialize (nodefs_: typeof import("fs"), path_: typeof import("path")) {
+		nodefs = nodefs_;
+		path = path_;
+	}
 
-	public async readdir (dir: string) {
+	export async function readdir (dir: string) {
 		return new Promise<string[]>((resolve, reject) => {
-			this.nodefs.readdir(dir, (err: NodeJS.ErrnoException | undefined, files) => {
+			nodefs.readdir(dir, (err: NodeJS.ErrnoException | undefined, files) => {
 				if (err) {
 					if (err.code === "ENOENT") resolve([]);
 					else reject(err);
@@ -18,61 +20,63 @@ export default class FileSystem {
 		});
 	}
 
-	public async readFile (path: string, encoding: string): Promise<string>;
-	public async readFile (path: string): Promise<Buffer>;
-	public async readFile (path: string, encoding?: string): Promise<string | Buffer>;
-	public async readFile (path: string, encoding?: string) {
+	export async function readFile (filepath: string, encoding: string): Promise<string>;
+	export async function readFile (filepath: string): Promise<Buffer>;
+	export async function readFile (filepath: string, encoding?: string): Promise<string | Buffer>;
+	export async function readFile (filepath: string, encoding?: string) {
 		return new Promise<string | Buffer>((resolve, reject) => {
-			this.nodefs.readFile(path, encoding, (err: NodeJS.ErrnoException | undefined, file) => {
+			nodefs.readFile(filepath, encoding, (err: NodeJS.ErrnoException | undefined, file) => {
 				if (err) reject(err);
 				else resolve(file);
 			});
 		});
 	}
 
-	public async exists (path: string) {
+	export async function exists (filepath: string) {
 		return new Promise<boolean>((resolve, reject) => {
-			this.nodefs.stat(path, (err: NodeJS.ErrnoException | undefined, stats) => {
+			nodefs.stat(filepath, (err: NodeJS.ErrnoException | undefined, stats) => {
 				resolve(!err);
 			});
 		});
 	}
 
-	public async writeFile (path: string, data: string | Buffer) {
-		const absolutePath = this.path.resolve(path);
+	export async function writeFile (filepath: string, data: string | Buffer) {
+		const absolutePath = path.resolve(filepath);
 
-		await this.fileWriteLocks.get(absolutePath);
+		await fileWriteLocks.get(absolutePath);
 
 		const promise = new Promise<void>((resolve, reject) => {
-			this.nodefs.writeFile(path, data, err => {
-				this.fileWriteLocks.delete(absolutePath);
+			nodefs.writeFile(filepath, data, err => {
+				fileWriteLocks.delete(absolutePath);
 
 				if (err) reject(err);
 				else resolve();
 			});
 		});
 
-		this.fileWriteLocks.set(absolutePath, promise);
+		fileWriteLocks.set(absolutePath, promise);
 
 		return promise;
 	}
 
-	public async mkdir (path: string) {
+	export async function mkdir (filepath: string) {
 		return new Promise<void>((resolve, reject) => {
-			this.nodefs.mkdir(path, err => {
+			nodefs.mkdir(filepath, err => {
 				if (err && err.code !== "EEXIST") reject(err);
 				else resolve();
 			});
 		});
 	}
 
-	public async unlink (path: string, errorIfNotExist?: true): Promise<void>;
-	public async unlink (path: string, errorIfNotExist = false) {
+	export async function unlink (filepath: string, errorIfNotExist?: true): Promise<void>;
+	export async function unlink (filepath: string, errorIfNotExist = false) {
 		return new Promise<void>((resolve, reject) => {
-			this.nodefs.unlink(path, err => {
+			nodefs.unlink(filepath, err => {
 				if (err && errorIfNotExist) reject(err);
 				else resolve();
 			});
 		});
 	}
 }
+
+export default FileSystem;

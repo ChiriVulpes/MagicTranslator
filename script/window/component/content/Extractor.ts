@@ -11,6 +11,7 @@ import Dialog from "data/Dialog";
 import Volumes from "data/Volumes";
 import { tuple } from "util/Arrays";
 import Bound from "util/Bound";
+import FileSystem from "util/FileSystem";
 import { Vector } from "util/math/Geometry";
 import { pad } from "util/string/String";
 import Translation from "util/string/Translation";
@@ -33,19 +34,19 @@ export default class Extractor extends Component {
 	private captureEnd: Vector;
 	private waitingForCapture?: [number, (value: [Vector, Vector]) => void];
 
-	public constructor (private readonly volume: number, private readonly chapter: number, private readonly page: number, hasPreviousPage = true, hasNextPage = true) {
+	public constructor (private readonly root: string, private readonly volume: number, private readonly chapter: number, private readonly page: number, hasPreviousPage = true, hasNextPage = true) {
 		super();
 		this.setId("extractor");
 
-		const [volumePath, chapterPath, pagePath] = Volumes.getPaths(volume, chapter, page);
-		const [volumeNumber, chapterNumber, pageNumber] = Volumes.getNumbers(volume, chapter, page);
+		const [, volumePath, chapterPath, pagePath] = Volumes.getPaths(root, volume, chapter, page);
+		const [, volumeNumber, chapterNumber, pageNumber] = Volumes.getNumbers(root, volume, chapter, page);
 
 		new Component()
 			.classes.add("page-wrapper")
 			.append(new Component()
 				.append(this.pageImage = new Component("img")
 					.hide(true)
-					.attributes.set("src", `${options.root}/${volumePath}/${chapterPath}/raw/${pagePath}`)
+					.attributes.set("src", `${root}/${volumePath}/${chapterPath}/raw/${pagePath}`)
 					.listeners.add("load", () => {
 						const image = this.pageImage.element<HTMLImageElement>();
 						this.pageImage.style.set("--natural-width", `${image.naturalWidth}px`);
@@ -92,7 +93,12 @@ export default class Extractor extends Component {
 			capture.id = this.captureId++;
 		}
 
-		const captureComponent = new Capture(this.getCapturePagePath(), capture)
+		const roots = {
+			capture: this.getCapturePagePath(),
+			character: Volumes.get(this.root)!.characters.getCharactersPath(),
+		};
+
+		const captureComponent = new Capture(roots, capture)
 			.listeners.add("capture-change", this.updateJSON)
 			.listeners.add<MouseEvent>("mouseenter", this.mouseEnterCapture)
 			.listeners.add("remove-capture", this.removeCapture)
@@ -109,7 +115,7 @@ export default class Extractor extends Component {
 
 	@Bound
 	public async updateJSON () {
-		await Captures.save(this.volume, this.chapter, this.page, {
+		await Captures.save(this.root, this.volume, this.chapter, this.page, {
 			captureId: this.captureId,
 			captures: this.capturesWrapper.children<Capture>()
 				.map(component => component.getData())
@@ -118,7 +124,7 @@ export default class Extractor extends Component {
 	}
 
 	public async initialize () {
-		const { captureId, captures } = await Captures.load(this.volume, this.chapter, this.page);
+		const { captureId, captures } = await Captures.load(this.root, this.volume, this.chapter, this.page);
 
 		this.captureId = captureId;
 
@@ -156,7 +162,7 @@ export default class Extractor extends Component {
 		if (!confirm) return;
 
 		component.remove();
-		fs.unlink(`${this.getCapturePagePath()}/cap${pad(capture.id!, 3)}.png`);
+		FileSystem.unlink(`${this.getCapturePagePath()}/cap${pad(capture.id!, 3)}.png`);
 
 		// we were just hovering over a capture, but now it's gone, so the "leave" event will never fire
 		this.classes.remove("selecting");
@@ -263,8 +269,14 @@ export default class Extractor extends Component {
 		const position = Vector.min(this.captureStart, this.captureEnd).minus(this.pageImage.box().position()).over(scale);
 
 		const canvas = document.createElement("canvas");
-		canvas.width = size.x;
-		canvas.height = size.y;
+		if (event.altKey) {
+			canvas.width = canvas.height = Math.min(size.x, size.y);
+
+		} else {
+			canvas.width = size.x;
+			canvas.height = size.y;
+		}
+
 		const context = canvas.getContext("2d")!;
 
 		context.drawImage(this.pageImage.element<HTMLImageElement>(), -position.x, -position.y);
@@ -289,7 +301,7 @@ export default class Extractor extends Component {
 			document.execCommand("copy");
 			textarea.remove();
 
-			await fs.unlink(`${this.getCapturePagePath()}/temp.png`);
+			await FileSystem.unlink(`${this.getCapturePagePath()}/temp.png`);
 
 			return;
 		}
@@ -299,7 +311,7 @@ export default class Extractor extends Component {
 
 			await CharacterEditor.createCharacter(path);
 
-			await fs.unlink(path);
+			await FileSystem.unlink(path);
 
 			return;
 		}
@@ -346,7 +358,7 @@ export default class Extractor extends Component {
 
 	@Bound
 	private async export () {
-		await Dialog.export(this.volume, this.chapter, this.page);
+		await Dialog.export(this.root, this.volume, this.chapter, this.page);
 	}
 
 	private async saveImage (capturePath: string, canvas: HTMLCanvasElement) {
@@ -363,11 +375,11 @@ export default class Extractor extends Component {
 		});
 
 		const capturePagePath = this.getCapturePagePath();
-		await fs.mkdir(path.dirname(capturePagePath));
-		await fs.mkdir(capturePagePath);
+		await FileSystem.mkdir(path.dirname(capturePagePath));
+		await FileSystem.mkdir(capturePagePath);
 
 		capturePath = `${capturePagePath}/${capturePath}`;
-		await fs.writeFile(capturePath, buffer);
+		await FileSystem.writeFile(capturePath, buffer);
 
 		return capturePath;
 	}
@@ -392,6 +404,6 @@ export default class Extractor extends Component {
 	}
 
 	private getCapturePagePath () {
-		return Captures.getCapturePagePath(this.volume, this.chapter, this.page);
+		return Captures.getCapturePagePath(this.root, this.volume, this.chapter, this.page);
 	}
 }

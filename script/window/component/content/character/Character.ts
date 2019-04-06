@@ -2,8 +2,9 @@ import Component from "component/Component";
 import CharacterEditor from "component/content/character/CharacterEditor";
 import Interrupt from "component/shared/Interrupt";
 import { SortableListItem } from "component/shared/SortableList";
-import Characters, { BasicCharacter, CharacterData } from "data/Characters";
+import { BasicCharacter, CharacterData } from "data/Characters";
 import Bound from "util/Bound";
+import FileSystem from "util/FileSystem";
 import { pad } from "util/string/String";
 import Translation from "util/string/Translation";
 
@@ -13,7 +14,7 @@ export default class Character extends SortableListItem {
 	private _character: CharacterData | BasicCharacter;
 	public get character () { return this._character; }
 
-	public constructor(character: number | BasicCharacter | CharacterData = BasicCharacter.Unknown, private editable = false) {
+	public constructor (private readonly root: string, character: number | BasicCharacter | CharacterData = BasicCharacter.Unknown, private editable = false) {
 		super("button");
 		this.classes.add("character");
 
@@ -30,7 +31,7 @@ export default class Character extends SortableListItem {
 		this._character = character;
 
 		if (typeof this._character === "object") {
-			this.style.set("--headshot", `url("${Characters.getCharactersPath()}/${pad(this._character.id, 3)}.png")`);
+			this.style.set("--headshot", `url("${this.root}/${pad(this._character.id, 3)}.png")`);
 		} else {
 			this.style.remove("--headshot");
 		}
@@ -82,7 +83,7 @@ export default class Character extends SortableListItem {
 		this.emit("change-name");
 
 		if (typeof this.character === "object") {
-			await fs.unlink(`${Characters.getCharactersPath()}/${pad(this.character.id, 3)}.png`)
+			await FileSystem.unlink(`${this.root}/${pad(this.character.id, 3)}.png`)
 				.catch(() => { });
 		}
 	}

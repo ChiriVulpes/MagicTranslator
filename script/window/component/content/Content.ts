@@ -4,10 +4,10 @@ import Explorer from "component/content/Explorer";
 import Extractor from "component/content/Extractor";
 import Interrupt from "component/shared/Interrupt";
 import Volumes from "data/Volumes";
+import Options from "Options";
 import { tuple } from "util/Arrays";
 import Bound from "util/Bound";
 import { ComponentEvent } from "util/Manipulator";
-import Options from "util/Options";
 import Language from "util/string/Language";
 
 export default class Content extends Component {
@@ -28,7 +28,7 @@ export default class Content extends Component {
 
 		await Promise.all([
 			Options.waitForOptions(),
-			new CharacterEditor().hide().appendTo(this).waitForCharacters(),
+			new CharacterEditor().hide().appendTo(this),
 			Volumes.load(),
 		]);
 
@@ -38,7 +38,7 @@ export default class Content extends Component {
 		this.showExplorer();
 	}
 
-	public showExplorer (startLocation?: [number, number]) {
+	public showExplorer (startLocation?: [string, number, number]) {
 		this.children().drop(2).collectStream().forEach(child => child.remove());
 
 		new Explorer(startLocation)
@@ -46,22 +46,22 @@ export default class Content extends Component {
 			.appendTo(this);
 	}
 
-	public async extractPage (volume: number, chapter: number, page: number) {
-		const pages = Volumes.getByIndex(volume)!.getByIndex(chapter)!;
+	public async extractPage (root: string, volume: number, chapter: number, page: number) {
+		const pages = Volumes.get(root)!.volumes.getByIndex(volume)!.getByIndex(chapter)!;
 		return this.onExtractPage({ data: [volume, chapter, page, page > 0, page < pages.length - 1] } as any);
 	}
 
 	@Bound
-	private async onExtractPage ({ data }: ComponentEvent<[number, number, number, boolean, boolean]>): Promise<Extractor> {
+	private async onExtractPage ({ data }: ComponentEvent<[string, number, number, number, boolean, boolean]>): Promise<Extractor> {
 		this.children().drop(2).collectStream().forEach(child => child.remove());
 
-		const [volume, chapter, page] = data;
-		const pages = Volumes.getByIndex(volume)!.getByIndex(chapter)!;
+		const [root, volume, chapter, page] = data;
+		const pages = Volumes.get(root)!.volumes.getByIndex(volume)!.getByIndex(chapter)!;
 
 		return new Extractor(...data)
-			.listeners.add("quit", () => this.showExplorer(tuple(volume, chapter)))
-			.listeners.add("previous", () => this.onExtractPage({ data: [volume, chapter, page - 1, page > 1, true] } as any))
-			.listeners.add("next", () => this.onExtractPage({ data: [volume, chapter, page + 1, true, page < pages.length - 2] } as any))
+			.listeners.add("quit", () => this.showExplorer(tuple(root, volume, chapter)))
+			.listeners.add("previous", () => this.onExtractPage({ data: [root, volume, chapter, page - 1, page > 1, true] } as any))
+			.listeners.add("next", () => this.onExtractPage({ data: [root, volume, chapter, page + 1, true, page < pages.length - 2] } as any))
 			.appendTo(this)
 			.initialize();
 	}

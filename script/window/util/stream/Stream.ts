@@ -1,3 +1,5 @@
+// tslint:disable interface-name max-file-line-count
+
 import Arrays, { tuple } from "util/Arrays";
 import { isIterable } from "util/Iterables";
 import { generalRandom, Random } from "util/Random";

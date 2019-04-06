@@ -2,14 +2,34 @@ import Component from "component/Component";
 import Character from "component/content/character/Character";
 import SortableList, { SortableListEvent } from "component/shared/SortableList";
 import Characters, { BasicCharacter, CharacterData } from "data/Characters";
+import Volumes from "data/Volumes";
+import Options from "Options";
 import Bound from "util/Bound";
 import Enums from "util/Enums";
+import FileSystem from "util/FileSystem";
 import { ComponentEvent } from "util/Manipulator";
-import Options from "util/Options";
 import { pad } from "util/string/String";
 import Translation from "util/string/Translation";
 
 export default class CharacterEditor extends Component {
+
+	public static async setRoot (root: string) {
+		const editor = Component.get<CharacterEditor>("#character-editor");
+
+		if (editor.characters === Volumes.get(root)!.characters) return;
+		editor.characters = Volumes.get(root)!.characters;
+
+		const { characterId, characters } = await editor.characters.load();
+		editor.characterId = characterId;
+
+		editor.characterWrapper.dump();
+		characters.stream()
+			.filter<undefined>(character => character)
+			.merge(Enums.values(BasicCharacter))
+			.forEach(editor.addCharacter);
+
+		editor.select(BasicCharacter.Unknown);
+	}
 
 	public static getCharacter (id: number) {
 		return Component.get<CharacterEditor>("#character-editor")
@@ -56,11 +76,11 @@ export default class CharacterEditor extends Component {
 
 	public static async createCharacter (path?: string, name?: string) {
 		if (!path) {
-			path = await Options.chooseFile("prompt-character-headshot", result => /\.(png|jpg|jpeg)/.test(result) && fs.exists(result), undefined, name);
+			path = await Options.chooseFile("prompt-character-headshot", result => /\.(png|jpg|jpeg)/.test(result) && FileSystem.exists(result), undefined, name);
 			if (!path) return;
 		}
 
-		if (!await fs.exists(path)) {
+		if (!await FileSystem.exists(path)) {
 			console.warn(`Could not create a character, headshot path ${path} is invalid`);
 			return;
 		}
@@ -77,6 +97,7 @@ export default class CharacterEditor extends Component {
 	private readonly characterWrapper: Component;
 	private readonly actionRow: Component;
 	private startingCharacter: number | BasicCharacter = BasicCharacter.Unknown;
+	private characters: Characters;
 
 	public constructor () {
 		super();
@@ -105,19 +126,6 @@ export default class CharacterEditor extends Component {
 				.add("keyup", this.keyup, true));
 	}
 
-	public async waitForCharacters () {
-		const { characterId, characters } = await Characters.load();
-
-		this.characterId = characterId;
-
-		characters.stream()
-			.filter<undefined>(character => character)
-			.merge(Enums.values(BasicCharacter))
-			.forEach(this.addCharacter);
-
-		this.select(BasicCharacter.Unknown);
-	}
-
 	public async createCharacter (file: string, name = "") {
 		const img = new Image();
 		img.src = file; // `data:image/${path.extname(file)};base64,${new Buffer(await fs.readFile(file)).toString("base64")}`;
@@ -140,12 +148,12 @@ export default class CharacterEditor extends Component {
 			reader.readAsArrayBuffer(blob!);
 		});
 
-		const charactersPath = Characters.getCharactersPath();
-		await fs.mkdir(charactersPath);
+		const charactersPath = this.characters.getCharactersPath();
+		await FileSystem.mkdir(charactersPath);
 
 		const id = this.characterId++;
 
-		await fs.writeFile(`${charactersPath}/${pad(id, 3)}.png`, buffer);
+		await FileSystem.writeFile(`${charactersPath}/${pad(id, 3)}.png`, buffer);
 
 		this.addCharacter({ id, name }).focusInput();
 
@@ -189,7 +197,7 @@ export default class CharacterEditor extends Component {
 
 	@Bound
 	private addCharacter (character: CharacterData | BasicCharacter) {
-		const characterButton = new Character(character, typeof character === "object")
+		const characterButton = new Character(this.characters.getCharactersPath(), character, typeof character === "object")
 			.listeners.add("click", this.select)
 			.listeners.add("change-name", event => {
 				this.select(event, false);
@@ -206,7 +214,7 @@ export default class CharacterEditor extends Component {
 
 	@Bound
 	private async updateJson () {
-		await Characters.save({
+		await this.characters.save({
 			characterId: this.characterId,
 			characters: this.characterWrapper.children<Character>()
 				.map(button => button.character)

@@ -3,22 +3,23 @@ import Extractor from "component/content/Extractor";
 import Captures from "data/Captures";
 import { BasicCharacter, CharacterData } from "data/Characters";
 import Volumes from "data/Volumes";
+import Options from "Options";
 import { tuple } from "util/Arrays";
 import File from "util/File";
-import Options from "util/Options";
+import FileSystem from "util/FileSystem";
 
 export class DialogImpl {
-	public async export (volume: number, chapter: number, page?: number) {
-		const [volumeString, chapterString] = Volumes.getPaths(volume, chapter);
-		const [volumeNumber, chapterNumber, pageNumber] = Volumes.getNumbers(volume, chapter, page);
+	public async export (root: string, volume: number, chapter: number, page?: number) {
+		const [, volumeString, chapterString] = Volumes.getPaths(root, volume, chapter);
+		const [, volumeNumber, chapterNumber, pageNumber] = Volumes.getNumbers(root, volume, chapter, page);
 
 		let result = `# Volume ${volumeNumber}, Chapter ${chapterNumber}`;
 
 		if (page !== undefined) {
-			result += ", " + await this.exportPage(volume, chapter, page);
+			result += ", " + await this.exportPage(root, volume, chapter, page);
 		} else {
-			const pages = await Promise.all(Volumes.getByIndex(volume)!.getByIndex(chapter)!
-				.map((_, index) => this.exportPage(volume, chapter, index)));
+			const pages = await Promise.all(Volumes.get(root)!.volumes.getByIndex(volume)!.getByIndex(chapter)!
+				.map((_, index) => this.exportPage(root, volume, chapter, index)));
 
 			result += "\n\n# " + pages.join("\n\n\n# ");
 		}
@@ -27,25 +28,25 @@ export class DialogImpl {
 		File.download(`dialog-${volumeString}-${chapterString}${pageNumber !== undefined ? `-${pageNumber}` : ""}.md`, result);
 	}
 
-	public async import (volume: number, chapter: number) {
+	public async import (root: string, volume: number, chapter: number) {
 		const file = await Options.chooseFile("prompt-dialog-file", result => result.endsWith(".md"));
 
 		if (!file) return;
 
-		const text = await fs.readFile(file, "utf8");
+		const text = await FileSystem.readFile(file, "utf8");
 
 		const pageMatcher = /# Page (\d+)((?:(?:.|\r|\n)(?!# Page))*)/gm;
 
 		for (const [, pageNumber, pageContent] of pageMatcher.matches(text)) {
-			await this.importPage(volume, chapter, +pageNumber - 1, pageContent);
+			await this.importPage(root, volume, chapter, +pageNumber - 1, pageContent);
 		}
 	}
 
-	private async exportPage (volume: number, chapter: number, page: number) {
-		const [, , pageNumber] = Volumes.getNumbers(volume, chapter, page);
+	private async exportPage (root: string, volume: number, chapter: number, page: number) {
+		const [, , pageNumber] = Volumes.getNumbers(root, volume, chapter, page);
 		let result = `Page ${pageNumber}\n\n`;
 
-		const data = await Captures.load(volume, chapter, page);
+		const data = await Captures.load(root, volume, chapter, page);
 
 		let lastCharacter: number | BasicCharacter | undefined;
 		for (const capture of data.captures) {
@@ -70,8 +71,8 @@ export class DialogImpl {
 		return result;
 	}
 
-	private async importPage (volume: number, chapter: number, page: number, content: string) {
-		const extractor = await app.extractPage(volume, chapter, page);
+	private async importPage (root: string, volume: number, chapter: number, page: number, content: string) {
+		const extractor = await app.extractPage(root, volume, chapter, page);
 
 		const characterDialogMatcher = /## (.*?):((?:(?:.|\r|\n)(?!## .*?:))*)/gm;
 

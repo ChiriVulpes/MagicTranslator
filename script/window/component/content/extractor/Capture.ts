@@ -14,13 +14,13 @@ export default class Capture extends SortableListItem {
 	private readonly img: Component;
 	private readonly notes: SortableList;
 
-	public constructor (root: string, private readonly capture: CaptureData) {
+	public constructor (roots: { capture: string; character: string }, private readonly capture: CaptureData) {
 		super();
 		this.classes.add("capture");
 
 		new Component()
 			.append(this.img = new Component("img")
-				.attributes.set("src", `${root}/cap${pad(capture.id!, 3)}.png`))
+				.attributes.set("src", `${roots.capture}/cap${pad(capture.id!, 3)}.png`))
 			.appendTo(this);
 
 		new Component()
@@ -41,7 +41,7 @@ export default class Capture extends SortableListItem {
 
 		new Component()
 			.classes.add("capture-action-row")
-			.append(new Character(capture.character)
+			.append(new Character(roots.character, capture.character)
 				.listeners.add("click", this.changeCharacter))
 			.append(new Component("button")
 				.setText("paste-notes")

@@ -1,3 +1,4 @@
+import FileSystem from "util/FileSystem";
 import Language from "util/string/Language";
 import Translation from "util/string/Translation";
 
@@ -28,7 +29,33 @@ export default class Options {
 		(window as any).options = new Proxy(Options.INSTANCE, {
 			get (target, property) {
 				const key = property as keyof Options;
-				return store.get(`options.${key}` as any, target[key]);
+				let val = store.get(`options.${key}` as any, target[key]);
+				if (Array.isArray(val)) {
+					val = new Proxy(val, {
+						get (arr, property2) {
+							arr = store.get(`options.${key}` as any, arr);
+							const key2 = property2 as keyof typeof arr;
+							const val2 = arr[key2];
+							if (typeof val2 === "function") {
+								return (...args: any[]) => {
+									const result = val2.apply(arr, args);
+									store.set(`options.${key}` as any, arr);
+									return result;
+								};
+							}
+							return val2;
+						},
+						set (arr, property2, value) {
+							arr = store.get(`options.${key}` as any, arr);
+							const key2 = property2 as keyof typeof arr;
+							arr[key2] = value;
+							store.set(`options.${key}` as any, arr);
+							return true;
+						},
+					});
+				}
+
+				return val;
 			},
 			set (target, property, value) {
 				const key = property as keyof Options;
@@ -57,7 +84,6 @@ export default class Options {
 
 	public static async onInitialize () {
 		await Language.waitForLanguage();
-		if (!options.root) options.root = await Options.chooseRootFolder();
 		if (!options.capture2TextCLIPath) options.capture2TextCLIPath = await Options.chooseCapture2TextCLIPath();
 	}
 
@@ -111,12 +137,8 @@ export default class Options {
 		return folder;
 	}
 
-	private static async chooseRootFolder () {
-		return this.chooseFolder("prompt-root-folder", undefined, true);
-	}
-
 	private static async chooseCapture2TextCLIPath () {
-		const folder = await this.chooseFolder("prompt-cap-2-text-cli", result => fs.exists(`${result}/Capture2Text_CLI.exe`), true);
+		const folder = await this.chooseFolder("prompt-cap-2-text-cli", result => FileSystem.exists(`${result}/Capture2Text_CLI.exe`), true);
 		return `${folder}/Capture2Text_CLI.exe`;
 	}
 
@@ -124,6 +146,6 @@ export default class Options {
 	// Actual Options
 	//
 
-	public root: string;
+	public rootFolders: string[] = [];
 	public capture2TextCLIPath: string;
 }
