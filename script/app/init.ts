@@ -1,5 +1,5 @@
 /// <reference path="../Common.d.ts" />
-import { app, BrowserWindow, ipcMain, screen, WebContents } from "electron";
+import { app, BrowserWindow, ipcMain, screen, WebContents, Menu } from "electron";
 // tslint:disable-next-line
 const Store = require("electron-store") as StoreModule;
 
@@ -21,6 +21,8 @@ function send (windowEvent: WindowEvent) {
 }
 
 function createWindow () {
+
+	Menu.setApplicationMenu(null);
 
 	const width = store.get("window.width", 800);
 	const height = store.get("window.height", 600);
