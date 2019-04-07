@@ -7,6 +7,8 @@ declare global {
 		 * Returns a Stream for the matches of this string.
 		 */
 		matches (string: string): Stream<RegExpExecArray>;
+
+		match (string: string): RegExpExecArray | [];
 	}
 }
 
@@ -14,6 +16,11 @@ export default function () {
 	Object.defineProperty(RegExp.prototype, "matches", {
 		value (this: RegExp, str: string) {
 			return Stream.from(new StreamableMatches(this, str));
+		},
+	});
+	Object.defineProperty(RegExp.prototype, "match", {
+		value (this: RegExp, str: string) {
+			return str.match(this) || [];
 		},
 	});
 }

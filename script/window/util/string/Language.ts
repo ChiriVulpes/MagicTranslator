@@ -64,6 +64,10 @@ export default class Language {
 					kv[inside] += "\\:";
 					continue;
 				}
+				if (char === "{" || char === "}") {
+					kv[inside] += "\\" + char;
+					continue;
+				}
 			}
 
 			if (quiltText[i] === "\n") {

@@ -4,9 +4,13 @@ import Interrupt, { InterruptChoice } from "component/shared/Interrupt";
 import LabelledRow from "component/shared/LabelledRow";
 import Tooltip from "component/shared/Tooltip";
 import MediaRoots, { RootMetadata } from "data/MediaRoots";
+import { tuple } from "util/Arrays";
 import { generalRandom } from "util/Random";
 import Stream from "util/stream/Stream";
+import { interpolate } from "util/string/Interpolator";
 import Translation from "util/string/Translation";
+
+const pathSegments = ["volume", "chapter", "page"] as (keyof RootMetadata["structure"])[];
 
 export default class RootSettings extends Interrupt {
 	public static async show (root: string) {
@@ -21,7 +25,6 @@ export default class RootSettings extends Interrupt {
 		.appendTo(this.content, "beginning");
 
 	private readonly pathInputs = new Map<keyof RootMetadata["structure"], Input>();
-	private readonly pathExample: Component;
 	private restoreButton?: Component;
 
 	public constructor (private readonly root: string) {
@@ -30,9 +33,6 @@ export default class RootSettings extends Interrupt {
 		this.setActions(InterruptChoice.Done);
 
 		const mediaRoot = MediaRoots.get(root)!;
-
-		this.pathExample = new Component("span")
-			.classes.add("file-structure-path-example");
 
 		this.addSection("main")
 			.append(new LabelledRow("directory")
@@ -50,18 +50,22 @@ export default class RootSettings extends Interrupt {
 				.listeners.add("click", this.onRemove));
 
 		this.addSection("file-structure")
-			.append(Stream.of<(keyof RootMetadata["structure"])[]>("volume", "chapter", "page")
-				.map(pathType => new LabelledRow(`${pathType}-path`)
-					.append(new Input()
-						.attributes.set("path-type", pathType)
-						.setText(() => mediaRoot.structure && mediaRoot.structure[pathType])
-						.listeners.add("change", this.onPathInputChange)
-						.schedule(input => this.pathInputs.set(pathType, input
-							.schedule(Tooltip.register, tooltip => tooltip
-								.setText(() => input.attributes.get("error")!)))))))
-			.append(new LabelledRow("example")
-				.append(this.pathExample
-					.setText(this.getPathExample)));
+			.append(Stream.of<(keyof RootMetadata["structure"])[]>("volume", "chapter", "page", "raw", "translated", "capture")
+				.map(pathType => new Component()
+					.classes.toggle(!pathSegments.includes(pathType), "path-full")
+					.append(new LabelledRow(`${pathType}-path`)
+						.append(new Input()
+							.attributes.set("path-type", pathType)
+							.setText(() => mediaRoot.structure && mediaRoot.structure[pathType])
+							.listeners.add("change", this.onPathInputChange)
+							.schedule(input => this.pathInputs.set(pathType, input
+								.schedule(Tooltip.register, tooltip => tooltip
+									.setText(() => input.attributes.get("error")!))))))
+					.append(pathSegments.includes(pathType) ? undefined : new LabelledRow("example")
+						.classes.add("example")
+						.append(new Component("span")
+							.classes.add("file-structure-path-example")
+							.setText(this.getPathExample(pathType))))));
 	}
 
 	@Bound @Override protected keyup (event: KeyboardEvent) {
@@ -69,12 +73,29 @@ export default class RootSettings extends Interrupt {
 		super.keyup(event);
 	}
 
+	// tslint:disable cyclomatic-complexity
 	@Bound private onPathInputChange (event: Event) {
 		const input = Component.get<Input>(event);
-		const error = /#[^#]+#/.test(input.getText());
-		input.classes.toggle(error, "error");
-		input.attributes.set("error", !error ? "" : new Translation("path-input-error").get(input.attributes.get("path-type")));
-		this.pathExample.refreshText();
+		const inputText = input.getText().trim();
+		const pathType = input.attributes.get<keyof RootMetadata["structure"]>("path-type");
+		let error: false | string = false;
+		if (pathSegments.includes(pathType)) {
+			error = /#[^#]+#/.test(inputText) &&
+				new Translation("path-segment-input-error").get(pathType);
+		} else {
+			const match = inputText.match(RegExp(`^[^{}]*?${pathSegments.map(segment => `{${segment}}`).join("[^{}]*?/[^{}]*?")}[^{}]*?$`));
+			if (!match) error = new Translation("path-full-input-error").get(pathType);
+		}
+
+		if (!error) {
+			const mediaRoot = MediaRoots.get(this.root)!;
+			mediaRoot.structure[pathType] = inputText;
+		}
+
+		input.classes.toggle(!!error, "error");
+		input.attributes.set("error", error || "");
+
+		this.descendants(".file-structure-path-example").forEach(descendant => descendant.refreshText());
 		this.updateDoneButton();
 	}
 
@@ -111,19 +132,24 @@ export default class RootSettings extends Interrupt {
 
 	private addSection (name: string) {
 		return new Component("section")
+			.attributes.set("section", name)
 			.append(new Component("h2")
 				.setText(name))
 			.appendTo(this.sections);
 	}
 
-	@Bound private getPathExample () {
-		const root = path.basename(this.root);
-		const volume = this.pathInputs.get("volume")!.getText();
-		const chapter = this.pathInputs.get("chapter")!.getText();
-		const page = this.pathInputs.get("page")!.getText();
-		const examplePath = `${root}/${volume}/${chapter}/${page}`;
-		// we need to apply the "#"->number replacement twice, since the # character matches overlap each other
-		return Stream.range(2)
-			.fold(examplePath, current => current.replace(/[^\\]#/g, ([c]) => `${c}${generalRandom.int(10)}`));
+	private getPathExample (pathType: keyof RootMetadata["structure"]) {
+		return () => {
+			const mediaRoot = MediaRoots.get(this.root)!;
+			const root = path.basename(this.root);
+			const examplePath = path.join(root, interpolate(mediaRoot.structure[pathType], Stream.from(pathSegments)
+				.map(segment => tuple(segment, mediaRoot.structure[segment]))
+				.toObject()))
+				.replace(/\\/g, "/");
+
+			// we need to apply the "#"->number replacement twice, since the # character matches overlap each other
+			return Stream.range(2)
+				.fold(examplePath, current => current.replace(/[^\\]#/g, ([c]) => `${c}${generalRandom.int(10)}`));
+		};
 	}
 }

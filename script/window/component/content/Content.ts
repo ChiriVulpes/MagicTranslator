@@ -15,6 +15,8 @@ export default class Content extends Component {
 		super();
 		this.setId("content");
 
+		// window.send("window-toggle-devtools");
+
 		this.initialize();
 	}
 

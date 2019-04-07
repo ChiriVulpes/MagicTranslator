@@ -107,7 +107,7 @@
 			> h2 {
 				margin-top: 0;
 			}
-			> .labelled-row {
+			.labelled-row {
 				display: grid;
 				grid-template-columns: 1fr auto;
 				> label, > span {
@@ -116,10 +116,25 @@
 					margin-right: 10px;
 				}
 			}
-		}
-	}
 	
-	.file-structure-path-example {
-		color: #fff9;
+			> .path-full > .example {
+				margin-left: 30px;
+				opacity: 0.7;
+				// display: none;
+				> .file-structure-path-example {
+					color: #fff9;
+				}
+			}
+			
+			// > .path-full:focus-within > .example {
+			// 	display: grid;
+			// }
+			
+			&[section="file-structure"] {
+				input {
+					width: 350px;
+				}
+			}
+		}
 	}
 }

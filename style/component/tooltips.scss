@@ -25,6 +25,9 @@
 		transform: translate(calc(-100% * var(--reverse-x)), calc(-100% * var(--reverse-y) - 18px * var(--reverse-y)));
 		transition: transform .1s ease-in-out, opacity .1s ease-in-out .1s, left .016666s linear, top .016666s linear;
 		opacity: 1;
+		&::first-letter {
+			text-transform: uppercase;
+		}
 		
 		&.transparent {
 			opacity: 0; 

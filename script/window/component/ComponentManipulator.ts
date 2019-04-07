@@ -126,8 +126,8 @@ export class AttributeManipulator<T> extends Manipulator<T, AttributeUntil<T>> {
 		return this.host;
 	}
 
-	public get (attribute: string) {
-		return this.element().getAttribute(attribute);
+	public get<S extends string | null> (attribute: string): S {
+		return this.element().getAttribute(attribute) as S;
 	}
 
 	public remove (attribute: string) {

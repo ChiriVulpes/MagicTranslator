@@ -37,8 +37,7 @@ export class CapturesImpl {
 	}
 
 	public getCapturePagePath (root: string, volume: number, chapter: number, page: number) {
-		const [volumeString, chapterString, pageString] = MediaRoots.get(root)!.volumes.getPaths(volume, chapter, page);
-		return `${root}/${volumeString}/${chapterString}/capture/${pageString.slice(0, -4)}`;
+		return MediaRoots.get(root)!.getPath("capture", volume, chapter, page);
 	}
 }
 
