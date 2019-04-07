@@ -345,9 +345,10 @@ export default class Extractor extends Component {
 		const dropdown = Component.get<Dropdown<DisplayMode>>(event);
 		Extractor.displayMode = dropdown.getSelected();
 
-		this.classes.toggle(Extractor.displayMode === DisplayMode.Read, "display-mode-read");
+		const readMode = Extractor.displayMode === DisplayMode.Read || Extractor.displayMode === DisplayMode.Translated;
+		this.classes.toggle(readMode, "display-mode-read");
 
-		if (Extractor.displayMode === DisplayMode.Read) {
+		if (readMode) {
 			let lastCharacter: number | BasicCharacter | undefined;
 			for (const capture of this.capturesWrapper.children<Capture>()) {
 				const thisCharacter = capture.getData().character;
@@ -356,7 +357,7 @@ export default class Extractor extends Component {
 			}
 		}
 
-		if (Extractor.displayMode === DisplayMode.Translate || Extractor.displayMode === DisplayMode.Translated) {
+		if (Extractor.displayMode === DisplayMode.Translate) {
 			for (const textarea of this.capturesWrapper.descendants<Textarea>(".textarea")) {
 				textarea.setHeight();
 			}
