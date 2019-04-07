@@ -24,7 +24,7 @@ export abstract class Manipulator<T, U extends Until<T> | undefined = undefined>
 
 	protected untilHandler?: UntilHandler<T, EmptyIfUndefined<U>>;
 
-	public constructor(host: T, element: () => EventEmitter) {
+	public constructor (host: T, element: () => EventEmitter) {
 		this.host = host;
 		this.element = element;
 	}
@@ -57,21 +57,21 @@ export interface ComponentEvent<T = any> extends Event {
 }
 
 export class EventListenerManipulator<T> extends Manipulator<T, ListenUntil<T>> {
-	protected untilHandler = {
+	@Override protected untilHandler = {
 		add: {
 			start: <E extends Event = ComponentEvent> (events: string | string[], callback: (event: E) => any) => this.add(events, callback),
 			end: <E extends Event = ComponentEvent> (events: string | string[], callback: (event: E) => any) => this.remove(events, callback),
 		},
 	};
 
-	public constructor(host: T, element: () => EventEmitter) {
+	public constructor (host: T, element: () => EventEmitter) {
 		super(host, element as any);
 	}
 
 	public until (event: string): EmptyIfUndefined<ListenUntil<T>>;
 	public until (promise: Promise<any>): EmptyIfUndefined<ListenUntil<T>>;
 	public until (s: number): EmptyIfUndefined<ListenUntil<T>>;
-	public until (s: number | string | Promise<any>): EmptyIfUndefined<ListenUntil<T>> {
+	@Override public until (s: number | string | Promise<any>): EmptyIfUndefined<ListenUntil<T>> {
 		if (!this.untilHandler) return {} as any;
 
 		return new Proxy({}, {

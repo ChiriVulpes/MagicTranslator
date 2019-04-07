@@ -146,13 +146,22 @@ textarea, input {
 	padding: 5px 10px;
 	box-sizing: border-box;
 	background: #0003;
-	border: none;
+	border: 1px solid transparent;
+	outline: none;
 	color: inherit;
 	font-family: inherit;
 	font-size: inherit;
 	font-weight: inherit;
 	resize: none;
 	margin: 5px 0;
+	
+	&:focus {
+		border-color: #0af
+	}
+	
+	&.error {
+		border-color: #f00;
+	}
 }
 
 .float-right {

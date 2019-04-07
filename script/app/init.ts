@@ -111,8 +111,10 @@ async function init () {
 		</script>
 		<script src="script/vendor/require.js"></script>
 		<script>
-			requirejs(["script/init.js"], () => {
-				requirejs(["script/index.js"]);
+			requirejs(["script/init/Decorator.js"], () => {
+				requirejs(["script/init/Prototype.js"], () => {
+					requirejs(["script/index.js"]);
+				});
 			});
 		</script>
 	`), { baseURLForDataURL: `file://${__dirname}/out`, extraHeaders: "pragma: no-cache\n" });

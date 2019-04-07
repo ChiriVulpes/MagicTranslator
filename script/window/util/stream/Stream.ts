@@ -307,7 +307,7 @@ export default abstract class Stream<T> implements Streamable<T>, Iterable<T> {
 	/**
 	 * Returns a new Stream containing the items in this Stream and then the items in all provided Streams or Iterables.
 	 */
-	public abstract merge<N> (...iterables: Array<Stream<N> | Iterable<N>>): Stream<T | N>;
+	public abstract merge<N> (...iterables: (Stream<N> | Iterable<N>)[]): Stream<T | N>;
 
 	/**
 	 * Returns a new Stream of the same type, after first collecting this Stream into an array.
@@ -422,7 +422,7 @@ export default abstract class Stream<T> implements Streamable<T>, Iterable<T> {
 	/**
 	 * Returns whether this Stream has any items in common with items in the given iterables.
 	 */
-	public abstract intersects (...iterables: Array<Iterable<T>>): boolean;
+	public abstract intersects (...iterables: Iterable<T>[]): boolean;
 
 	/**
 	 * Returns the number of items in this Stream.
@@ -564,7 +564,7 @@ export default abstract class Stream<T> implements Streamable<T>, Iterable<T> {
 	/**
 	 * Appends the items in this Stream to the end of the given array.
 	 */
-	public abstract toArray<N> (array: N[]): Array<T | N>;
+	public abstract toArray<N> (array: N[]): (T | N)[];
 
 	/**
 	 * Collects the items in this Stream to a Set.
@@ -675,18 +675,18 @@ export default abstract class Stream<T> implements Streamable<T>, Iterable<T> {
 
 class StreamImplementation<T> extends Stream<T> {
 
-	private readonly iterators: Array<Iterator<T> | Streamable<T>>;
+	private readonly iterators: (Iterator<T> | Streamable<T>)[];
 	private iteratorIndex = 0;
-	private readonly actions: Array<Action<T>> = [];
+	private readonly actions: Action<T>[] = [];
 	private _value: T;
 	private _done = false;
 	private doneNext = false;
 	private readonly savedNext: T[] = [];
 
-	public get value () { return this._value; }
-	public get done () { return this._done; }
+	@Override public get value () { return this._value; }
+	@Override public get done () { return this._done; }
 
-	public constructor (...iterators: Array<Iterator<T> | Streamable<T>>) {
+	public constructor (...iterators: (Iterator<T> | Streamable<T>)[]) {
 		super();
 		this.iterators = iterators;
 	}
@@ -719,7 +719,7 @@ class StreamImplementation<T> extends Stream<T> {
 	// Manipulation
 	//
 
-	public filter (filter: (val: T) => any) {
+	@Override public filter (filter: (val: T) => any) {
 		if (this.savedNext.length) {
 			if (!filter(this.savedNext[0])) {
 				this.savedNext.pop();
@@ -731,11 +731,11 @@ class StreamImplementation<T> extends Stream<T> {
 		return this as any;
 	}
 
-	public filter2 (filter: (val: T) => any) {
+	@Override public filter2 (filter: (val: T) => any) {
 		return this.filter(filter);
 	}
 
-	public map (mapper: (val: T) => any) {
+	@Override public map (mapper: (val: T) => any) {
 		this.actions.push(["map", mapper]);
 		if (this.savedNext.length) {
 			this.savedNext[0] = mapper(this.savedNext[0]);
@@ -744,11 +744,11 @@ class StreamImplementation<T> extends Stream<T> {
 		return this as any;
 	}
 
-	public flatMap (mapper?: (value: T) => Iterable<any>) {
+	@Override public flatMap (mapper?: (value: T) => Iterable<any>) {
 		return new StreamImplementation(new FlatMapStream(this, mapper)) as any;
 	}
 
-	public take (amount: number) {
+	@Override public take (amount: number) {
 		if (amount === 0) {
 			this._done = true;
 
@@ -763,7 +763,7 @@ class StreamImplementation<T> extends Stream<T> {
 		return this;
 	}
 
-	public takeWhile (predicate: (val: T) => boolean) {
+	@Override public takeWhile (predicate: (val: T) => boolean) {
 		if (this.savedNext.length) {
 			if (!predicate(this.savedNext[0])) {
 				this._done = true;
@@ -775,7 +775,7 @@ class StreamImplementation<T> extends Stream<T> {
 		return this;
 	}
 
-	public drop (amount: number) {
+	@Override public drop (amount: number) {
 		if (amount > 0) {
 			if (this.savedNext.length) {
 				amount--;
@@ -788,7 +788,7 @@ class StreamImplementation<T> extends Stream<T> {
 		return this;
 	}
 
-	public dropWhile (predicate: (val: T) => boolean) {
+	@Override public dropWhile (predicate: (val: T) => boolean) {
 		if (this.savedNext.length) {
 			if (predicate(this.savedNext[0])) {
 				this.savedNext.pop();
@@ -803,7 +803,7 @@ class StreamImplementation<T> extends Stream<T> {
 		return this;
 	}
 
-	public step (step: number) {
+	@Override public step (step: number) {
 		if (step === 1) {
 			return this;
 		}
@@ -823,44 +823,44 @@ class StreamImplementation<T> extends Stream<T> {
 		return this;
 	}
 
-	public sorted (comparator?: (a: T, b: T) => number) {
+	@Override public sorted (comparator?: (a: T, b: T) => number) {
 		return Stream.from(this.toArray().sort(comparator));
 	}
 
-	public reverse () {
+	@Override public reverse () {
 		return Stream.from(this.toArray().reverse());
 	}
 
-	public distinct () {
+	@Override public distinct () {
 		return Stream.from(this.toSet());
 	}
 
-	public shuffle () {
+	@Override public shuffle () {
 		return new StreamImplementation(Arrays.shuffle(this.toArray())[Symbol.iterator]());
 	}
 
-	public partition<K> (sorter: (val: T) => K): Partitions<any, any> {
+	@Override public partition<K> (sorter: (val: T) => K): Partitions<any, any> {
 		return new Partitions(this, sorter, partitionStream => new StreamImplementation(partitionStream));
 	}
 
-	public unzip (): any {
+	@Override public unzip (): any {
 		return new Partitions(this.flatMap(), (value, index) => index % 2 ? "value" : "key", partitionStream => new StreamImplementation(partitionStream));
 	}
 
-	public add (...items: any[]) {
+	@Override public add (...items: any[]) {
 		return new StreamImplementation<any>(this, items[Symbol.iterator]());
 	}
 
-	public merge (...iterables: Array<Iterable<any>>) {
+	@Override public merge (...iterables: Iterable<any>[]) {
 		return new StreamImplementation(this, ...iterables
 			.map(iterable => iterable instanceof StreamImplementation ? iterable : iterable[Symbol.iterator]()));
 	}
 
-	public collectStream () {
+	@Override public collectStream () {
 		return new StreamImplementation(this.toArray()[Symbol.iterator]());
 	}
 
-	public entries () {
+	@Override public entries () {
 		let i = 0;
 		return this.map(value => tuple(i++, value));
 	}
@@ -872,12 +872,12 @@ class StreamImplementation<T> extends Stream<T> {
 	public at (index: number): T | undefined;
 	public at (index: number, orElse: T): T;
 	public at (index: number, orElse?: T): T | undefined;
-	public at (index: number, orElse?: T) {
+	@Override public at (index: number, orElse?: T) {
 		this.drop(index);
 		return this.first(undefined, orElse);
 	}
 
-	public any (predicate: (val: T, index: number) => boolean) {
+	@Override public any (predicate: (val: T, index: number) => boolean) {
 		let index = 0;
 		while (true) {
 			this.next();
@@ -891,11 +891,11 @@ class StreamImplementation<T> extends Stream<T> {
 		}
 	}
 
-	public some (predicate: (val: T, index: number) => boolean) {
+	@Override public some (predicate: (val: T, index: number) => boolean) {
 		return this.any(predicate);
 	}
 
-	public every (predicate: (val: T, index: number) => boolean) {
+	@Override public every (predicate: (val: T, index: number) => boolean) {
 		let index = 0;
 		while (true) {
 			this.next();
@@ -909,11 +909,11 @@ class StreamImplementation<T> extends Stream<T> {
 		}
 	}
 
-	public all (predicate: (val: T, index: number) => boolean) {
+	@Override public all (predicate: (val: T, index: number) => boolean) {
 		return this.every(predicate);
 	}
 
-	public none (predicate: (val: T, index: number) => boolean) {
+	@Override public none (predicate: (val: T, index: number) => boolean) {
 		let index = 0;
 		while (true) {
 			this.next();
@@ -927,7 +927,7 @@ class StreamImplementation<T> extends Stream<T> {
 		}
 	}
 
-	public includes (...values: T[]) {
+	@Override public includes (...values: T[]) {
 		while (true) {
 			this.next();
 			if (this._done) {
@@ -940,15 +940,15 @@ class StreamImplementation<T> extends Stream<T> {
 		}
 	}
 
-	public contains (...values: T[]) {
+	@Override public contains (...values: T[]) {
 		return this.includes(...values);
 	}
 
-	public has (...values: T[]) {
+	@Override public has (...values: T[]) {
 		return this.includes(...values);
 	}
 
-	public includesAll (...values: T[]) {
+	@Override public includesAll (...values: T[]) {
 		while (true) {
 			this.next();
 			if (this._done) {
@@ -965,16 +965,16 @@ class StreamImplementation<T> extends Stream<T> {
 		}
 	}
 
-	public containsAll (...values: T[]) {
+	@Override public containsAll (...values: T[]) {
 		return this.includesAll(...values);
 	}
 
-	public hasAll (...values: T[]) {
+	@Override public hasAll (...values: T[]) {
 		return this.includesAll(...values);
 	}
 
 	// tslint:disable-next-line cyclomatic-complexity
-	public intersects (...iterables: Array<Iterable<T>>) {
+	@Override public intersects (...iterables: Iterable<T>[]) {
 		while (true) {
 			this.next();
 			if (this._done) {
@@ -1015,7 +1015,7 @@ class StreamImplementation<T> extends Stream<T> {
 		}
 	}
 
-	public count () {
+	@Override public count () {
 		let i = 0;
 		while (true) {
 			this.next();
@@ -1027,15 +1027,15 @@ class StreamImplementation<T> extends Stream<T> {
 		}
 	}
 
-	public length () {
+	@Override public length () {
 		return this.count();
 	}
 
-	public size () {
+	@Override public size () {
 		return this.count();
 	}
 
-	public fold<R> (initial: R, folder: (current: R, newValue: T, index: number) => R) {
+	@Override public fold<R> (initial: R, folder: (current: R, newValue: T, index: number) => R) {
 		let index = 0;
 		let value = initial;
 		while (true) {
@@ -1048,7 +1048,7 @@ class StreamImplementation<T> extends Stream<T> {
 		}
 	}
 
-	public reduce (reducer: (current: T, newValue: T, index: number) => T) {
+	@Override public reduce (reducer: (current: T, newValue: T, index: number) => T) {
 		this.next();
 		let index = 1;
 		let value = this._value;
@@ -1065,7 +1065,7 @@ class StreamImplementation<T> extends Stream<T> {
 	public first (): T | undefined;
 	public first (predicate?: (val: T, index: number) => boolean, orElse?: T): T | undefined;
 	public first (predicate: undefined | ((val: T, index: number) => boolean), orElse: T): T;
-	public first (predicate?: (val: T, index: number) => boolean, orElse?: T) {
+	@Override public first (predicate?: (val: T, index: number) => boolean, orElse?: T) {
 		let index = 0;
 		while (true) {
 			this.next();
@@ -1082,14 +1082,14 @@ class StreamImplementation<T> extends Stream<T> {
 	public find (): T | undefined;
 	public find (predicate?: (val: T, index: number) => boolean, orElse?: T): T | undefined;
 	public find (predicate: undefined | ((val: T, index: number) => boolean), orElse: T): T;
-	public find (predicate?: (val: T, index: number) => boolean, orElse?: T) {
+	@Override public find (predicate?: (val: T, index: number) => boolean, orElse?: T) {
 		return this.first(predicate, orElse);
 	}
 
 	public last (): T | undefined;
 	public last (predicate?: (val: T, index: number) => boolean, orElse?: T): T | undefined;
 	public last (predicate: undefined | ((val: T, index: number) => boolean), orElse: T): T;
-	public last (predicate?: (val: T, index: number) => boolean, orElse?: T) {
+	@Override public last (predicate?: (val: T, index: number) => boolean, orElse?: T) {
 		let index = 0;
 		let last = orElse;
 		while (true) {
@@ -1106,7 +1106,7 @@ class StreamImplementation<T> extends Stream<T> {
 		return last;
 	}
 
-	public random (orElse?: T, random = generalRandom) {
+	@Override public random (orElse?: T, random = generalRandom) {
 		if (!this.hasNext()) {
 			return orElse;
 		}
@@ -1114,25 +1114,25 @@ class StreamImplementation<T> extends Stream<T> {
 		return random.choice(...this);
 	}
 
-	public collect<R> (collector: (stream: Stream<T>) => R): R {
+	@Override public collect<R> (collector: (stream: Stream<T>) => R): R {
 		return collector(this);
 	}
 
-	public splat<R> (collector: (...values: T[]) => R): R {
+	@Override public splat<R> (collector: (...values: T[]) => R): R {
 		return collector(...this.toArray());
 	}
 
-	public async race (): Promise<any> {
+	@Override public async race (): Promise<any> {
 		return Promise.race(this.toArray()) as any;
 	}
 
-	public async rest (): Promise<any> {
+	@Override public async rest (): Promise<any> {
 		return (await Promise.all(this.toArray())).stream() as any;
 	}
 
 	public toArray (): T[];
-	public toArray<N> (array: N[]): Array<T | N>;
-	public toArray (result: any[] = []) {
+	public toArray<N> (array: N[]): (T | N)[];
+	@Override public toArray (result: any[] = []) {
 		while (true) {
 			this.next();
 			if (this._done) {
@@ -1145,7 +1145,7 @@ class StreamImplementation<T> extends Stream<T> {
 
 	public toSet (): Set<T>;
 	public toSet<N> (set: Set<N>): Set<T | N>;
-	public toSet (result: Set<any> = new Set()) {
+	@Override public toSet (result: Set<any> = new Set()) {
 		while (true) {
 			this.next();
 			if (this._done) {
@@ -1156,7 +1156,7 @@ class StreamImplementation<T> extends Stream<T> {
 		}
 	}
 
-	public toMap (result?: Map<any, any> | ((value: any, index: number) => [any, any]), mapper?: (value: any, index: number) => [any, any]): any {
+	@Override public toMap (result?: Map<any, any> | ((value: any, index: number) => [any, any]), mapper?: (value: any, index: number) => [any, any]): any {
 		if (typeof result === "function") {
 			mapper = result;
 			result = new Map();
@@ -1186,7 +1186,7 @@ class StreamImplementation<T> extends Stream<T> {
 		}
 	}
 
-	public toObject (result?: any | ((value: any, index: number) => [any, any]), mapper?: (value: any, index: number) => [any, any]) {
+	@Override public toObject (result?: any | ((value: any, index: number) => [any, any]), mapper?: (value: any, index: number) => [any, any]) {
 		if (typeof result === "function") {
 			mapper = result;
 			result = {};
@@ -1220,7 +1220,7 @@ class StreamImplementation<T> extends Stream<T> {
 
 	public toString (concatenator?: string): string;
 	public toString (concatenator: (current: string, value: T) => string): string;
-	public toString (concatenator: string | ((current: string, value: T) => string) = "") {
+	@Override public toString (concatenator: string | ((current: string, value: T) => string) = "") {
 		let result = "";
 		while (true) {
 			this.next();
@@ -1237,7 +1237,7 @@ class StreamImplementation<T> extends Stream<T> {
 		}
 	}
 
-	public iterateToEnd () {
+	@Override public iterateToEnd () {
 		while (true) {
 			this.next();
 			if (this._done) {
@@ -1245,16 +1245,16 @@ class StreamImplementation<T> extends Stream<T> {
 			}
 		}
 	}
-	public finish () { this.iterateToEnd(); }
-	public end () { this.iterateToEnd(); }
-	public complete () { this.iterateToEnd(); }
-	public flush () { this.iterateToEnd(); }
+	@Override public finish () { this.iterateToEnd(); }
+	@Override public end () { this.iterateToEnd(); }
+	@Override public complete () { this.iterateToEnd(); }
+	@Override public flush () { this.iterateToEnd(); }
 
 	////////////////////////////////////
 	// Misc
 	//
 
-	public forEach (user: (val: T, index: number) => any) {
+	@Override public forEach (user: (val: T, index: number) => any) {
 		let index = 0;
 		while (true) {
 			this.next();
@@ -1267,7 +1267,7 @@ class StreamImplementation<T> extends Stream<T> {
 	}
 
 	// tslint:disable-next-line cyclomatic-complexity
-	public next () {
+	@Override public next () {
 		if (this.doneNext || this._done) {
 			this._done = true;
 			return;
@@ -1378,7 +1378,7 @@ class StreamImplementation<T> extends Stream<T> {
 		}
 	}
 
-	public hasNext () {
+	@Override public hasNext () {
 		if (!this.savedNext.length) {
 			this.next();
 			if (this._done) {

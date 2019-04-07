@@ -4,7 +4,6 @@ import SortableList, { SortableListEvent } from "component/shared/SortableList";
 import Characters, { BasicCharacter, CharacterData } from "data/Characters";
 import MediaRoots from "data/MediaRoots";
 import Options from "Options";
-import Bound from "util/Bound";
 import Enums from "util/Enums";
 import FileSystem from "util/FileSystem";
 import { ComponentEvent } from "util/Manipulator";
@@ -195,8 +194,7 @@ export default class CharacterEditor extends Component {
 		return this;
 	}
 
-	@Bound
-	private addCharacter (character: CharacterData | BasicCharacter) {
+	@Bound private addCharacter (character: CharacterData | BasicCharacter) {
 		const characterButton = new Character(this.characters.getCharactersPath(), character, typeof character === "object")
 			.listeners.add("click", this.select)
 			.listeners.add("change-name", event => {
@@ -212,8 +210,7 @@ export default class CharacterEditor extends Component {
 		return characterButton;
 	}
 
-	@Bound
-	private async updateJson () {
+	@Bound private async updateJson () {
 		await this.characters.save({
 			characterId: this.characterId,
 			characters: this.characterWrapper.children<Character>()
@@ -223,8 +220,7 @@ export default class CharacterEditor extends Component {
 		});
 	}
 
-	@Bound
-	private choose () {
+	@Bound private choose () {
 		this.emit("choose", chooseEvent => {
 			const character = this.characterWrapper.children<Character>()
 				.filter(button => button.classes.has("selected"))
@@ -235,15 +231,13 @@ export default class CharacterEditor extends Component {
 		});
 	}
 
-	@Bound
-	private cancel () {
+	@Bound private cancel () {
 		this.emit("choose", event => event.data = this.startingCharacter);
 	}
 
 	private select (event: Event, focus?: boolean): void;
 	private select (character: number | BasicCharacter, focus?: boolean): void;
-	@Bound
-	private select (eventOrCharacter: Event | number | BasicCharacter, focus = true) {
+	@Bound private select (eventOrCharacter: Event | number | BasicCharacter, focus = true) {
 		let characterButton: Character;
 
 		if (typeof eventOrCharacter === "object") {
@@ -271,8 +265,7 @@ export default class CharacterEditor extends Component {
 			.forEach(sibling => sibling.classes.remove("selected"));
 	}
 
-	@Bound
-	private keyup (event: KeyboardEvent) {
+	@Bound private keyup (event: KeyboardEvent) {
 		if (Component.all(".interrupt:not(#character-editor):not(.hidden)").first()) return;
 
 		if (event.code === "Enter") this.choose();

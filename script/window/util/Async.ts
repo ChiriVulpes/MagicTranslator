@@ -15,7 +15,7 @@ export class ResolvablePromise<T = void> extends Promise<T> {
 		return this._isResolved;
 	}
 
-	constructor(executor?: (resolve: Resolve<T>, reject: Reject) => void) {
+	constructor (executor?: (resolve: Resolve<T>, reject: Reject) => void) {
 		let resolve!: Resolve<T>;
 		let reject!: Reject;
 

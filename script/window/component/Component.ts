@@ -1,6 +1,5 @@
 import { AttributeManipulator, ClassManipulator, ComponentEvent, DataManipulator, EventListenerManipulator, StyleManipulator } from "component/ComponentManipulator";
 import { sleep } from "util/Async";
-import Bound from "util/Bound";
 import { Box } from "util/math/Geometry";
 import Stream from "util/stream/Stream";
 import Translation from "util/string/Translation";
@@ -107,9 +106,9 @@ export default class Component {
 		return this;
 	}
 
-	@Bound
-	public refreshText () {
-		this.element().textContent = this.textGenerator ? `${this.textGenerator()}` : "";
+	@Bound public refreshText () {
+		const text = this.textGenerator ? this.textGenerator() as any : "";
+		this.element().textContent = text === null || text === undefined ? "" : `${text}`;
 		return this;
 	}
 
@@ -266,8 +265,8 @@ export default class Component {
 	public schedule<_A, _B, _C, _D, _E> (s: number, handler: (component: this, _1: _A, _2: _B, _3: _C, _4: _D, _5: _E) => any, _1: _A, _2: _B, _3: _C, _4: _D, _5: _E): this;
 	// public schedule (s: number, handler: (component: this, ...args: any[]) => any, ...args: any[]): this;
 	public schedule (s: ((component: this, ...args: any[]) => any) | number, handler?: any, ...args: any[]) {
-		if (typeof s !== "number") args.unshift(handler), handler = s, s = 0;
-		sleep(s).then(() => handler(this, ...args));
+		if (typeof s !== "number") args.unshift(handler), s(this, ...args);
+		else sleep(s).then(() => handler(this, ...args));
 		return this;
 	}
 

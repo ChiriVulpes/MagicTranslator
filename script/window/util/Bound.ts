@@ -1,4 +1,12 @@
-export default function Bound<T extends (...args: any[]) => any>
+declare global {
+	const Bound: typeof BoundFn;
+}
+
+export default function ApplyBound () {
+	(window as any).Bound = BoundFn;
+}
+
+function BoundFn<T extends (...args: any[]) => any>
 	(target: any, key: string, descriptor: TypedPropertyDescriptor<T>): TypedPropertyDescriptor<T> | void {
 
 	let fn = descriptor.value;
@@ -7,8 +15,7 @@ export default function Bound<T extends (...args: any[]) => any>
 		configurable: true,
 		get () {
 			if (!this || this === target.prototype || this.hasOwnProperty(key) || typeof fn !== "function") {
-				console.log(target, key, descriptor, "early return");
-
+				// console.log(target, key, descriptor, "early return");
 				return fn!;
 			}
 

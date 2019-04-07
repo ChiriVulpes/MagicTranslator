@@ -1,1 +1,1 @@
-type ArrayOfIterablesOr<T> = Array<T | Iterable<T>>;
+type ArrayOfIterablesOr<T> = (T | Iterable<T>)[];

@@ -1,10 +1,9 @@
 import Component from "component/Component";
-import Bound from "util/Bound";
 
 export default class WindowControls extends Component {
 	private readonly maximizeButton: Component;
 
-	public constructor() {
+	public constructor () {
 		super();
 		this.setId("window-controls");
 
@@ -30,25 +29,21 @@ export default class WindowControls extends Component {
 		this.onResize();
 	}
 
-	@Bound
-	private minimize () {
+	@Bound private minimize () {
 		window.send("window-minimize");
 	}
 
-	@Bound
-	private maximize () {
+	@Bound private maximize () {
 		const action = this.maximizeButton.attributes.get("action");
 		window.send(`window-${action}` as WindowEvent);
-		this.maximizeButton.attributes.set("action", action == "maximize" ? "restore" : "maximize");
+		this.maximizeButton.attributes.set("action", action === "maximize" ? "restore" : "maximize");
 	}
 
-	@Bound
-	private close () {
+	@Bound private close () {
 		window.send("window-close");
 	}
 
-	@Bound
-	private async onResize () {
+	@Bound private async onResize () {
 		const maximized = await window.send<boolean>("window-is-maximized");
 		const fullscreen = await window.send<boolean>("window-is-fullscreen");
 		this.maximizeButton.attributes.set("action", maximized ? "restore" : "maximize");

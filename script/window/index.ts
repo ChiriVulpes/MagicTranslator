@@ -58,7 +58,6 @@ const nodeChildProcess = req<typeof import("child_process")>("child_process");
 (window as any).path = req("path");
 
 
-
 ////////////////////////////////////
 // Initialize external dependencies for utility classes
 //

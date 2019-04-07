@@ -10,7 +10,6 @@ import { BasicCharacter } from "data/Characters";
 import Dialog from "data/Dialog";
 import MediaRoots from "data/MediaRoots";
 import { tuple } from "util/Arrays";
-import Bound from "util/Bound";
 import FileSystem from "util/FileSystem";
 import { Vector } from "util/math/Geometry";
 import { pad } from "util/string/String";
@@ -113,8 +112,7 @@ export default class Extractor extends Component {
 		captureComponent.refreshImage();
 	}
 
-	@Bound
-	public async updateJSON () {
+	@Bound public async updateJSON () {
 		await Captures.save(this.root, this.volume, this.chapter, this.page, {
 			captureId: this.captureId,
 			captures: this.capturesWrapper.children<Capture>()
@@ -144,14 +142,12 @@ export default class Extractor extends Component {
 		return this;
 	}
 
-	@Bound
-	private onSortComplete () {
+	@Bound private onSortComplete () {
 		this.mouseLeaveCapture();
 		this.updateJSON();
 	}
 
-	@Bound
-	private async removeCapture (event: Event) {
+	@Bound private async removeCapture (event: Event) {
 		const component = Component.get<Capture>(event);
 		const capture = component.getData();
 
@@ -169,8 +165,7 @@ export default class Extractor extends Component {
 		this.updateJSON();
 	}
 
-	@Bound
-	private keyup (event: KeyboardEvent) {
+	@Bound private keyup (event: KeyboardEvent) {
 		if (Component.all(".interrupt:not(.hidden)").first()) return;
 
 		if (event.code === "Equal" && event.ctrlKey) this.zoomIn();
@@ -178,8 +173,7 @@ export default class Extractor extends Component {
 		else if (event.code === "Escape") this.emit("quit");
 	}
 
-	@Bound
-	private scroll (event: WheelEvent) {
+	@Bound private scroll (event: WheelEvent) {
 		if (!event.ctrlKey) return;
 
 		if (event.deltaY > 0) this.zoomOut();
@@ -196,8 +190,7 @@ export default class Extractor extends Component {
 		this.pageImage.style.set("--zoom", Math.max(0, zoom - 0.1));
 	}
 
-	@Bound
-	private mouseEnterCapture (eventOrCaptureComponent: MouseEvent | Capture) {
+	@Bound private mouseEnterCapture (eventOrCaptureComponent: MouseEvent | Capture) {
 		const component = eventOrCaptureComponent instanceof Capture ? eventOrCaptureComponent :
 			Component.get<Capture>(eventOrCaptureComponent).listeners.add<MouseEvent>("mouseleave", this.mouseLeaveCapture);
 
@@ -215,8 +208,7 @@ export default class Extractor extends Component {
 		this.style.set("--capture-h", size.y);
 	}
 
-	@Bound
-	private mouseLeaveCapture (event?: MouseEvent) {
+	@Bound private mouseLeaveCapture (event?: MouseEvent) {
 		if (event) Component.get(event).listeners.remove<MouseEvent>("mouseleave", this.mouseLeaveCapture);
 		this.classes.remove("selecting");
 
@@ -227,16 +219,14 @@ export default class Extractor extends Component {
 		}
 	}
 
-	@Bound
-	private mouseDown (event: MouseEvent) {
+	@Bound private mouseDown (event: MouseEvent) {
 		this.captureStart = Vector.get(event);
 
 		Component.window.listeners.add("mousemove", this.mouseMove);
 		Component.window.listeners.add("mouseup", this.mouseUp);
 	}
 
-	@Bound
-	private mouseMove (event: MouseEvent) {
+	@Bound private mouseMove (event: MouseEvent) {
 		this.captureEnd = Vector.get(event);
 		this.classes.add("selecting");
 
@@ -251,8 +241,7 @@ export default class Extractor extends Component {
 		this.style.set("--capture-h", size.y);
 	}
 
-	@Bound
-	private async mouseUp (event: MouseEvent) {
+	@Bound private async mouseUp (event: MouseEvent) {
 		this.mouseMove(event);
 		this.classes.remove("selecting");
 
@@ -333,8 +322,7 @@ export default class Extractor extends Component {
 		await this.updateJSON();
 	}
 
-	@Bound
-	private toggleDisplayMode (mode = Extractor.displayMode === DisplayMode.Read ? DisplayMode.Translate : DisplayMode.Read) {
+	@Bound private toggleDisplayMode (mode = Extractor.displayMode === DisplayMode.Read ? DisplayMode.Translate : DisplayMode.Read) {
 		Extractor.displayMode = mode;
 
 		this.classes.toggle(Extractor.displayMode === DisplayMode.Read, "display-mode-read");
@@ -356,8 +344,7 @@ export default class Extractor extends Component {
 		}
 	}
 
-	@Bound
-	private async export () {
+	@Bound private async export () {
 		await Dialog.export(this.root, this.volume, this.chapter, this.page);
 	}
 

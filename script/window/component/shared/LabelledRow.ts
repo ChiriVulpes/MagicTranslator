@@ -1,5 +1,4 @@
 import Component, { TextGenerator } from "component/Component";
-import Bound from "util/Bound";
 
 export default class LabelledRow extends Component {
 	private readonly label: Component;
@@ -12,8 +11,7 @@ export default class LabelledRow extends Component {
 			.appendTo(this);
 	}
 
-	@Bound
-	public refreshText () {
+	@Override @Bound public refreshText () {
 		this.label.refreshText();
 		return this;
 	}

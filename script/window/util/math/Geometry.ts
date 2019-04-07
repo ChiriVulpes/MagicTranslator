@@ -6,7 +6,7 @@ export class Box implements ClientRect {
 	public readonly left: number;
 	public readonly right: number;
 
-	public constructor(rect: ClientRect) {
+	public constructor (rect: ClientRect) {
 		this.top = rect.top;
 		this.bottom = rect.bottom;
 		this.width = rect.width;
@@ -47,14 +47,26 @@ export class Vector {
 		return new Vector(element.naturalWidth, element.naturalHeight);
 	}
 
+	public static size (a: { x: number; y: number }, b: { x: number; y: number }) {
+		return new Vector(a).minus(b).abs();
+	}
+
+	public static min (a: { x: number; y: number }, b: { x: number; y: number }) {
+		return new Vector(Math.min(a.x, b.x), Math.min(a.y, b.y));
+	}
+
+	public static max (a: { x: number; y: number }, b: { x: number; y: number }) {
+		return new Vector(Math.max(a.x, b.x), Math.max(a.y, b.y));
+	}
+
 	public x: number;
 	public y: number;
 
-	public constructor(xAndY: number);
-	public constructor(vector: { x: number; y: number });
-	public constructor(x: number, y: number);
-	public constructor(x: number | { x: number; y: number }, y?: number);
-	public constructor(x: number | { x: number; y: number }, y = x as number) {
+	public constructor (xAndY: number);
+	public constructor (vector: { x: number; y: number });
+	public constructor (x: number, y: number);
+	public constructor (x: number | { x: number; y: number }, y?: number);
+	public constructor (x: number | { x: number; y: number }, y = x as number) {
 		if (typeof x === "object") {
 			this.x = x.x;
 			this.y = x.y;
@@ -87,17 +99,5 @@ export class Vector {
 
 	public raw () {
 		return { x: this.x, y: this.y };
-	}
-
-	public static size (a: { x: number; y: number }, b: { x: number; y: number }) {
-		return new Vector(a).minus(b).abs();
-	}
-
-	public static min (a: { x: number; y: number }, b: { x: number; y: number }) {
-		return new Vector(Math.min(a.x, b.x), Math.min(a.y, b.y));
-	}
-
-	public static max (a: { x: number; y: number }, b: { x: number; y: number }) {
-		return new Vector(Math.max(a.x, b.x), Math.max(a.y, b.y));
 	}
 }

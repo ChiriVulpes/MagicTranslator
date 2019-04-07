@@ -20,7 +20,7 @@ export default new class Media extends Map<string, MediaRoot> {
 	}
 };
 
-interface RootMetadata {
+export interface RootMetadata {
 	name?: string;
 	structure: {
 		volume: string;

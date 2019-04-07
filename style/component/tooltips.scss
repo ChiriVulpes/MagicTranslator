@@ -23,12 +23,16 @@
 		left: var(--x);
 		top: var(--y);
 		transform: translate(calc(-100% * var(--reverse-x)), calc(-100% * var(--reverse-y) - 18px * var(--reverse-y)));
-		transition: transform .1s ease-in-out, opacity .1s ease-in-out .3s, left .016666s linear, top .016666s linear;
+		transition: transform .1s ease-in-out, opacity .1s ease-in-out .1s, left .016666s linear, top .016666s linear;
 		opacity: 1;
 		
 		&.transparent {
 			opacity: 0; 
 			transition-delay: 0s;
+		}
+		
+		&:empty {
+			display: none;
 		}
 	}
 }

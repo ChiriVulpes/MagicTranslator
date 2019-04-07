@@ -6,7 +6,6 @@ import Interrupt from "component/shared/Interrupt";
 import MediaRoots from "data/MediaRoots";
 import Options from "Options";
 import { tuple } from "util/Arrays";
-import Bound from "util/Bound";
 import { ComponentEvent } from "util/Manipulator";
 import Language from "util/string/Language";
 
@@ -49,8 +48,7 @@ export default class Content extends Component {
 		return this.onExtractPage({ data: [volume, chapter, page, page > 0, page < pages.length - 1] } as any);
 	}
 
-	@Bound
-	private async onExtractPage ({ data }: ComponentEvent<[string, number, number, number, boolean, boolean]>): Promise<Extractor> {
+	@Bound private async onExtractPage ({ data }: ComponentEvent<[string, number, number, number, boolean, boolean]>): Promise<Extractor> {
 		this.children().drop(2).collectStream().forEach(child => child.remove());
 
 		const [root, volume, chapter, page] = data;
@@ -64,8 +62,7 @@ export default class Content extends Component {
 			.initialize();
 	}
 
-	@Bound
-	private keyup (event: KeyboardEvent) {
+	@Bound private keyup (event: KeyboardEvent) {
 		if (event.code === "F12") window.send("window-toggle-devtools");
 	}
 

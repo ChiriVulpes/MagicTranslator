@@ -19,7 +19,7 @@ export abstract class Manipulator<T, U extends Until<T> | undefined = undefined>
 
 	protected untilHandler?: UntilHandler<T, EmptyIfUndefined<U>>;
 
-	public constructor(host: T, element: () => HTMLElement) {
+	public constructor (host: T, element: () => HTMLElement) {
 		this.host = host;
 		this.element = element;
 	}
@@ -50,7 +50,7 @@ export interface ClassUntil<T> extends Until<T> {
 }
 
 export class ClassManipulator<T> extends Manipulator<T, ClassUntil<T>> {
-	protected untilHandler = {
+	@Override protected untilHandler = {
 		add: {
 			start: (...classes: string[]) => this.add(...classes),
 			end: (...classes: string[]) => this.remove(...classes),
@@ -114,7 +114,7 @@ export interface AttributeUntil<T> extends Until<T> {
 }
 
 export class AttributeManipulator<T> extends Manipulator<T, AttributeUntil<T>> {
-	protected untilHandler = {
+	@Override protected untilHandler = {
 		set: {
 			start: (attribute: string, value: string) => this.set(attribute, value),
 			end: (attribute: string) => this.remove(attribute),
@@ -165,7 +165,7 @@ export interface StyleUntil<T> extends Until<T> {
 }
 
 export class StyleManipulator<T> extends Manipulator<T, StyleUntil<T>> {
-	protected untilHandler = {
+	@Override protected untilHandler = {
 		set: {
 			start: (rule: string, value: string | number) => this.set(rule, value),
 			end: (rule: string) => this.remove(rule),
@@ -196,21 +196,21 @@ export interface ComponentEvent<T = any> extends Event {
 }
 
 export class EventListenerManipulator<T> extends Manipulator<T, ListenUntil<T>> {
-	protected untilHandler = {
+	@Override protected untilHandler = {
 		add: {
 			start: <E extends Event = ComponentEvent> (events: string | string[], callback: (event: E) => any) => this.add(events, callback),
 			end: <E extends Event = ComponentEvent> (events: string | string[], callback: (event: E) => any) => this.remove(events, callback),
 		},
 	};
 
-	public constructor(host: T, element: () => EventTarget) {
+	public constructor (host: T, element: () => EventTarget) {
 		super(host, element as any);
 	}
 
 	public until (event: string): EmptyIfUndefined<ListenUntil<T>>;
 	public until (promise: Promise<any>): EmptyIfUndefined<ListenUntil<T>>;
 	public until (s: number): EmptyIfUndefined<ListenUntil<T>>;
-	public until (s: number | string | Promise<any>): EmptyIfUndefined<ListenUntil<T>> {
+	@Override public until (s: number | string | Promise<any>): EmptyIfUndefined<ListenUntil<T>> {
 		if (!this.untilHandler) return {} as any;
 
 		return new Proxy({}, {

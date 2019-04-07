@@ -1,6 +1,5 @@
 import Component, { TextGenerator } from "component/Component";
 import { ComponentEvent } from "component/ComponentManipulator";
-import Bound from "util/Bound";
 
 export enum InterruptChoice {
 	No = "no",
@@ -81,7 +80,7 @@ export default class Interrupt extends Component {
 
 		for (const action of actions) {
 			new Component("button")
-				.data.set("action", action)
+				.attributes.set("action", action)
 				.setText(action)
 				.listeners.add("click", () => this.resolve(action))
 				.appendTo(this.actions);
@@ -90,14 +89,13 @@ export default class Interrupt extends Component {
 		return this;
 	}
 
-	@Bound
-	private keyup (key: KeyboardEvent) {
+	@Bound protected keyup (key: KeyboardEvent) {
 		if (key.code === "Enter") this.resolve(InterruptChoice.Yes) || this.resolve(InterruptChoice.Dismiss);
 		if (key.code === "Escape") this.resolve(InterruptChoice.No) || this.resolve(InterruptChoice.Done);
 	}
 
 	private resolve (choice: string) {
-		if (!this.actions.children().any(action => action.data.get("action") === choice)) return false;
+		if (!this.actions.children().any(action => action.attributes.get("action") === choice)) return false;
 
 		this.remove();
 		this.emit<string>("resolve", event => event.data = choice);

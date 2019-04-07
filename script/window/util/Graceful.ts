@@ -3,7 +3,7 @@ export class Graceful<T> {
 	private errorMessage = "Gracefully caught an error";
 	private sources: string[];
 
-	public constructor(...sources: string[]) {
+	public constructor (...sources: string[]) {
 		this.sources = sources.length ? sources : ["Graceful"];
 	}
 

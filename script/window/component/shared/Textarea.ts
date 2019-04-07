@@ -1,6 +1,5 @@
 import Component, { TextGenerator } from "component/Component";
 import { sleep } from "util/Async";
-import Bound from "util/Bound";
 import Translation from "util/string/Translation";
 
 export default class Textarea extends Component {
@@ -36,8 +35,7 @@ export default class Textarea extends Component {
 		return this;
 	}
 
-	@Bound
-	public setHeight (height = this.getHeight()) {
+	@Bound public setHeight (height = this.getHeight()) {
 		this.style.set("--height", `${height}px`);
 		return this;
 	}
@@ -49,8 +47,7 @@ export default class Textarea extends Component {
 		return this;
 	}
 
-	@Bound
-	public refreshText () {
+	@Override @Bound public refreshText () {
 		this.textarea.element<HTMLTextAreaElement>().value = this.textGenerator ? `${this.textGenerator()}` : "";
 		this.setHiddenTextareaText();
 		this.attributes.set("placeholder", this.placeholderTextGenerator ? `${this.placeholderTextGenerator()}` : "");
@@ -59,8 +56,7 @@ export default class Textarea extends Component {
 		return this;
 	}
 
-	@Bound
-	private onChange (event: Event) {
+	@Bound private onChange (event: Event) {
 		if (event.type === "change") {
 			event.stopPropagation();
 		}
@@ -74,15 +70,13 @@ export default class Textarea extends Component {
 		this.hiddenTextarea.element().textContent = this.textarea.element<HTMLTextAreaElement>().value.replace(/\n$/, "\n\xa0");
 	}
 
-	@Bound
-	private onBlur () {
+	@Bound private onBlur () {
 		this.textarea.element<HTMLTextAreaElement>().value = this.textarea.element<HTMLTextAreaElement>().value.trim();
 		this.setHiddenTextareaText();
 		this.emit("blur");
 	}
 
-	@Bound
-	private onContextMenu (event: MouseEvent) {
+	@Bound private onContextMenu (event: MouseEvent) {
 		const textarea = Component.get(event);
 		textarea.element<HTMLTextAreaElement>().select();
 		document.execCommand("copy");

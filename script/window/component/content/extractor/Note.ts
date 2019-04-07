@@ -2,7 +2,6 @@ import Component from "component/Component";
 import { SortableListItem } from "component/shared/SortableList";
 import Textarea from "component/shared/Textarea";
 import { sleep } from "util/Async";
-import Bound from "util/Bound";
 
 export default class Note extends SortableListItem {
 
@@ -39,8 +38,7 @@ export default class Note extends SortableListItem {
 		return this.noteData[0] === "" && this.noteData[1] === "";
 	}
 
-	@Bound
-	private changeTextarea (event: Event) {
+	@Bound private changeTextarea (event: Event) {
 		const textarea = Component.get<Textarea>(event);
 		const ja = textarea.classes.has("japanese");
 		this.noteData[ja ? 0 : 1] = textarea.getText();
@@ -51,8 +49,7 @@ export default class Note extends SortableListItem {
 		this.emit("note-change");
 	}
 
-	@Bound
-	private blurTextarea (event: Event) {
+	@Bound private blurTextarea (event: Event) {
 		const textarea = Component.get<Textarea>(event);
 		this.noteData[textarea.classes.has("japanese") ? 0 : 1] = textarea.getText();
 		sleep(0.01).then(() => this.emit("note-blur"));

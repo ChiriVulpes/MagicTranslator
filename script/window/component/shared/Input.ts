@@ -1,5 +1,4 @@
 import Component, { TextGenerator } from "component/Component";
-import Bound from "util/Bound";
 import Translation from "util/string/Translation";
 
 export default class Input extends Component {
@@ -22,21 +21,18 @@ export default class Input extends Component {
 		return this;
 	}
 
-	@Bound
-	public refreshText () {
+	@Override @Bound public refreshText () {
 		this.element<HTMLInputElement>().value = this.textGenerator ? `${this.textGenerator()}` : "";
 		this.attributes.set("placeholder", this.placeholderTextGenerator ? `${this.placeholderTextGenerator()}` : "");
 		this.emit("change");
 		return this;
 	}
 
-	@Bound
-	private onChange () {
+	@Bound private onChange () {
 		this.emit("change");
 	}
 
-	@Bound
-	private onBlur () {
+	@Bound private onBlur () {
 		this.element<HTMLTextAreaElement>().value = this.element<HTMLTextAreaElement>().value.trim();
 	}
 }

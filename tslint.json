@@ -1,6 +1,14 @@
 {
-	"extends": "../tslint.json/tslint.json",
+	"extends": [
+		"tslint:recommended",
+        "tslint-override"
+	],
 	"rules": {
+		"indent": [true, "tabs"],
+		"no-empty": false,
+		"arrow-parens": [true, "ban-single-arg-parens"],
+		"unified-signatures": false,
+		"space-before-function-paren": [true, "always"],
 		"cyclomatic-complexity": [true, 8],
 		"curly": false,
 		"object-literal-sort-keys": false,
@@ -24,17 +32,36 @@
 		"return-undefined": false,
 		"no-use-before-declare": false,
 		"no-unused-expression": false,
+		"member-ordering": [true, {
+			"order": [
+				"public-static-field",
+				"protected-static-field",
+				"private-static-field",
+				"public-static-method",
+				"protected-static-method",
+				"private-static-method",
+				"public-instance-field",
+				"protected-instance-field",
+				"private-instance-field",
+				"constructor",
+				"public-instance-method",
+				"protected-instance-method",
+				"private-instance-method"
+			]
+		}],
+		"array-type": [true, "array"],
+		"no-namespace": false,
+		"no-internal-module": false,
+		"forin": false,
+		"no-consecutive-blank-lines": [true, 2],
+		"no-reference": false,
+		"new-parens": false,
 		
-		"padding-line-between-statements": [
-			true,
-			{
-				"blankLine": "always",
-				"prev": "*",
-				"next": [
-					"else",
-					"elseif"
-				]
-			}
-		]
+        "explicit-override": [
+            true,
+            "decorator",
+            "exclude-interfaces",
+            "pascal-case-fixer"
+        ]
 	}
 }

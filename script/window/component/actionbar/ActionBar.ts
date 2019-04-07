@@ -67,7 +67,7 @@ export class ActionButton extends Component {
 		return this.style.set("--icon", `"${icon}"`);
 	}
 
-	public setText (translation: string | Translation<string> | (() => string | number)) {
+	@Override public setText (translation: string | Translation<string> | (() => string | number)) {
 		this.text = this.text || new Component();
 		this.text.setText(translation).appendTo(this);
 		return this;

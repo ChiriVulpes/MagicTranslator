@@ -8,7 +8,6 @@ import MediaRoots from "data/MediaRoots";
 import Options from "Options";
 import { tuple } from "util/Arrays";
 import { sleep } from "util/Async";
-import Bound from "util/Bound";
 import Translation from "util/string/Translation";
 
 export default class Explorer extends Component {
@@ -42,8 +41,7 @@ export default class Explorer extends Component {
 		await this.showPages(...this.startLocation);
 	}
 
-	@Bound
-	private showRoots () {
+	@Bound private showRoots () {
 		this.actionWrapper.dump();
 		this.explorerWrapper.dump();
 
@@ -57,15 +55,13 @@ export default class Explorer extends Component {
 		Header.setTitle(() => new Translation("title").get());
 	}
 
-	@Bound
-	private addRootButton (root: string) {
+	@Bound private addRootButton (root: string) {
 		new RootButton(root)
 			.listeners.add("click", () => this.showVolumes(root))
 			.appendTo(this.explorerWrapper);
 	}
 
-	@Bound
-	private async addRoot () {
+	@Bound private async addRoot () {
 		const root = await Options.chooseFolder("prompt-root-folder");
 		if (root) {
 			options.rootFolders.push(root);
@@ -186,18 +182,15 @@ export default class Explorer extends Component {
 		Header.setTitle(() => new Translation("title").get({ root: path.basename(root), volume: volumeNumber, chapter: chapterNumber }));
 	}
 
-	@Bound
-	private async export (root: string, volume: number, chapter: number) {
+	@Bound private async export (root: string, volume: number, chapter: number) {
 		await Dialog.export(root, volume, chapter);
 	}
 
-	@Bound
-	private async import (root: string, volume: number, chapter: number) {
+	@Bound private async import (root: string, volume: number, chapter: number) {
 		await Dialog.import(root, volume, chapter);
 	}
 
-	@Bound
-	private keyup (event: KeyboardEvent) {
+	@Bound private keyup (event: KeyboardEvent) {
 		if (event.code === "Escape") this.emit("back");
 	}
 
@@ -228,13 +221,13 @@ class ImageButton extends Component {
 		this.loadPreview();
 	}
 
-	public setText (text: TextGenerator) {
+	@Override public setText (text: TextGenerator) {
 		super.setText(text);
 		this.title.setText(text);
 		return this;
 	}
 
-	public refreshText () {
+	@Override public refreshText () {
 		this.title.refreshText();
 		return this;
 	}
@@ -263,8 +256,7 @@ class RootButton extends ImageButton {
 			.appendTo(this);
 	}
 
-	@Bound
-	private async onSettings (event: Event) {
+	@Bound private async onSettings (event: Event) {
 		event.stopPropagation();
 		await RootSettings.show(this.root);
 		if (!MediaRoots.has(this.root)) this.remove();

@@ -1,6 +1,5 @@
 import Component from "component/Component";
 import { ResolvablePromise } from "util/Async";
-import Bound from "util/Bound";
 import IndexedMap from "util/Map";
 import { Vector } from "util/math/Geometry";
 
@@ -26,6 +25,9 @@ export default class Tooltip extends Component {
 			};
 		}
 
+		if (!Tooltip.registry.size)
+			Component.window.listeners.add("mousemove", Tooltip.onMouseMove);
+
 		const component = handlerOrComponent;
 
 		if (Tooltip.registry.get(component))
@@ -38,12 +40,7 @@ export default class Tooltip extends Component {
 
 		Tooltip.registry.set(component, tooltipRegistration);
 
-		const onDeregister = Tooltip.onDeregister(component);
-		const listenersUntil = component.listeners.until(onDeregister);
-		listenersUntil.add("mouseenter", Tooltip.show(component));
-		listenersUntil.add("mouseleave", Tooltip.hide(component));
-
-		onDeregister.then(() => {
+		Tooltip.onDeregister(component).then(() => {
 			if (!tooltipRegistration.tooltip) return;
 			tooltipRegistration.tooltip.remove();
 		});
@@ -66,65 +63,51 @@ export default class Tooltip extends Component {
 		]);
 	}
 
-	private static show (component: Component) {
-		return (event: MouseEvent) => {
-			const registration = Tooltip.registry.get(component);
-			if (!registration)
-				return console.warn("Tried to show a tooltip for an unregistered component");
+	private static show (component: Component, event: MouseEvent) {
+		const registration = Tooltip.registry.get(component);
+		if (!registration)
+			return console.warn("Tried to show a tooltip for an unregistered component");
 
-			if (!registration.tooltip || registration.tooltip.isRemoved)
-				registration.tooltip = new Tooltip();
+		Tooltip.tooltipContainer.dump();
 
-			registration.tooltip = registration.handler(registration.tooltip);
-			registration.tooltip
-				.setHost(component)
-				.hide(true)
-				.appendTo(Tooltip.tooltipContainer)
-				.schedule(t => {
-					t.onMouseMove(event);
-					t.show();
-				});
-
-			while (Tooltip.tooltipContainer.childCount > 10) {
-				Tooltip.tooltipContainer.child(0)!.remove();
-			}
-		};
+		registration.tooltip = registration.handler(new Tooltip())
+			.hide(true)
+			.appendTo(Tooltip.tooltipContainer)
+			.onMouseMove(event)
+			.schedule(0, tooltip => tooltip.show());
 	}
 
 	private static hide (component: Component) {
-		return () => {
-			const registration = Tooltip.registry.get(component);
-			if (!registration)
-				return console.warn("Tried to hide a tooltip for an unregistered component");
+		const registration = Tooltip.registry.get(component);
+		if (!registration)
+			return console.warn("Tried to hide a tooltip for an unregistered component");
 
-			if (!registration.tooltip || registration.tooltip.isRemoved)
-				return;
+		if (!registration.tooltip || registration.tooltip.isRemoved)
+			return;
 
-			registration.tooltip.hide(true);
-		};
+		// registration.tooltip.hide(true);
+		registration.tooltip.remove();
+		delete registration.tooltip;
 	}
 
-	private host: Component;
+	private static onMouseMove (event: MouseEvent) {
+		for (const [component, registration] of Tooltip.registry.entries()) {
+			const intersects = component.box().intersects(Vector.get(event));
+			if (intersects) {
+				if (!registration.tooltip) Tooltip.show(component, event);
+				else registration.tooltip.onMouseMove(event);
+			} else {
+				if (registration.tooltip) Tooltip.hide(component);
+			}
+		}
+	}
 
-	private constructor() {
+	private constructor () {
 		super();
 		this.classes.add("tooltip");
 	}
 
-	public show () {
-		Component.window.listeners.until(this.listeners.waitFor("hide"))
-			.add("mousemove", this.onMouseMove);
-
-		return super.show();
-	}
-
-	private setHost (component: Component) {
-		this.host = component;
-		return this;
-	}
-
-	@Bound
-	private onMouseMove (event: MouseEvent) {
+	@Bound private onMouseMove (event: MouseEvent) {
 		this.style.set("--x", event.clientX);
 		this.style.set("--y", event.clientY + 18);
 
@@ -132,8 +115,6 @@ export default class Tooltip extends Component {
 		this.style.set("--reverse-x", event.clientX + box.width > window.innerWidth ? 1 : 0);
 		this.style.set("--reverse-y", event.clientY + 18 + box.height > window.innerHeight ? 1 : 0);
 
-		if (!this.host.box().intersects(Vector.get(event))) {
-			Tooltip.hide(this.host)();
-		}
+		return this;
 	}
 }

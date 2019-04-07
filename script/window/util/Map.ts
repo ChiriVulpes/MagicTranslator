@@ -1,5 +1,4 @@
 import { tuple } from "util/Arrays";
-import Bound from "util/Bound";
 import Stream from "util/stream/Stream";
 
 export default class IndexedMap<K, V> extends Map<K, V> {
@@ -26,31 +25,26 @@ export default class IndexedMap<K, V> extends Map<K, V> {
 		}
 	}
 
-	@Bound
-	public get (key: K) {
+	@Override @Bound public get (key: K) {
 		return super.get(key);
 	}
 
-	@Bound
-	public getKey (index: number) {
+	@Bound public getKey (index: number) {
 		return this.indexMap[index];
 	}
 
-	@Bound
-	public getByIndex (index: number) {
+	@Bound public getByIndex (index: number) {
 		return super.get(this.indexMap[index]);
 	}
 
-	@Bound
-	public set (key: K, value: V) {
+	@Override @Bound public set (key: K, value: V) {
 		super.set(key, value);
 		this.indexMap.push(key);
 
 		return this;
 	}
 
-	@Bound
-	public delete (key: K) {
+	@Override @Bound public delete (key: K) {
 		const result = super.delete(key);
 		const index = this.indexMap.indexOf(key);
 		if (index >= 0) this.indexMap.splice(index, 1);
@@ -58,16 +52,14 @@ export default class IndexedMap<K, V> extends Map<K, V> {
 		return result;
 	}
 
-	@Bound
-	public clear () {
+	@Override @Bound public clear () {
 		this.indexMap.splice(0, Infinity);
 	}
 
 	/**
 	 * Sets multiple entries in this map from an iterable of entries
 	 */
-	@Bound
-	public addAll (...entriesIterable: Iterable<[K, V]>[]) {
+	@Bound public addAll (...entriesIterable: Iterable<[K, V]>[]) {
 		Stream.from(entriesIterable)
 			.flatMap()
 			.forEach(([k, v]) => this.set(k, v));
@@ -78,8 +70,7 @@ export default class IndexedMap<K, V> extends Map<K, V> {
 	/**
 	 * Sets multiple entries in this map from an iterable of entries
 	 */
-	@Bound
-	public async addAllAsync (...entriesIterable: (AsyncIterable<[K, V]> | Promise<AsyncIterable<[K, V]>>)[]) {
+	@Bound public async addAllAsync (...entriesIterable: (AsyncIterable<[K, V]> | Promise<AsyncIterable<[K, V]>>)[]) {
 		for (const iterable of entriesIterable) {
 			for await (const [k, v] of await iterable) {
 				this.set(k, v);

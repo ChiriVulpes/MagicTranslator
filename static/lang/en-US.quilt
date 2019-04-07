@@ -50,3 +50,4 @@ example: Example
 main: Main
 directory: Directory
 restore: Restore
+path-input-error: {0} path cannot have separated digits.

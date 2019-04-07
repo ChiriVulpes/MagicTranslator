@@ -10,7 +10,7 @@ export default class Header extends Component {
 
 	private readonly title: Component;
 
-	public constructor() {
+	public constructor () {
 		super();
 
 		this.setId("header");

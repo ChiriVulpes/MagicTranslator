@@ -3,9 +3,9 @@ import Input from "component/shared/Input";
 import Interrupt, { InterruptChoice } from "component/shared/Interrupt";
 import LabelledRow from "component/shared/LabelledRow";
 import Tooltip from "component/shared/Tooltip";
-import MediaRoots from "data/MediaRoots";
-import Bound from "util/Bound";
+import MediaRoots, { RootMetadata } from "data/MediaRoots";
 import { generalRandom } from "util/Random";
+import Stream from "util/stream/Stream";
 import Translation from "util/string/Translation";
 
 export default class RootSettings extends Interrupt {
@@ -20,9 +20,7 @@ export default class RootSettings extends Interrupt {
 		.classes.add("sections")
 		.appendTo(this.content, "beginning");
 
-	private readonly volumePath: Input;
-	private readonly chapterPath: Input;
-	private readonly pagePath: Input;
+	private readonly pathInputs = new Map<keyof RootMetadata["structure"], Input>();
 	private readonly pathExample: Component;
 	private restoreButton?: Component;
 
@@ -52,25 +50,41 @@ export default class RootSettings extends Interrupt {
 				.listeners.add("click", this.onRemove));
 
 		this.addSection("file-structure")
-			.append(new LabelledRow("volume-path")
-				.append(this.volumePath = new Input()
-					.setText(() => mediaRoot.structure && mediaRoot.structure.volume)
-					.listeners.add("change", this.pathExample.refreshText)))
-			.append(new LabelledRow("chapter-path")
-				.append(this.chapterPath = new Input()
-					.setText(() => mediaRoot.structure && mediaRoot.structure.chapter)
-					.listeners.add("change", this.pathExample.refreshText)))
-			.append(new LabelledRow("page-path")
-				.append(this.pagePath = new Input()
-					.setText(() => mediaRoot.structure && mediaRoot.structure.page)
-					.listeners.add("change", this.pathExample.refreshText)))
+			.append(Stream.of<(keyof RootMetadata["structure"])[]>("volume", "chapter", "page")
+				.map(pathType => new LabelledRow(`${pathType}-path`)
+					.append(new Input()
+						.attributes.set("path-type", pathType)
+						.setText(() => mediaRoot.structure && mediaRoot.structure[pathType])
+						.listeners.add("change", this.onPathInputChange)
+						.schedule(input => this.pathInputs.set(pathType, input
+							.schedule(Tooltip.register, tooltip => tooltip
+								.setText(() => input.attributes.get("error")!)))))))
 			.append(new LabelledRow("example")
 				.append(this.pathExample
 					.setText(this.getPathExample)));
 	}
 
-	@Bound
-	private async onRemove () {
+	@Bound @Override protected keyup (event: KeyboardEvent) {
+		if (this.descendants(".error").first()) return;
+		super.keyup(event);
+	}
+
+	@Bound private onPathInputChange (event: Event) {
+		const input = Component.get<Input>(event);
+		const error = /#[^#]+#/.test(input.getText());
+		input.classes.toggle(error, "error");
+		input.attributes.set("error", !error ? "" : new Translation("path-input-error").get(input.attributes.get("path-type")));
+		this.pathExample.refreshText();
+		this.updateDoneButton();
+	}
+
+	private updateDoneButton () {
+		this.descendants("[action='done']")
+			.first()!
+			.classes.toggle(!!this.descendants(".error").first(), "disabled");
+	}
+
+	@Bound private async onRemove () {
 		const confirm = await Interrupt.confirm(interrupt => interrupt
 			.setTitle(() => new Translation("confirm-remove-root").get(path.basename(this.root)))
 			.setDescription("confirm-remove-root-description"));
@@ -88,8 +102,7 @@ export default class RootSettings extends Interrupt {
 			.appendTo(this.descendants(".interrupt-actions").first()!);
 	}
 
-	@Bound
-	private async onRestore () {
+	@Bound private async onRestore () {
 		this.classes.remove("removed");
 		MediaRoots.addRoot(this.root);
 		options.rootFolders.push(this.root);
@@ -103,10 +116,14 @@ export default class RootSettings extends Interrupt {
 			.appendTo(this.sections);
 	}
 
-	@Bound
-	private getPathExample () {
-		return `${path.basename(this.root)}/${this.volumePath.getText()}/${this.chapterPath.getText()}/${this.pagePath.getText()}`
-			.replace(/[^\\]#/g, ([c]) => `${c}${generalRandom.int(10)}`)
-			.replace(/[^\\]#/g, ([c]) => `${c}${generalRandom.int(10)}`);
+	@Bound private getPathExample () {
+		const root = path.basename(this.root);
+		const volume = this.pathInputs.get("volume")!.getText();
+		const chapter = this.pathInputs.get("chapter")!.getText();
+		const page = this.pathInputs.get("page")!.getText();
+		const examplePath = `${root}/${volume}/${chapter}/${page}`;
+		// we need to apply the "#"->number replacement twice, since the # character matches overlap each other
+		return Stream.range(2)
+			.fold(examplePath, current => current.replace(/[^\\]#/g, ([c]) => `${c}${generalRandom.int(10)}`));
 	}
 }

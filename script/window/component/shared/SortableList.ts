@@ -1,7 +1,6 @@
 import Component from "component/Component";
 import { ComponentEvent } from "component/ComponentManipulator";
 import { tuple } from "util/Arrays";
-import Bound from "util/Bound";
 import { Vector } from "util/math/Geometry";
 
 export const enum SortableListEvent {
@@ -24,8 +23,7 @@ export class SortableListItem extends Component {
 		this.listeners.add("click", this.mouseUp);
 	}
 
-	@Bound
-	public mouseMove (event = this.lastMoveEvent) {
+	@Bound public mouseMove (event = this.lastMoveEvent) {
 		this.lastMoveEvent = event;
 		this.dragEnd = Vector.get(event!);
 
@@ -45,8 +43,7 @@ export class SortableListItem extends Component {
 		return y;
 	}
 
-	@Bound
-	private mouseDown (event: MouseEvent) {
+	@Bound private mouseDown (event: MouseEvent) {
 		if (Component.get(event) !== this) return;
 		if (this.parent && !(this.parent instanceof SortableList)) return;
 
@@ -63,8 +60,7 @@ export class SortableListItem extends Component {
 		Component.window.listeners.add<MouseEvent>("mouseup", this.mouseUp);
 	}
 
-	@Bound
-	private mouseUp (event: MouseEvent) {
+	@Bound private mouseUp (event: MouseEvent) {
 		Component.window.listeners.remove<MouseEvent>("mousemove", this.mouseMove);
 		Component.window.listeners.remove<MouseEvent>("mouseup", this.mouseUp);
 
@@ -96,8 +92,7 @@ export default class SortableList<I extends SortableListItem = SortableListItem>
 		this.listeners.add("append-child", this.onAppendChild);
 	}
 
-	@Bound
-	private onAppendChild (event: ComponentEvent<Component>) {
+	@Bound private onAppendChild (event: ComponentEvent<Component>) {
 		const component = event.data;
 		if (!(component instanceof SortableListItem)) {
 			console.error("A sortable list may only have children that are 'SortableListItem's. Attempted to append:", component);
@@ -108,8 +103,7 @@ export default class SortableList<I extends SortableListItem = SortableListItem>
 			.listeners.add(SortableListEvent.SortComplete, this.completeMove);
 	}
 
-	@Bound
-	private updateMove ({ data: [sortingComponent, y] }: ComponentEvent<[SortableListItem, number]>) {
+	@Bound private updateMove ({ data: [sortingComponent, y] }: ComponentEvent<[SortableListItem, number]>) {
 		this._isSorting = true;
 		this.style.set("--sorting-item-height", `${sortingComponent.box().height}px`);
 		y += sortingComponent.box().height / 2;
@@ -156,8 +150,7 @@ export default class SortableList<I extends SortableListItem = SortableListItem>
 		this.scrollAnimation = requestAnimationFrame(() => this.updateScroll());
 	}
 
-	@Bound
-	private completeMove ({ data: [sortingComponent, y] }: ComponentEvent<[SortableListItem, number]>) {
+	@Bound private completeMove ({ data: [sortingComponent, y] }: ComponentEvent<[SortableListItem, number]>) {
 		y += sortingComponent.box().height / 2;
 
 		let totalY = 0;

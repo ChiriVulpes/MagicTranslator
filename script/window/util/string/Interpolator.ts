@@ -19,8 +19,44 @@ export interface StringSection {
 }
 
 class Interpolator {
-	private readonly _segments: Segment[];
 	public get segments () { return [...this._segments]; }
+
+	public static combineLikeSections (sections: StringSection[], ignoreKeys: string[] = []) {
+		if (sections.length < 2) {
+			return;
+		}
+
+		Sections: for (let i = 1; i < sections.length; i++) {
+			const current = sections[i];
+			const last = sections[i - 1];
+
+			for (const key in last) {
+				if (key === "content" || ignoreKeys.includes(key)) {
+					continue;
+				}
+
+				if (!(key in current)) {
+					continue Sections;
+				}
+			}
+
+			for (const key in current) {
+				if (key === "content" || ignoreKeys.includes(key)) {
+					continue;
+				}
+
+				if (!(key in last) || current[key as keyof typeof current] !== last[key as keyof typeof last]) {
+					continue Sections;
+				}
+			}
+
+			// remove `current`, put its content into `last`
+			last.content += current.content;
+			sections.splice(i, 1);
+			i--;
+		}
+	}
+	private readonly _segments: Segment[];
 
 	public constructor (...segments: Segment[]) {
 		this._segments = segments.map(segment => ({ ...segment }));
@@ -157,42 +193,6 @@ class Interpolator {
 		}
 
 		return matchingSegments;
-	}
-
-	public static combineLikeSections (sections: StringSection[], ignoreKeys: string[] = []) {
-		if (sections.length < 2) {
-			return;
-		}
-
-		Sections: for (let i = 1; i < sections.length; i++) {
-			const current = sections[i];
-			const last = sections[i - 1];
-
-			for (const key in last) {
-				if (key === "content" || ignoreKeys.includes(key)) {
-					continue;
-				}
-
-				if (!(key in current)) {
-					continue Sections;
-				}
-			}
-
-			for (const key in current) {
-				if (key === "content" || ignoreKeys.includes(key)) {
-					continue;
-				}
-
-				if (!(key in last) || current[key as keyof typeof current] !== last[key as keyof typeof last]) {
-					continue Sections;
-				}
-			}
-
-			// remove `current`, put its content into `last`
-			last.content += current.content;
-			sections.splice(i, 1);
-			i--;
-		}
 	}
 }
 

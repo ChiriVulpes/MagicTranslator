@@ -1,4 +1,3 @@
-import Bound from "util/Bound";
 
 export interface RandomGenerator {
 	get (): number;
@@ -86,8 +85,7 @@ export class Random<G extends RandomGenerator = RandomGenerator> {
 	/**
 	 * Returns a random T from the given choices, where each choice is weighted by a number. Higher numbers = higher chance.
 	 */
-	@Bound
-	public weightedChoice<T> (choices: Array<[number, T]>): T {
+	@Bound public weightedChoice<T> (choices: [number, T][]): T {
 		const total = choices.reduce((totalWeight, [weight]) => totalWeight + weight, 0);
 		const choice = this.float(total);
 

@@ -104,12 +104,12 @@ export default class ContextMenu extends Component {
 
 	private host: Component;
 
-	private constructor() {
+	private constructor () {
 		super();
 		this.classes.add("context-menu");
 	}
 
-	public show () {
+	@Override public show () {
 		const listenUntil = Component.window.listeners.until(this.listeners.waitFor("hide"));
 		listenUntil.add("mousedown", ContextMenu.hide(this.host));
 		listenUntil.add("keydown", ContextMenu.hide(this.host));
