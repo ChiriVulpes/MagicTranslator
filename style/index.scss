@@ -12,6 +12,8 @@
 	src: url("../font/ipaexm.ttf");
 }
 
+@import "font/open-sans";
+
 
 ////////////////////////////////////
 // Vars
@@ -45,7 +47,7 @@
 	
 	--filter-logo-background: grayscale(100%) brightness(110%);
 	
-	--font: "Segoe UI";
+	--font: "Segoe UI1", "Open Sans";
 	--font-ja: "IPAexGothic";
 	
 	background-color: var(--color-background);
@@ -92,12 +94,15 @@
 body {
 	margin: 0;
 	display: grid !important;
-	grid-template-rows: auto 1fr;
+	grid-template-rows: 1fr;
 	overflow: hidden;
 	width: 100%;
 	height: 100%;
 	user-select: none;
 	cursor: default;
+	.custom-title-bar > & {
+		grid-template-rows: auto 1fr;
+	}
 }
 
 * {
@@ -195,6 +200,7 @@ textarea, input {
 
 @import "component/action-button";
 @import "component/dropdown";
+@import "component/check-button";
 @import "component/tooltips";
 @import "component/sortable-list";
 @import "component/interrupt";

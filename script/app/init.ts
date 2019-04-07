@@ -3,6 +3,9 @@ import { app, BrowserWindow, ipcMain, screen, WebContents } from "electron";
 // tslint:disable-next-line
 const Store = require("electron-store") as StoreModule;
 
+const store = new Store<MagicalData>();
+let mainWindow: BrowserWindow;
+
 
 function on (windowEvent: WindowEvent, listener: (event: IpcEvent, ...args: any[]) => any) {
 	ipcMain.on(windowEvent, (event: IpcEvent, ...args: any[]) => {
@@ -13,25 +16,20 @@ function on (windowEvent: WindowEvent, listener: (event: IpcEvent, ...args: any[
 	});
 }
 
-let mainWindow: BrowserWindow;
 function send (windowEvent: WindowEvent) {
 	mainWindow.webContents.send(windowEvent);
 }
 
-async function init () {
-	await new Promise(resolve => app.on("ready", resolve));
-
-
-	const store = new Store<MagicalData>();
+function createWindow () {
 
 	const width = store.get("window.width", 800);
 	const height = store.get("window.height", 600);
 	const screenOffset = store.get("window.screenOffset", 0);
 	const display = screen.getDisplayNearestPoint({ x: screenOffset, y: 0 }).workArea;
 
-	const win = mainWindow = new BrowserWindow({
+	mainWindow = new BrowserWindow({
 		show: false,
-		frame: false,
+		frame: !store.get("options.customTitleBar", process.platform === "win32"),
 		minWidth: 1000,
 		minHeight: 600,
 		width,
@@ -43,30 +41,20 @@ async function init () {
 		},
 	});
 
-	win.webContents.setIgnoreMenuShortcuts(true);
+	mainWindow.webContents.setIgnoreMenuShortcuts(true);
+	mainWindow.setMenu(null);
 
 	// win.webContents.on("before-input-event", event => event.preventDefault());
 
 	if (store.get("window.maximized")) {
-		win.maximize();
+		mainWindow.maximize();
 	}
 
 	if (store.get("window.devtools")) {
-		win.webContents.openDevTools();
+		mainWindow.webContents.openDevTools();
 	}
 
-
-	on("window-is-maximized", () => win.isMaximized());
-	on("window-is-fullscreen", () => win.isFullScreen());
-	on("window-toggle-fullscreen", () => win.setFullScreen(!win.isFullScreen()));
-	on("window-close", () => win.close());
-	on("window-maximize", () => win.maximize());
-	on("window-minimize", () => win.minimize());
-	on("window-restore", () => win.unmaximize());
-	on("window-toggle-devtools", () => win.webContents.toggleDevTools());
-	on("get-locale", () => app.getLocale());
-
-	win.on("app-command", (e, command) => {
+	mainWindow.on("app-command", (e, command) => {
 		if (command === "browser-backward") send("window-back");
 		else if (command === "browser-forward") send("window-forward");
 	});
@@ -77,29 +65,29 @@ async function init () {
 		if (storeTimeout) clearTimeout(storeTimeout);
 
 		storeTimeout = setTimeout(() => {
-			if (!win.isMaximized() && !win.isFullScreen()) {
-				store.set("window.width", win.getBounds().width);
-				store.set("window.height", win.getBounds().height);
+			if (!mainWindow.isMaximized() && !mainWindow.isFullScreen()) {
+				store.set("window.width", mainWindow.getBounds().width);
+				store.set("window.height", mainWindow.getBounds().height);
 			}
 
 			// add 100 to make sure it opens on the secondary monitor if that's where it was open last (we don't restore the exact screen position anyway)
-			store.set("window.screenOffset", win.getBounds().x + 100);
-			store.set("window.maximized", win.isMaximized());
+			store.set("window.screenOffset", mainWindow.getBounds().x + 100);
+			store.set("window.maximized", mainWindow.isMaximized());
 		}, 100);
 	}
 
-	win.on("move", storeWindowPosition);
-	win.on("resize", storeWindowPosition);
+	mainWindow.on("move", storeWindowPosition);
+	mainWindow.on("resize", storeWindowPosition);
 
-	win.webContents.on("devtools-opened", () => store.set("window.devtools", true));
-	win.webContents.on("devtools-closed", () => store.set("window.devtools", false));
+	mainWindow.webContents.on("devtools-opened", () => store.set("window.devtools", true));
+	mainWindow.webContents.on("devtools-closed", () => store.set("window.devtools", false));
 
 
 	////////////////////////////////////
 	// Load the page!
 	//
 
-	win.loadURL("data:text/html;charset=UTF-8," + encodeURIComponent(`
+	mainWindow.loadURL("data:text/html;charset=UTF-8," + encodeURIComponent(`
 		<link rel="stylesheet" href="style/index.css">
 		<script>
 			const { webFrame } = require("electron");
@@ -121,7 +109,28 @@ async function init () {
 		</script>
 	`), { baseURLForDataURL: `file://${__dirname}/out`, extraHeaders: "pragma: no-cache\n" });
 
-	win.on("ready-to-show", () => win.show());
+	mainWindow.on("ready-to-show", () => mainWindow.show());
+}
+
+async function init () {
+	await new Promise(resolve => app.on("ready", resolve));
+
+	createWindow();
+
+	on("window-is-maximized", () => mainWindow.isMaximized());
+	on("window-is-fullscreen", () => mainWindow.isFullScreen());
+	on("window-toggle-fullscreen", () => mainWindow.setFullScreen(!mainWindow.isFullScreen()));
+	on("window-close", () => mainWindow.close());
+	on("window-maximize", () => mainWindow.maximize());
+	on("window-minimize", () => mainWindow.minimize());
+	on("window-restore", () => mainWindow.unmaximize());
+	on("window-toggle-devtools", () => mainWindow.webContents.toggleDevTools());
+	on("get-locale", () => app.getLocale());
+	on("window-restart", async () => {
+		const oldWindow = mainWindow;
+		createWindow();
+		oldWindow.close();
+	});
 }
 
 init();

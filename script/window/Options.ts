@@ -75,10 +75,8 @@ export default class Options {
 			},
 			set (target, property, value) {
 				const key = property as keyof Options;
-				if (!(key in target) || value !== target[key]) {
-					store.set(`options.${key}` as any, value);
-					target[key] = value;
-				}
+				store.set(`options.${key}` as any, value);
+				target[key] = value;
 
 				return true;
 			},
@@ -187,6 +185,7 @@ export default class Options {
 	// Actual Options
 	//
 
+	public customTitleBar = process.platform === "win32";
 	public rootFolders: string[] = [];
 	public capture2TextCLIPath: string = "";
 	public imageMagickCLIPath: string = "";

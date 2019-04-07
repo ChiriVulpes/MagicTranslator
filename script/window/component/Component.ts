@@ -9,6 +9,13 @@ import Translation from "util/string/Translation";
  * If a function, not used as a key.
  */
 export type TextGenerator = string | Translation<string> | (() => string | number);
+export module TextGenerator {
+	export function resolve (textGenerator: TextGenerator) {
+		if (textGenerator instanceof Translation) textGenerator = textGenerator.get;
+		const text = typeof textGenerator === "function" ? textGenerator() : "";
+		return text === null || text === undefined ? "" : `${text}`;
+	}
+}
 
 export default class Component {
 	public static window = {
@@ -21,9 +28,8 @@ export default class Component {
 		},
 	};
 
-	public static get body () {
-		return Component.get("body");
-	}
+	public static get document () { return Component.get("html"); }
+	public static get body () { return Component.get("body"); }
 
 	private static map = new Map<Element, Component>();
 

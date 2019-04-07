@@ -67,3 +67,6 @@ no-capture2text-prompt: Would you like to select\nthe path to Capture2Text?
 no-capture2text-prompt-description: A capture cannot be created\nwithout Capture2Text being installed.
 prompt-imagemagick-for-viewing-psd: There is no translated version of this page.
 prompt-imagemagick-for-viewing-psd-description: However, there's a save for this page.\nIf you install ImageMagick, this application will automatically\ncreate the translated version of this page upon viewing.\n\nWould you like to select the install path for ImageMagick?
+custom-title-bar: Custom Title Bar
+requires-restart: Changing this option requires a restart.
+requires-restart-description: Would you like to restart?

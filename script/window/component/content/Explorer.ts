@@ -106,7 +106,7 @@ export default class Explorer extends Component {
 				.appendTo(this.explorerWrapper);
 		}
 
-		Header.setTitle(() => new Translation("title").get({ root: path.basename(root) }));
+		Header.setTitle(() => new Translation("title").get({ root: mediaRoot.name }));
 	}
 
 	private showChapters (root: string, volume: number) {
@@ -115,7 +115,7 @@ export default class Explorer extends Component {
 
 		this.addBackButton(() => this.showVolumes(root));
 
-		const volumes = MediaRoots.get(root)!.volumes;
+		const mediaRoot = MediaRoots.get(root)!;
 
 		new Component("button")
 			.setDisabled(volume === 0)
@@ -124,27 +124,28 @@ export default class Explorer extends Component {
 			.appendTo(this.actionWrapper);
 
 		new Component("button")
-			.setDisabled(volume === volumes.size - 1)
+			.setDisabled(volume === mediaRoot.volumes.size - 1)
 			.setText("next-volume")
 			.listeners.add("click", () => this.showChapters(root, volume + 1))
 			.appendTo(this.actionWrapper);
 
-		const [volumePath] = volumes.getPaths(volume);
-		const [volumeNumber] = volumes.getNumbers(volume);
-		const chapters = volumes.getByIndex(volume)!;
+		const [volumeNumber] = mediaRoot.volumes.getNumbers(volume);
+		const chapters = mediaRoot.volumes.getByIndex(volume)!;
 
-		for (const [index, chapter, pages] of chapters.indexedEntries()) {
-			const firstPage = pages[0];
+		for (const [index] of chapters.indexedEntries()) {
 
-			const [, chapterNumber] = volumes.getNumbers(volume, index);
+			const [, chapterNumber] = mediaRoot.volumes.getNumbers(volume, index);
 
-			new ImageButton(`${root}/${volumePath}/${chapter}/raw/${firstPage}`)
+			new ImageButton(mediaRoot.getPath("raw", volume, index, 0))
 				.setText(() => new Translation("chapter").get(chapterNumber))
 				.listeners.add("click", () => this.showPages(root, volume, index))
 				.appendTo(this.explorerWrapper);
 		}
 
-		Header.setTitle(() => new Translation("title").get({ root: path.basename(root), volume: volumeNumber }));
+		Header.setTitle(() => new Translation("title").get({
+			root: mediaRoot.name,
+			volume: `${volumeNumber}`,
+		}));
 	}
 
 	private async showPages (root: string, volume: number, chapter: number) {
@@ -197,7 +198,11 @@ export default class Explorer extends Component {
 				.appendTo(this.explorerWrapper);
 		}
 
-		Header.setTitle(() => new Translation("title").get({ root: path.basename(root), volume: volumeNumber, chapter: chapterNumber }));
+		Header.setTitle(() => new Translation("title").get({
+			root: path.basename(root),
+			volume: `${volumeNumber}`,
+			chapter: `${chapterNumber}`,
+		}));
 	}
 
 	@Bound private async export (root: string, volume: number, chapter: number) {
@@ -251,7 +256,7 @@ class ImageButton extends Component {
 	}
 
 	private async loadPreview () {
-		this.style.set("--preview", `url("${this.imagePath}")`);
+		this.style.set("--preview", `url("${this.imagePath.replace(/\\/g, "/")}")`);
 	}
 }
 

@@ -80,7 +80,11 @@ Language.initialize();
 //
 
 import Options from "Options";
-Options.initialize(req);
+Options.initialize(req)
+	.then(() => {
+		Component.document.classes.toggle(options.customTitleBar, "custom-title-bar");
+		Component.document.attributes.set("platform", process.platform);
+	});
 
 delete (window as any).nodeRequire;
 

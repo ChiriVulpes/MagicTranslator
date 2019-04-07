@@ -1,4 +1,8 @@
 #header {
+	:root:not(.custom-title-bar) & {
+		display: none;
+	}
+	
 	z-index: 99999999999999;
 	
 	--header: 29px;

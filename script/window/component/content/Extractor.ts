@@ -91,10 +91,10 @@ export default class Extractor extends Component {
 			.appendTo(this);
 
 		Header.setTitle(() => new Translation("title").get({
-			root: path.basename(this.root),
-			volume: volumeNumber,
-			chapter: chapterNumber,
-			page: pageNumber,
+			root: mediaRoot.name,
+			volume: `${volumeNumber}`,
+			chapter: `${chapterNumber}`,
+			page: `${pageNumber}`,
 		}));
 	}
 

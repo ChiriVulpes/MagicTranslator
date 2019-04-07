@@ -10,6 +10,7 @@ type WindowEvent =
 	"window-forward" |
 	"window-get-position" |
 	"window-toggle-devtools" |
+	"window-restart" |
 	"get-locale";
 
 interface IpcEvent {
@@ -20,6 +21,7 @@ interface IpcEvent {
 }
 
 interface MagicalData {
+	"options.customTitleBar": boolean;
 	"window.width": number;
 	"window.height": number;
 	"window.maximized": boolean;
