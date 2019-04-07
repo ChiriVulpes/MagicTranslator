@@ -6,10 +6,6 @@
 		--header: 23px;
 	}
 	
-	:root.is-fullscreen & {
-		display: none;
-	}
-	
 	--padding: 0px;
 	height: var(--header);
 	-webkit-app-region: drag;

@@ -74,5 +74,8 @@
 		&[action="maximize"] {
 			--icon: "\E739";
 		}
+		&[action="toggle-fullscreen"] {
+			--icon: "\E1D8";
+		}
 	}
 }

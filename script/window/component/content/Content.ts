@@ -66,6 +66,7 @@ export default class Content extends Component {
 
 	@Bound private keyup (event: KeyboardEvent) {
 		if (event.code === "F12") window.send("window-toggle-devtools");
+		if (event.code === "F11") window.send("window-toggle-fullscreen");
 	}
 
 }

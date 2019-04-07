@@ -1,6 +1,7 @@
 type WindowEvent =
 	"window-is-maximized" |
 	"window-is-fullscreen" |
+	"window-toggle-fullscreen" |
 	"window-minimize" |
 	"window-maximize" |
 	"window-restore" |

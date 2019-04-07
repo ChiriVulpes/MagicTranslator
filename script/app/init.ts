@@ -24,7 +24,8 @@ async function init () {
 
 	const store = new Store<MagicalData>();
 
-	const width = store.get("window.width", 800), height = store.get("window.height", 600);
+	const width = store.get("window.width", 800);
+	const height = store.get("window.height", 600);
 	const screenOffset = store.get("window.screenOffset", 0);
 	const display = screen.getDisplayNearestPoint({ x: screenOffset, y: 0 }).workArea;
 
@@ -57,6 +58,7 @@ async function init () {
 
 	on("window-is-maximized", () => win.isMaximized());
 	on("window-is-fullscreen", () => win.isFullScreen());
+	on("window-toggle-fullscreen", () => win.setFullScreen(!win.isFullScreen()));
 	on("window-close", () => win.close());
 	on("window-maximize", () => win.maximize());
 	on("window-minimize", () => win.minimize());

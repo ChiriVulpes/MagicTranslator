@@ -33,10 +33,11 @@ export default class WindowControls extends Component {
 		window.send("window-minimize");
 	}
 
-	@Bound private maximize () {
+	@Bound private async maximize () {
 		const action = this.maximizeButton.attributes.get("action");
-		window.send(`window-${action}` as WindowEvent);
-		this.maximizeButton.attributes.set("action", action === "maximize" ? "restore" : "maximize");
+		await window.send(`window-${action}` as WindowEvent);
+		const maximized = await window.send<boolean>("window-is-maximized");
+		this.maximizeButton.attributes.set("action", maximized ? "restore" : "maximize");
 	}
 
 	@Bound private close () {
@@ -46,7 +47,7 @@ export default class WindowControls extends Component {
 	@Bound private async onResize () {
 		const maximized = await window.send<boolean>("window-is-maximized");
 		const fullscreen = await window.send<boolean>("window-is-fullscreen");
-		this.maximizeButton.attributes.set("action", maximized ? "restore" : "maximize");
+		this.maximizeButton.attributes.set("action", maximized ? "restore" : fullscreen ? "toggle-fullscreen" : "maximize");
 		Component.get(document.documentElement!).classes.toggle(maximized, "is-maximized");
 		Component.get(document.documentElement!).classes.toggle(fullscreen, "is-fullscreen");
 	}
