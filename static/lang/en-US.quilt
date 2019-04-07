@@ -18,8 +18,8 @@ cancel: Cancel
 choose: Choose
 name: Name
 character-new: Add New Character
-prompt-capture2text-cli: Choose Capture2Text Folder (Folder Containing Capture2Text_CLI.exe)
-prompt-imagemagick-cli: Choose ImageMagick Folder (Folder Containing magick.exe)
+prompt-capture2text-cli: Choose Capture2Text Folder
+prompt-imagemagick-cli: Choose ImageMagick Folder
 prompt-root-folder: Choose Root Folder (Folder Containing vol##/ch### folders)
 prompt-character-headshot: Choose the Headshot Image for {0?{0}:the Character} (Prefer Square Images)
 display-mode: Display Mode: {0}

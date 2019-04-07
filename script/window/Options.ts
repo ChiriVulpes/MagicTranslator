@@ -9,6 +9,22 @@ interface StoredData extends MagicalData {
 	options: Partial<Options>;
 }
 
+type PlatformCLIPaths = { [key in NodeJS.Platform]?: string[] };
+
+const capture2TextCLIPaths: PlatformCLIPaths = {
+	win32: ["Capture2Text_CLI.exe"],
+};
+
+const imageMagickCLIPaths: PlatformCLIPaths = {
+	win32: ["magick.exe", "convert.exe"],
+	linux: ["magick", "convert"],
+	darwin: ["magick", "convert"],
+	aix: ["magick", "convert"],
+	freebsd: ["magick", "convert"],
+	openbsd: ["magick", "convert"],
+	sunos: ["magick", "convert"],
+};
+
 export default class Options {
 
 	private static readonly INSTANCE = new Options();
@@ -98,6 +114,8 @@ export default class Options {
 	public static async chooseFile (title: string, validator?: (result: string) => boolean | Promise<boolean>, retryOnCancel = false, ...args: any[]) {
 		let file: string | undefined;
 		while (true) {
+			file = undefined;
+
 			const result = await new Promise<string[] | undefined>(resolve => Dialog.showOpenDialog({
 				properties: ["openFile"],
 				title: new Translation(title).get(...args),
@@ -121,6 +139,8 @@ export default class Options {
 	public static async chooseFolder (title: string, validator?: (result: string) => boolean | Promise<boolean>, retryOnCancel = false) {
 		let folder: string | undefined;
 		while (true) {
+			folder = undefined;
+
 			const result = await new Promise<string[] | undefined>(resolve => Dialog.showOpenDialog({
 				properties: ["openDirectory"],
 				title: new Translation(title).get(),
@@ -139,13 +159,28 @@ export default class Options {
 	}
 
 	public static async chooseCapture2TextCLIPath () {
-		const folder = await this.chooseFolder("prompt-capture2text-cli", result => FileSystem.exists(`${result}/Capture2Text_CLI.exe`));
-		if (folder) options.capture2TextCLIPath = `${folder}/Capture2Text_CLI.exe`;
+		const path = await this.chooseCLIFolder("prompt-capture2text-cli", ...capture2TextCLIPaths[process.platform] || []);
+		if (path) options.imageMagickCLIPath = path;
 	}
 
 	public static async chooseImageMagickCLIPath () {
-		const folder = await this.chooseFolder("prompt-imagemagick-cli", result => FileSystem.exists(`${result}/magick.exe`));
-		if (folder) options.imageMagickCLIPath = `${folder}/magick.exe`;
+		const path = await this.chooseCLIFolder("prompt-imagemagick-cli", ...imageMagickCLIPaths[process.platform] || []);
+		if (path) options.imageMagickCLIPath = path;
+	}
+
+	private static async chooseCLIFolder (prompt: string, ...filenames: string[]) {
+		let file!: string;
+		const folder = await this.chooseFolder(prompt, async result => {
+			for (const filename of filenames) {
+				if (await FileSystem.exists(`${result}/${filename}`)) {
+					file = filename;
+					return true;
+				}
+			}
+			return false;
+		}, false);
+
+		return folder && `${folder}/${file}`;
 	}
 
 	////////////////////////////////////
