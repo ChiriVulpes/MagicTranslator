@@ -2,26 +2,26 @@
 	"name": "magic-translator-builder",
 	"description": "Builder for magic translator",
 	"devDependencies": {
-		"electron": "4.1.4",
-		"gulp": "^4.0.0",
-		"gulp-sass": "4.0.2",
-		"gulp-run-electron": "3.0.2",
-		"typescript": "3.4.2",
-		"typescript-tslint-plugin": "0.3.1",
-		"tslint": "5.15.0",
-		"chalk": "2.4.2",
-		"ts-node": "8.0.3",
-		"del": "4.1.0",
-		"tslint-override": "0.5.0",
-		"mz": "2.7.0",
-		"chokidar": "2.1.5",
-		"@types/mz": "0.0.32",
 		"@types/del": "4.0.0",
 		"@types/gulp": "4.0.6",
 		"@types/gulp-sass": "0.0.31",
-		"@types/node": "11.13.0"
+		"@types/mz": "0.0.32",
+		"@types/node": "11.13.0",
+		"chalk": "2.4.2",
+		"cross-var": "1.1.0",
+		"del": "4.1.0",
+		"electron": "4.1.4",
+		"gulp": "^4.0.0",
+		"gulp-run-electron": "3.0.2",
+		"gulp-sass": "4.0.2",
+		"mz": "2.7.0",
+		"ts-node": "8.0.3",
+		"tslint": "5.15.0",
+		"tslint-override": "0.5.0",
+		"typescript": "^3.4.2",
+		"typescript-tslint-plugin": "0.3.1"
 	},
 	"scripts": {
-		"install": "cd script/window & npm install typescript@%npm_package_devDependencies_typescript% --save-dev"
+		"install": "cd script/window & cross-var npm install typescript@$npm_package_devDependencies_typescript --save-dev"
 	}
 }
