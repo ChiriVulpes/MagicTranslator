@@ -232,7 +232,7 @@
 		}
 	}
 	
-	.textarea:not(:focus-within) + .textarea:not(:focus-within) ~ :not(:focus-within) > &.empty {
+	.capture:not(:focus-within) &.empty {
 		opacity: 0;
 		pointer-events: none;
 		height: 0;
@@ -242,7 +242,7 @@
 		pointer-events: all;
 	}
 	
-	.textarea:not(:focus-within) + .textarea:not(:focus-within) ~ :not(:focus-within) > &.empty > * {
+	.capture:not(:focus-within) &.empty > * {
 		pointer-events: none;
 	}
 	
