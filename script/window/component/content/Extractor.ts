@@ -84,7 +84,12 @@ export default class Extractor extends Component {
 					.classes.add("extraction-captures")))
 			.appendTo(this);
 
-		Header.setTitle(() => new Translation("title").get({ volume: volumeNumber, chapter: chapterNumber, page: pageNumber }));
+		Header.setTitle(() => new Translation("title").get({
+			root: path.basename(this.root),
+			volume: volumeNumber,
+			chapter: chapterNumber,
+			page: pageNumber,
+		}));
 	}
 
 	public async addCapture (capture: CaptureData) {
