@@ -32,6 +32,7 @@ export interface RootMetadata {
 		raw: string;
 		translated: string;
 		capture: string;
+		save: string;
 	};
 }
 
@@ -74,17 +75,18 @@ class MediaRoot {
 			raw: "{volume}/{chapter}/raws/{page}.png",
 			translated: "{volume}/{chapter}/translated/{page}.png",
 			capture: "{volume}/{chapter}/capture/{page}",
+			save: "{volume}/{chapter}/save/{page}",
 		},
 	) { }
 
-	public getPath (pathType: "raw" | "translated" | "capture", volume: number, chapter: number, page: number) {
+	public getPath (pathType: "raw" | "translated" | "capture" | "save", volume: number, chapter: number, page: number) {
 		[volume, chapter, page] = this.volumes.getNumbers(volume, chapter, page);
 		return path.join(this.root, interpolate(this._structure[pathType], Stream.entries({ volume, chapter, page })
 			.map(([name, value]) => tuple(name, this.getSegment(name, value)))
 			.toObject()));
 	}
 
-	private async load () {
+	public async load () {
 		this.volumes = await this.getVolumes();
 		return this;
 	}

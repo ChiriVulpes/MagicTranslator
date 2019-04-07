@@ -1,5 +1,6 @@
 import Component, { TextGenerator } from "component/Component";
 import CharacterEditor from "component/content/character/CharacterEditor";
+import GlobalSettings from "component/content/GlobalSettings";
 import RootSettings from "component/content/RootSettings";
 import Header from "component/header/Header";
 import Tooltip from "component/shared/Tooltip";
@@ -52,12 +53,23 @@ export default class Explorer extends Component {
 			.listeners.add("click", this.addRoot)
 			.appendTo(this.actionWrapper);
 
+		new Component("button")
+			.classes.add("float-right")
+			.setText("settings")
+			.listeners.add("click", this.onSettings)
+			.appendTo(this.actionWrapper);
+
 		Header.setTitle(() => new Translation("title").get());
+	}
+
+	@Bound private onSettings () {
+		new GlobalSettings();
 	}
 
 	@Bound private addRootButton (root: string) {
 		new RootButton(root)
 			.listeners.add("click", () => this.showVolumes(root))
+			.listeners.add("refresh-roots", this.showRoots)
 			.appendTo(this.explorerWrapper);
 	}
 
@@ -78,7 +90,13 @@ export default class Explorer extends Component {
 
 		this.addBackButton(this.showRoots);
 
-		for (const [volumeIndex, volume, chapters] of MediaRoots.get(root)!.volumes.indexedEntries()) {
+		const mediaRoot = MediaRoots.get(root)!;
+
+		// Dropdown.from(mediaRoot.users)
+		// 	.classes.add("float-right")
+		// 	.appendTo(this.actionWrapper);
+
+		for (const [volumeIndex, volume, chapters] of mediaRoot.volumes.indexedEntries()) {
 			const [firstChapterName, firstChapterPages] = chapters.entryStream().first()!;
 			const firstPage = firstChapterPages[0];
 
@@ -100,13 +118,13 @@ export default class Explorer extends Component {
 		const volumes = MediaRoots.get(root)!.volumes;
 
 		new Component("button")
-			.classes.toggle(volume === 0, "disabled")
+			.setDisabled(volume === 0)
 			.setText("prev-volume")
 			.listeners.add("click", () => this.showChapters(root, volume - 1))
 			.appendTo(this.actionWrapper);
 
 		new Component("button")
-			.classes.toggle(volume === volumes.size - 1, "disabled")
+			.setDisabled(volume === volumes.size - 1)
 			.setText("next-volume")
 			.listeners.add("click", () => this.showChapters(root, volume + 1))
 			.appendTo(this.actionWrapper);
@@ -139,13 +157,13 @@ export default class Explorer extends Component {
 		const chapters = volumes.getByIndex(volume)!;
 
 		new Component("button")
-			.classes.toggle(chapter === 0, "disabled")
+			.setDisabled(chapter === 0)
 			.setText("prev-chapter")
 			.listeners.add("click", () => this.showPages(root, volume, chapter - 1))
 			.appendTo(this.actionWrapper);
 
 		new Component("button")
-			.classes.toggle(chapter === chapters.size - 1, "disabled")
+			.setDisabled(chapter === chapters.size - 1)
 			.setText("next-chapter")
 			.listeners.add("click", () => this.showPages(root, volume, chapter + 1))
 			.appendTo(this.actionWrapper);
@@ -258,7 +276,15 @@ class RootButton extends ImageButton {
 
 	@Bound private async onSettings (event: Event) {
 		event.stopPropagation();
-		await RootSettings.show(this.root);
+
+		const rootSettings = new RootSettings(this.root);
+		await rootSettings.listeners.waitFor("remove");
+
+		if (rootSettings.wasFileStructureChanged()) {
+			await MediaRoots.get(this.root)!.load();
+			this.emit("refresh-roots");
+		}
+
 		if (!MediaRoots.has(this.root)) this.remove();
 		else this.refreshText();
 	}

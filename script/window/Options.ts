@@ -84,7 +84,8 @@ export default class Options {
 
 	public static async onInitialize () {
 		await Language.waitForLanguage();
-		if (!options.capture2TextCLIPath) options.capture2TextCLIPath = await Options.chooseCapture2TextCLIPath();
+		if (!await FileSystem.exists(options.capture2TextCLIPath)) options.capture2TextCLIPath = "";
+		if (!await FileSystem.exists(options.imageMagickCLIPath)) options.imageMagickCLIPath = "";
 	}
 
 	public static async waitForOptions () {
@@ -137,9 +138,14 @@ export default class Options {
 		return folder;
 	}
 
-	private static async chooseCapture2TextCLIPath () {
-		const folder = await this.chooseFolder("prompt-cap-2-text-cli", result => FileSystem.exists(`${result}/Capture2Text_CLI.exe`), true);
-		return `${folder}/Capture2Text_CLI.exe`;
+	public static async chooseCapture2TextCLIPath () {
+		const folder = await this.chooseFolder("prompt-capture2text-cli", result => FileSystem.exists(`${result}/Capture2Text_CLI.exe`));
+		if (folder) options.capture2TextCLIPath = `${folder}/Capture2Text_CLI.exe`;
+	}
+
+	public static async chooseImageMagickCLIPath () {
+		const folder = await this.chooseFolder("prompt-imagemagick-cli", result => FileSystem.exists(`${result}/magick.exe`));
+		if (folder) options.imageMagickCLIPath = `${folder}/magick.exe`;
 	}
 
 	////////////////////////////////////
@@ -147,5 +153,6 @@ export default class Options {
 	//
 
 	public rootFolders: string[] = [];
-	public capture2TextCLIPath: string;
+	public capture2TextCLIPath: string = "";
+	public imageMagickCLIPath: string = "";
 }

@@ -1,7 +1,9 @@
 import Component from "component/Component";
 import CharacterEditor from "component/content/character/CharacterEditor";
 import Capture from "component/content/extractor/Capture";
+import GlobalSettings from "component/content/GlobalSettings";
 import Header from "component/header/Header";
+import Dropdown from "component/shared/Dropdown";
 import Interrupt from "component/shared/Interrupt";
 import SortableList, { SortableListEvent } from "component/shared/SortableList";
 import Textarea from "component/shared/Textarea";
@@ -10,14 +12,16 @@ import { BasicCharacter } from "data/Characters";
 import Dialog from "data/Dialog";
 import MediaRoots from "data/MediaRoots";
 import { tuple } from "util/Arrays";
+import Enums from "util/Enums";
 import FileSystem from "util/FileSystem";
 import { Vector } from "util/math/Geometry";
 import { pad } from "util/string/String";
 import Translation from "util/string/Translation";
 
-const enum DisplayMode {
+enum DisplayMode {
 	Translate = "translation-mode",
 	Read = "read-mode",
+	Translated = "translated-mode",
 }
 
 export default class Extractor extends Component {
@@ -26,7 +30,6 @@ export default class Extractor extends Component {
 
 	private readonly pageImage: Component;
 	private readonly capturesWrapper: SortableList;
-	private readonly displayModebutton: Component;
 
 	private captureId = 0;
 	private captureStart: Vector;
@@ -37,15 +40,15 @@ export default class Extractor extends Component {
 		super();
 		this.setId("extractor");
 
-		const [volumePath, chapterPath, pagePath] = MediaRoots.get(root)!.volumes.getPaths(volume, chapter, page);
-		const [volumeNumber, chapterNumber, pageNumber] = MediaRoots.get(root)!.volumes.getNumbers(volume, chapter, page);
+		const mediaRoot = MediaRoots.get(root)!;
+
+		const [volumeNumber, chapterNumber, pageNumber] = mediaRoot.volumes.getNumbers(volume, chapter, page);
 
 		new Component()
 			.classes.add("page-wrapper")
 			.append(new Component()
 				.append(this.pageImage = new Component("img")
 					.hide(true)
-					.attributes.set("src", `${root}/${volumePath}/${chapterPath}/raw/${pagePath}`)
 					.listeners.add("load", () => {
 						const image = this.pageImage.element<HTMLImageElement>();
 						this.pageImage.style.set("--natural-width", `${image.naturalWidth}px`);
@@ -53,6 +56,8 @@ export default class Extractor extends Component {
 						this.pageImage.show();
 					})))
 			.appendTo(this);
+
+		this.setPageImage();
 
 		new Component()
 			.classes.add("extraction-drawer")
@@ -63,16 +68,17 @@ export default class Extractor extends Component {
 					.listeners.add("click", () => this.emit("quit")))
 				.append(new Component("button")
 					.setText("previous-page")
-					.classes.toggle(!hasPreviousPage, "disabled")
+					.setDisabled(!hasPreviousPage)
 					.listeners.add("click", () => this.emit("previous")))
 				.append(new Component("button")
 					.setText("next-page")
-					.classes.toggle(!hasNextPage, "disabled")
+					.setDisabled(!hasNextPage)
 					.listeners.add("click", () => this.emit("next")))
-				.append(this.displayModebutton = new Component("button")
+				.append(Dropdown.from(Enums.values(DisplayMode))
 					.classes.add("float-right")
-					.setText(() => new Translation(Extractor.displayMode === DisplayMode.Read ? DisplayMode.Translate : DisplayMode.Read).get())
-					.listeners.add("click", () => this.toggleDisplayMode()))
+					.setTitle("display-mode")
+					.listeners.add("select", this.changeDisplayMode)
+					.schedule(0, dropdown => dropdown.select(Extractor.displayMode)))
 				.append(new Component("button")
 					.classes.add("float-right")
 					.setText("export")
@@ -141,8 +147,6 @@ export default class Extractor extends Component {
 			.add("keyup", this.keyup, true);
 		Component.window.listeners.until(this.listeners.waitFor("remove"))
 			.add("mousewheel", this.scroll, true);
-
-		this.toggleDisplayMode(Extractor.displayMode);
 
 		return this;
 	}
@@ -224,7 +228,17 @@ export default class Extractor extends Component {
 		}
 	}
 
-	@Bound private mouseDown (event: MouseEvent) {
+	@Bound private async mouseDown (event: MouseEvent) {
+		if (!options.capture2TextCLIPath) {
+			if (!await Interrupt.confirm(interrupt => interrupt
+				.setTitle("no-capture2text-prompt")
+				.setDescription("no-capture2text-prompt-description")))
+				return;
+
+			new GlobalSettings();
+			return;
+		}
+
 		this.captureStart = Vector.get(event);
 
 		Component.window.listeners.add("mousemove", this.mouseMove);
@@ -327,11 +341,11 @@ export default class Extractor extends Component {
 		await this.updateJSON();
 	}
 
-	@Bound private toggleDisplayMode (mode = Extractor.displayMode === DisplayMode.Read ? DisplayMode.Translate : DisplayMode.Read) {
-		Extractor.displayMode = mode;
+	@Bound private changeDisplayMode (event: Event) {
+		const dropdown = Component.get<Dropdown<DisplayMode>>(event);
+		Extractor.displayMode = dropdown.getSelected();
 
 		this.classes.toggle(Extractor.displayMode === DisplayMode.Read, "display-mode-read");
-		this.displayModebutton.refreshText();
 
 		if (Extractor.displayMode === DisplayMode.Read) {
 			let lastCharacter: number | BasicCharacter | undefined;
@@ -342,11 +356,38 @@ export default class Extractor extends Component {
 			}
 		}
 
-		if (Extractor.displayMode === DisplayMode.Translate) {
+		if (Extractor.displayMode === DisplayMode.Translate || Extractor.displayMode === DisplayMode.Translated) {
 			for (const textarea of this.capturesWrapper.descendants<Textarea>(".textarea")) {
 				textarea.setHeight();
 			}
 		}
+
+		this.setPageImage();
+	}
+
+	private async setPageImage () {
+		const mediaRoot = MediaRoots.get(this.root)!;
+		const translated = Extractor.displayMode === DisplayMode.Translated;
+		const translatedPath = mediaRoot.getPath(translated ? "translated" : "raw", this.volume, this.chapter, this.page);
+
+		if (translated && !await FileSystem.exists(translatedPath)) {
+			const savePath = mediaRoot.getPath("save", this.volume, this.chapter, this.page);
+			if (await FileSystem.exists(savePath)) {
+				if (!options.imageMagickCLIPath) {
+					if (!await Interrupt.confirm(interrupt => interrupt
+						.setTitle("prompt-imagemagick-for-viewing-psd")
+						.setDescription("prompt-imagemagick-for-viewing-psd-description"))) return;
+
+					await new GlobalSettings().listeners.waitFor("remove");
+					if (!options.imageMagickCLIPath) return;
+				}
+
+				await FileSystem.mkdir(path.dirname(translatedPath));
+				await childProcess.exec(`"${options.imageMagickCLIPath}" "${savePath}[0]" "${translatedPath}"`);
+			}
+		}
+
+		this.pageImage.attributes.set("src", translatedPath);
 	}
 
 	@Bound private async export () {
@@ -381,7 +422,7 @@ export default class Extractor extends Component {
 
 		const vertical = size.x < size.y;
 
-		const [out] = await childProcess.exec(`${options.capture2TextCLIPath} --language Japanese --image ${capturePath} --line-breaks${vertical ? " --vertical" : ""}`);
+		const [out] = await childProcess.exec(`"${options.capture2TextCLIPath}" --language Japanese --image "${capturePath}" --line-breaks${vertical ? " --vertical" : ""}`);
 		return out.toString("utf8").trim();
 	}
 

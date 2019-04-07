@@ -1,6 +1,7 @@
 import Component from "component/Component";
+import SettingsInterrupt from "component/content/settings/SettingsInterrupt";
 import Input from "component/shared/Input";
-import Interrupt, { InterruptChoice } from "component/shared/Interrupt";
+import Interrupt from "component/shared/Interrupt";
 import LabelledRow from "component/shared/LabelledRow";
 import Tooltip from "component/shared/Tooltip";
 import MediaRoots, { RootMetadata } from "data/MediaRoots";
@@ -12,25 +13,14 @@ import Translation from "util/string/Translation";
 
 const pathSegments = ["volume", "chapter", "page"] as (keyof RootMetadata["structure"])[];
 
-export default class RootSettings extends Interrupt {
-	public static async show (root: string) {
-		return new RootSettings(root)
-			.appendTo(Component.get("#content"))
-			.show()
-			.listeners.waitFor("remove");
-	}
-
-	private readonly sections = new Component()
-		.classes.add("sections")
-		.appendTo(this.content, "beginning");
-
+export default class RootSettings extends SettingsInterrupt {
 	private readonly pathInputs = new Map<keyof RootMetadata["structure"], Input>();
 	private restoreButton?: Component;
+	private changedFileStructure = false;
 
 	public constructor (private readonly root: string) {
 		super();
 		this.setId("root-settings");
-		this.setActions(InterruptChoice.Done);
 
 		const mediaRoot = MediaRoots.get(root)!;
 
@@ -50,7 +40,7 @@ export default class RootSettings extends Interrupt {
 				.listeners.add("click", this.onRemove));
 
 		this.addSection("file-structure")
-			.append(Stream.of<(keyof RootMetadata["structure"])[]>("volume", "chapter", "page", "raw", "translated", "capture")
+			.append(Stream.of<(keyof RootMetadata["structure"])[]>("volume", "chapter", "page", "raw", "translated", "save", "capture")
 				.map(pathType => new Component()
 					.classes.toggle(!pathSegments.includes(pathType), "path-full")
 					.append(new LabelledRow(`${pathType}-path`)
@@ -68,9 +58,8 @@ export default class RootSettings extends Interrupt {
 							.setText(this.getPathExample(pathType))))));
 	}
 
-	@Bound @Override protected keyup (event: KeyboardEvent) {
-		if (this.descendants(".error").first()) return;
-		super.keyup(event);
+	public wasFileStructureChanged () {
+		return this.changedFileStructure;
 	}
 
 	// tslint:disable cyclomatic-complexity
@@ -97,12 +86,8 @@ export default class RootSettings extends Interrupt {
 
 		this.descendants(".file-structure-path-example").forEach(descendant => descendant.refreshText());
 		this.updateDoneButton();
-	}
 
-	private updateDoneButton () {
-		this.descendants("[action='done']")
-			.first()!
-			.classes.toggle(!!this.descendants(".error").first(), "disabled");
+		this.changedFileStructure = true;
 	}
 
 	@Bound private async onRemove () {
@@ -128,14 +113,6 @@ export default class RootSettings extends Interrupt {
 		MediaRoots.addRoot(this.root);
 		options.rootFolders.push(this.root);
 		this.restoreButton!.remove();
-	}
-
-	private addSection (name: string) {
-		return new Component("section")
-			.attributes.set("section", name)
-			.append(new Component("h2")
-				.setText(name))
-			.appendTo(this.sections);
 	}
 
 	private getPathExample (pathType: keyof RootMetadata["structure"]) {

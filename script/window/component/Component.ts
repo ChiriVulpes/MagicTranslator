@@ -21,6 +21,10 @@ export default class Component {
 		},
 	};
 
+	public static get body () {
+		return Component.get("body");
+	}
+
 	private static map = new Map<Element, Component>();
 
 	public static get<C extends Component = Component> (element: Element | Event | string) {
@@ -28,11 +32,11 @@ export default class Component {
 			element = document.querySelector(element)!;
 		}
 
-		if ("target" in element) {
+		if ("target" in element && (element as any) !== document.activeElement) {
 			element = element.target as Element;
 		}
 
-		return (Component.map.get(element) || new Component(element)) as C;
+		return (Component.map.get(element as any) || new Component(element as any)) as C;
 	}
 
 	public static all<C extends Component = Component> (selector: string) {
@@ -106,15 +110,32 @@ export default class Component {
 		return this;
 	}
 
+	public inheritText (component: Component, processor?: (text: string | number) => string | number) {
+		this.textGenerator = processor ? () => processor(component.textGenerator()) : component.textGenerator;
+		this.refreshText();
+		return this;
+	}
+
 	@Bound public refreshText () {
 		const text = this.textGenerator ? this.textGenerator() as any : "";
 		this.element().textContent = text === null || text === undefined ? "" : `${text}`;
 		return this;
 	}
 
+	public setDisabled (disabled = true) {
+		this.classes.toggle(disabled, "disabled");
+		if (disabled) this.attributes.set("tabindex", "-1");
+		else this.attributes.remove("tabindex");
+		return this;
+	}
+
 	////////////////////////////////////
 	// Visibility
 	//
+
+	public isHidden () {
+		return this.classes.has("hidden", "transparent");
+	}
 
 	public show () {
 		this.classes.remove("hidden", "transparent");
@@ -161,7 +182,7 @@ export default class Component {
 		return this;
 	}
 
-	public remove () {
+	@Bound public remove () {
 		this.element().remove();
 	}
 
@@ -224,6 +245,10 @@ export default class Component {
 		}
 
 		return true;
+	}
+
+	public matches (selector: string) {
+		return this.internalElement!.matches(selector);
 	}
 
 	////////////////////////////////////

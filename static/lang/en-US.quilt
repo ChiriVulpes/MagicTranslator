@@ -18,11 +18,14 @@ cancel: Cancel
 choose: Choose
 name: Name
 character-new: Add New Character
-prompt-cap-2-text-cli: Choose Capture2Text Folder (Folder Containing Capture2Text_CLI.exe)
+prompt-capture2text-cli: Choose Capture2Text Folder (Folder Containing Capture2Text_CLI.exe)
+prompt-imagemagick-cli: Choose ImageMagick Folder (Folder Containing magick.exe)
 prompt-root-folder: Choose Root Folder (Folder Containing vol##/ch### folders)
 prompt-character-headshot: Choose the Headshot Image for {0?{0}:the Character} (Prefer Square Images)
+display-mode: Display Mode: {0}
 read-mode: Read
 translation-mode: Translate
+translated-mode: Translated
 export: Export
 next-volume: Next Volume
 prev-volume: Previous Volume
@@ -54,4 +57,13 @@ path-segment-input-error: {0} path cannot have separated digits.
 path-full-input-error: {0} path must use \{volume\}, \{chapter\}, and \{page\}, in this order, each a different folder, or subfolder.
 raw-path: Raw Page Path
 translated-path: Translated Page Path
+save-path: Page Save Path
 capture-path: Page Captures Path
+dropdown-title-default: Select: {0}
+capture2text-path: Capture2Text Path
+imagemagick-path: ImageMagick Path
+unset: Not Set
+no-capture2text-prompt: Would you like to select\nthe path to Capture2Text?
+no-capture2text-prompt-description: A capture cannot be created\nwithout Capture2Text being installed.
+prompt-imagemagick-for-viewing-psd: There is no translated version of this page.
+prompt-imagemagick-for-viewing-psd-description: However, there's a save for this page.\nIf you install ImageMagick, this application will automatically\ncreate the translated version of this page upon viewing.\n\nWould you like to select the install path for ImageMagick?

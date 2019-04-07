@@ -49,7 +49,7 @@ export default class ActionBar<K extends string | number = string | number> exte
 
 	public toggleActions (...actionStates: [K, boolean][]) {
 		for (const [id, enabled] of actionStates) {
-			this.actions.get(id)!.classes.toggle(!enabled, "disabled");
+			this.actions.get(id)!.setDisabled(!enabled);
 		}
 	}
 }
