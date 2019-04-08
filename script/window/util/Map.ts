@@ -80,6 +80,10 @@ export default class IndexedMap<K, V> extends Map<K, V> {
 		return this;
 	}
 
+	public indices () {
+		return Stream.range(this.size);
+	}
+
 	/**
 	 * Returns an iterator for the entries of this map, and the index of each.
 	 */

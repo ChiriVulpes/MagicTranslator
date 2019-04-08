@@ -1,6 +1,5 @@
 import CharacterEditor from "component/content/character/CharacterEditor";
 import Extractor from "component/content/Extractor";
-import Captures from "data/Captures";
 import { BasicCharacter, CharacterData } from "data/Characters";
 import MediaRoots from "data/MediaRoots";
 import Options from "Options";
@@ -10,20 +9,20 @@ import FileSystem from "util/FileSystem";
 
 export class DialogImpl {
 	public async export (root: string, volume: number, chapter: number, page?: number) {
-		const [volumeString, chapterString] = MediaRoots.get(root)!.volumes.getPaths(volume, chapter);
-		const [volumeNumber, chapterNumber, pageNumber] = MediaRoots.get(root)!.volumes.getNumbers(volume, chapter, page);
+		const mediaRoot = MediaRoots.get(root)!;
+		const [volumeString, chapterString] = mediaRoot.getPaths(volume, chapter);
+		const [volumeNumber, chapterNumber, pageNumber] = mediaRoot.getNumbers(volume, chapter, page);
 
 		let result = `# Volume ${volumeNumber}, Chapter ${chapterNumber}`;
 
 		if (page !== undefined) {
 			result += ", " + await this.exportPage(root, volume, chapter, page);
 		} else {
-			const pages = await Promise.all(MediaRoots.get(root)!.volumes.getByIndex(volume)!.getByIndex(chapter)!
+			const pages = await Promise.all(mediaRoot.volumes.getByIndex(volume)!.getByIndex(chapter)!
 				.map((_, index) => this.exportPage(root, volume, chapter, index)));
 
 			result += "\n\n# " + pages.join("\n\n\n# ");
 		}
-
 
 		File.download(`dialog-${volumeString}-${chapterString}${pageNumber !== undefined ? `-${pageNumber}` : ""}.md`, result);
 	}
@@ -43,13 +42,14 @@ export class DialogImpl {
 	}
 
 	private async exportPage (root: string, volume: number, chapter: number, page: number) {
-		const [, , pageNumber] = MediaRoots.get(root)!.volumes.getNumbers(volume, chapter, page);
+		const mediaRoot = MediaRoots.get(root)!;
+		const [, , pageNumber] = mediaRoot.getNumbers(volume, chapter, page);
 		let result = `Page ${pageNumber}\n\n`;
 
-		const data = await Captures.load(root, volume, chapter, page);
+		const captures = await mediaRoot.getPage(volume, chapter, page).captures;
 
 		let lastCharacter: number | BasicCharacter | undefined;
-		for (const capture of data.captures) {
+		for (const capture of captures.captures) {
 			if (capture.character && capture.character !== lastCharacter) {
 				result += `## ${CharacterEditor.getName(capture.character)}\n\n`;
 				lastCharacter = capture.character;

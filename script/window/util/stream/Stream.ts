@@ -61,7 +61,8 @@ export default abstract class Stream<T> implements Streamable<T>, Iterable<T> {
 		return Stream.of<any>();
 	}
 
-	public static from<T> (iterable: Iterable<T> | Streamable<T>): Stream<T> {
+	public static from<T> (iterable: Iterable<T> | Streamable<T> | (() => IterableIterator<T>)): Stream<T> {
+		if (typeof iterable === "function") iterable = iterable();
 		return iterable instanceof StreamImplementation ? iterable :
 			isIterable(iterable) ? new StreamImplementation((iterable)[Symbol.iterator]()) :
 				new StreamImplementation(iterable);

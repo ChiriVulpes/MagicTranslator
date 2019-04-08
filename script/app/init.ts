@@ -1,5 +1,5 @@
 /// <reference path="../Common.d.ts" />
-import { app, BrowserWindow, ipcMain, screen, WebContents, Menu } from "electron";
+import { app, BrowserWindow, ipcMain, Menu, screen, WebContents } from "electron";
 // tslint:disable-next-line
 const Store = require("electron-store") as StoreModule;
 

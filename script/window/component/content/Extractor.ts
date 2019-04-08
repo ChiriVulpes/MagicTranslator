@@ -31,7 +31,7 @@ export default class Extractor extends Component {
 	private readonly pageImage: Component;
 	private readonly capturesWrapper: SortableList;
 
-	private captureId = 0;
+	private captures: Captures;
 	private captureStart: Vector;
 	private captureEnd: Vector;
 	private waitingForCapture?: [number, (value: [Vector, Vector]) => void];
@@ -42,7 +42,7 @@ export default class Extractor extends Component {
 
 		const mediaRoot = MediaRoots.get(root)!;
 
-		const [volumeNumber, chapterNumber, pageNumber] = mediaRoot.volumes.getNumbers(volume, chapter, page);
+		const [volumeNumber, chapterNumber, pageNumber] = mediaRoot.getNumbers(volume, chapter, page);
 
 		new Component()
 			.classes.add("page-wrapper")
@@ -100,7 +100,7 @@ export default class Extractor extends Component {
 
 	public async addCapture (capture: CaptureData) {
 		if (capture.id === undefined) {
-			capture.id = this.captureId++;
+			capture.id = this.captures.captureId++;
 		}
 
 		const roots = {
@@ -124,20 +124,15 @@ export default class Extractor extends Component {
 	}
 
 	@Bound public async updateJSON () {
-		await Captures.save(this.root, this.volume, this.chapter, this.page, {
-			captureId: this.captureId,
-			captures: this.capturesWrapper.children<Capture>()
-				.map(component => component.getData())
-				.toArray(),
-		});
+		this.captures.captures = this.capturesWrapper.children<Capture>()
+			.map(component => component.getData())
+			.toArray();
 	}
 
 	public async initialize () {
-		const { captureId, captures } = await Captures.load(this.root, this.volume, this.chapter, this.page);
+		this.captures = await MediaRoots.get(this.root)!.getPage(this.volume, this.chapter, this.page).captures.load();
 
-		this.captureId = captureId;
-
-		for (const capture of captures) {
+		for (const capture of this.captures.captures) {
 			await this.addCapture(capture);
 		}
 
@@ -326,7 +321,7 @@ export default class Extractor extends Component {
 
 		const [character, text] = await Promise.all([
 			CharacterEditor.chooseCharacter(),
-			this.saveCapture(`cap${pad(this.captureId, 3)}.png`, canvas, size),
+			this.saveCapture(`cap${pad(this.captures.captureId, 3)}.png`, canvas, size),
 		]);
 
 		await this.addCapture({
@@ -438,6 +433,6 @@ export default class Extractor extends Component {
 	}
 
 	private getCapturePagePath () {
-		return Captures.getCapturePagePath(this.root, this.volume, this.chapter, this.page);
+		return MediaRoots.get(this.root)!.getPath("capture", this.volume, this.chapter, this.page);
 	}
 }

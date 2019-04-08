@@ -4,11 +4,13 @@ import GlobalSettings from "component/content/GlobalSettings";
 import RootSettings from "component/content/RootSettings";
 import Header from "component/header/Header";
 import Tooltip from "component/shared/Tooltip";
+import { CaptureData } from "data/Captures";
 import Dialog from "data/Dialog";
 import MediaRoots from "data/MediaRoots";
 import Options from "Options";
 import { tuple } from "util/Arrays";
 import { sleep } from "util/Async";
+import Stream from "util/stream/Stream";
 import Translation from "util/string/Translation";
 
 export default class Explorer extends Component {
@@ -62,26 +64,6 @@ export default class Explorer extends Component {
 		Header.setTitle(() => new Translation("title").get());
 	}
 
-	@Bound private onSettings () {
-		new GlobalSettings();
-	}
-
-	@Bound private addRootButton (root: string) {
-		new RootButton(root)
-			.listeners.add("click", () => this.showVolumes(root))
-			.listeners.add("refresh-roots", this.showRoots)
-			.appendTo(this.explorerWrapper);
-	}
-
-	@Bound private async addRoot () {
-		const root = await Options.chooseFolder("prompt-root-folder");
-		if (root) {
-			options.rootFolders.push(root);
-			await MediaRoots.addRoot(root);
-			this.addRootButton(root);
-		}
-	}
-
 	private async showVolumes (root: string) {
 		this.actionWrapper.dump();
 		this.explorerWrapper.dump();
@@ -96,14 +78,9 @@ export default class Explorer extends Component {
 		// 	.classes.add("float-right")
 		// 	.appendTo(this.actionWrapper);
 
-		for (const [volumeIndex, volume, chapters] of mediaRoot.volumes.indexedEntries()) {
-			const [firstChapterName, firstChapterPages] = chapters.entryStream().first()!;
-			const firstPage = firstChapterPages[0];
-
-			new ImageButton(`${root}/${volume}/${firstChapterName}/raw/${firstPage}`)
-				.setText(() => new Translation("volume").get(+volume.slice(3)))
-				.listeners.add("click", () => this.showChapters(root, volumeIndex))
-				.appendTo(this.explorerWrapper);
+		for (const [volumeIndex] of mediaRoot.volumes.indexedEntries()) {
+			this.addImageButton(root, volumeIndex)
+				.listeners.add("click", () => this.showChapters(root, volumeIndex));
 		}
 
 		Header.setTitle(() => new Translation("title").get({ root: mediaRoot.name }));
@@ -129,19 +106,14 @@ export default class Explorer extends Component {
 			.listeners.add("click", () => this.showChapters(root, volume + 1))
 			.appendTo(this.actionWrapper);
 
-		const [volumeNumber] = mediaRoot.volumes.getNumbers(volume);
 		const chapters = mediaRoot.volumes.getByIndex(volume)!;
 
 		for (const [index] of chapters.indexedEntries()) {
-
-			const [, chapterNumber] = mediaRoot.volumes.getNumbers(volume, index);
-
-			new ImageButton(mediaRoot.getPath("raw", volume, index, 0))
-				.setText(() => new Translation("chapter").get(chapterNumber))
-				.listeners.add("click", () => this.showPages(root, volume, index))
-				.appendTo(this.explorerWrapper);
+			this.addImageButton(root, volume, index)
+				.listeners.add("click", () => this.showPages(root, volume, index));
 		}
 
+		const [volumeNumber] = mediaRoot.getNumbers(volume);
 		Header.setTitle(() => new Translation("title").get({
 			root: mediaRoot.name,
 			volume: `${volumeNumber}`,
@@ -154,8 +126,8 @@ export default class Explorer extends Component {
 
 		this.addBackButton(() => this.showChapters(root, volume));
 
-		const volumes = MediaRoots.get(root)!.volumes;
-		const chapters = volumes.getByIndex(volume)!;
+		const mediaRoot = MediaRoots.get(root)!;
+		const chapters = mediaRoot.volumes.getByIndex(volume)!;
 
 		new Component("button")
 			.setDisabled(chapter === 0)
@@ -181,23 +153,16 @@ export default class Explorer extends Component {
 			.listeners.add("click", () => this.import(root, volume, chapter))
 			.appendTo(this.actionWrapper);
 
-		const [volumePath, chapterPath] = volumes.getPaths(volume, chapter);
-		const [volumeNumber, chapterNumber] = volumes.getNumbers(volume, chapter);
-		const pages = await volumes.getByIndex(volume)!.getByIndex(chapter)!;
+		const pages = await mediaRoot.volumes.getByIndex(volume)!.getByIndex(chapter)!;
 
 		for (let i = 0; i < pages.length; i++) {
-			const page = pages[i];
-
-			const [, , pageNumber] = volumes.getNumbers(volume, chapter, i);
-
-			new ImageButton(`${root}/${volumePath}/${chapterPath}/raw/${page}`)
-				.setText(() => new Translation("page").get(pageNumber))
+			this.addImageButton(root, volume, chapter, i)
 				.listeners.add("click", () => this
 					.emit<[string, number, number, number, boolean, boolean]>("extract", event => event
-						.data = tuple(root, volume, chapter, i, i > 0, i < pages.length - 1)))
-				.appendTo(this.explorerWrapper);
+						.data = tuple(root, volume, chapter, i, i > 0, i < pages.length - 1)));
 		}
 
+		const [volumeNumber, chapterNumber] = mediaRoot.getNumbers(volume, chapter);
 		Header.setTitle(() => new Translation("title").get({
 			root: path.basename(root),
 			volume: `${volumeNumber}`,
@@ -205,16 +170,69 @@ export default class Explorer extends Component {
 		}));
 	}
 
-	@Bound private async export (root: string, volume: number, chapter: number) {
-		await Dialog.export(root, volume, chapter);
+	@Bound private addRootButton (root: string) {
+		return this.addImageButton(root)
+			.classes.add("root-button")
+			.listeners.add("click", () => this.showVolumes(root))
+			.append(new Component("button")
+				.setText("settings")
+				.listeners.add("click", this.onRootSettings(root)));
 	}
 
-	@Bound private async import (root: string, volume: number, chapter: number) {
-		await Dialog.import(root, volume, chapter);
+	private addImageButton (root: string, volume?: number, chapter?: number, page?: number) {
+		const missingTranslations = this.getMissingTranslations(root, volume, chapter, page).count();
+
+		let type: "root" | "volume" | "chapter" | "page" | undefined;
+		[type, volume, chapter, page] = this.getPreviewImageData(root, volume, chapter, page);
+
+		const mediaRoot = MediaRoots.get(root)!;
+		const [volumeNumber, chapterNumber, pageNumber] = mediaRoot.getNumbers(volume, chapter, page);
+
+		return new ImageButton(mediaRoot.getPath("raw", volume, chapter, page))
+			.setText(() => type === "root" ? mediaRoot.name || path.basename(root) :
+				type === "volume" ? new Translation(type!).get(volumeNumber) :
+					type === "chapter" ? new Translation(type!).get(chapterNumber) :
+						new Translation(type!).get(pageNumber))
+			.append(!missingTranslations ? undefined : new Component()
+				.classes.add("missing-translations")
+				.setText(() => missingTranslations)
+				.schedule(Tooltip.register, tooltip => tooltip
+					.setText("missing-translations")))
+			.appendTo(this.explorerWrapper);
 	}
 
-	@Bound private keyup (event: KeyboardEvent) {
-		if (event.code === "Escape") this.emit("back");
+	private getPreviewImageData (root: string, volume?: number, chapter?: number, page?: number) {
+		let type: "root" | "volume" | "chapter" | "page" | undefined;
+		const mediaRoot = MediaRoots.get(root)!;
+		if (volume === undefined) type = type || "root", [volume] = mediaRoot.volumes.indexedEntries().first()!;
+
+		const chapters = mediaRoot.volumes.getByIndex(volume)!;
+		if (chapter === undefined) type = type || "volume", [chapter] = chapters.indexedEntries().first()!;
+
+		if (page === undefined) type = type || "chapter", page = 0;
+
+		type = type || "page";
+
+		return tuple(type, volume, chapter, page);
+	}
+
+	private getMissingTranslations (root: string, volume?: number, chapter?: number, page?: number): Stream<CaptureData> {
+		const mediaRoot = MediaRoots.get(root)!;
+		if (volume === undefined)
+			return mediaRoot.volumes.indices()
+				.flatMap(v => this.getMissingTranslations(root, v));
+
+		const chapters = mediaRoot.volumes.getByIndex(volume)!;
+		if (chapter === undefined)
+			return chapters.indices()
+				.flatMap(c => this.getMissingTranslations(root, volume, c));
+
+		const pages = chapters.getByIndex(chapter)!;
+		if (page === undefined)
+			return pages.stream()
+				.flatMap(p => p.captures.getMissingTranslations());
+
+		return pages[page].captures.getMissingTranslations();
 	}
 
 	private addBackButton (handler: () => void) {
@@ -228,10 +246,55 @@ export default class Explorer extends Component {
 
 		this.listeners.until("back").add("back", () => sleep(0.001).then(handler));
 	}
+
+	@Bound private async addRoot () {
+		const root = await Options.chooseFolder("prompt-root-folder");
+		if (root) {
+			options.rootFolders.push(root);
+			await MediaRoots.addRoot(root);
+			this.addRootButton(root);
+		}
+	}
+
+	@Bound private onSettings () {
+		new GlobalSettings();
+	}
+
+	@Bound private onRootSettings (root: string) {
+		return async (event: Event) => {
+			event.stopPropagation();
+
+			const rootSettings = new RootSettings(root);
+			await rootSettings.listeners.waitFor("remove");
+
+			if (rootSettings.wasFileStructureChanged()) {
+				await MediaRoots.get(root)!.load();
+				this.showRoots();
+				return;
+			}
+
+			const rootSettingsButton = Component.get(event).ancestors<ImageButton>(".root-button").first()!;
+
+			if (!MediaRoots.has(root)) rootSettingsButton.remove();
+			else rootSettingsButton.title.refreshText();
+		};
+	}
+
+	@Bound private async export (root: string, volume: number, chapter: number) {
+		await Dialog.export(root, volume, chapter);
+	}
+
+	@Bound private async import (root: string, volume: number, chapter: number) {
+		await Dialog.import(root, volume, chapter);
+	}
+
+	@Bound private keyup (event: KeyboardEvent) {
+		if (event.code === "Escape") this.emit("back");
+	}
 }
 
 class ImageButton extends Component {
-	protected readonly title = new Component()
+	public readonly title = new Component()
 		.classes.add("title")
 		.schedule(Tooltip.register, (tooltip: Tooltip) => tooltip
 			.setText(this.textGenerator))
@@ -257,41 +320,6 @@ class ImageButton extends Component {
 
 	private async loadPreview () {
 		this.style.set("--preview", `url("${this.imagePath.replace(/\\/g, "/")}")`);
-	}
-}
-
-class RootButton extends ImageButton {
-	private static getRootPath (root: string) {
-		const [, firstVolumeName, firstVolumeChapters] = MediaRoots.get(root)!.volumes.indexedEntries().first(undefined, tuple<any>());
-		const [firstChapterName, firstChapterPages] = (firstVolumeChapters || []).entryStream().first(undefined, tuple<any>());
-		const firstPage = (firstChapterPages || [])[0];
-		return `${root}/${firstVolumeName}/${firstChapterName}/raw/${firstPage}`;
-	}
-
-	public constructor (private readonly root: string) {
-		super(RootButton.getRootPath(root));
-		this.classes.add("root-button");
-		this.setText(() => MediaRoots.get(root)!.name || path.basename(root));
-
-		new Component("button")
-			.setText("settings")
-			.listeners.add("click", this.onSettings)
-			.appendTo(this);
-	}
-
-	@Bound private async onSettings (event: Event) {
-		event.stopPropagation();
-
-		const rootSettings = new RootSettings(this.root);
-		await rootSettings.listeners.waitFor("remove");
-
-		if (rootSettings.wasFileStructureChanged()) {
-			await MediaRoots.get(this.root)!.load();
-			this.emit("refresh-roots");
-		}
-
-		if (!MediaRoots.has(this.root)) this.remove();
-		else this.refreshText();
 	}
 }
 

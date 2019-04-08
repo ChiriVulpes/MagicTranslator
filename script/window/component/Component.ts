@@ -38,7 +38,7 @@ export default class Component {
 			element = document.querySelector(element)!;
 		}
 
-		if ("target" in element && (element as any) !== document.activeElement) {
+		if ("target" in element && typeof element.target !== "string") {
 			element = element.target as Element;
 		}
 
@@ -225,14 +225,16 @@ export default class Component {
 			.map(descendant => Component.get<C>(descendant));
 	}
 
-	public *ancestors<C extends Component = Component> (selector: string) {
+	public ancestors<C extends Component = Component> (selector: string) {
 		let match: Element | null = this.element();
-		while (true) {
-			match = match.parentElement && match.parentElement.closest(selector);
-			if (!match) return;
+		return Stream.from(function* () {
+			while (true) {
+				match = match!.parentElement && match!.parentElement.closest(selector);
+				if (!match) return;
 
-			yield Component.get<C>(match);
-		}
+				yield Component.get<C>(match);
+			}
+		});
 	}
 
 	public siblings<C extends Component = Component> () {

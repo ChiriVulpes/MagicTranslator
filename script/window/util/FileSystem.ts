@@ -1,6 +1,10 @@
+import Concurrency from "util/Concurrency";
+
 let nodefs: typeof import("fs");
 let path: typeof import("path");
+
 const fileWriteLocks = new Map<string, Promise<void>>();
+const concurrent = new Concurrency(5);
 
 module FileSystem {
 
@@ -10,7 +14,7 @@ module FileSystem {
 	}
 
 	export async function readdir (dir: string) {
-		return new Promise<string[]>((resolve, reject) => {
+		return concurrent.promise<string[]>((resolve, reject) => {
 			nodefs.readdir(dir, (err: NodeJS.ErrnoException | undefined, files) => {
 				if (err) {
 					if (err.code === "ENOENT") resolve([]);
@@ -24,7 +28,7 @@ module FileSystem {
 	export async function readFile (filepath: string): Promise<Buffer>;
 	export async function readFile (filepath: string, encoding?: string): Promise<string | Buffer>;
 	export async function readFile (filepath: string, encoding?: string) {
-		return new Promise<string | Buffer>((resolve, reject) => {
+		return concurrent.promise<string | Buffer>((resolve, reject) => {
 			nodefs.readFile(filepath, encoding, (err: NodeJS.ErrnoException | undefined, file) => {
 				if (err) reject(err);
 				else resolve(file);
@@ -45,7 +49,7 @@ module FileSystem {
 
 		await fileWriteLocks.get(absolutePath);
 
-		const promise = new Promise<void>((resolve, reject) => {
+		const promise = concurrent.promise<void>((resolve, reject) => {
 			nodefs.writeFile(filepath, data, err => {
 				fileWriteLocks.delete(absolutePath);
 
@@ -60,7 +64,7 @@ module FileSystem {
 	}
 
 	export async function mkdir (filepath: string) {
-		return new Promise<void>((resolve, reject) => {
+		return concurrent.promise<void>((resolve, reject) => {
 			nodefs.mkdir(filepath, err => {
 				if (err && err.code !== "EEXIST") reject(err);
 				else resolve();
@@ -70,7 +74,7 @@ module FileSystem {
 
 	export async function unlink (filepath: string, errorIfNotExist?: true): Promise<void>;
 	export async function unlink (filepath: string, errorIfNotExist = false) {
-		return new Promise<void>((resolve, reject) => {
+		return concurrent.promise<void>((resolve, reject) => {
 			nodefs.unlink(filepath, err => {
 				if (err && errorIfNotExist) reject(err);
 				else resolve();
