@@ -83,7 +83,7 @@ export default class Explorer extends Component {
 				.listeners.add("click", () => this.showChapters(root, volumeIndex));
 		}
 
-		Header.setTitle(() => new Translation("title").get({ root: mediaRoot.name }));
+		Header.setTitle(() => new Translation("title").get({ root: mediaRoot.getDisplayName() }));
 	}
 
 	private showChapters (root: string, volume: number) {
@@ -115,7 +115,7 @@ export default class Explorer extends Component {
 
 		const [volumeNumber] = mediaRoot.getNumbers(volume);
 		Header.setTitle(() => new Translation("title").get({
-			root: mediaRoot.name,
+			root: mediaRoot.getDisplayName(),
 			volume: `${volumeNumber}`,
 		}));
 	}
@@ -164,7 +164,7 @@ export default class Explorer extends Component {
 
 		const [volumeNumber, chapterNumber] = mediaRoot.getNumbers(volume, chapter);
 		Header.setTitle(() => new Translation("title").get({
-			root: path.basename(root),
+			root: mediaRoot.getDisplayName(),
 			volume: `${volumeNumber}`,
 			chapter: `${chapterNumber}`,
 		}));
@@ -189,7 +189,7 @@ export default class Explorer extends Component {
 		const [volumeNumber, chapterNumber, pageNumber] = mediaRoot.getNumbers(volume, chapter, page);
 
 		return new ImageButton(mediaRoot.getPath("raw", volume, chapter, page))
-			.setText(() => type === "root" ? mediaRoot.name || path.basename(root) :
+			.setText(() => type === "root" ? mediaRoot.getDisplayName() :
 				type === "volume" ? new Translation(type!).get(volumeNumber) :
 					type === "chapter" ? new Translation(type!).get(chapterNumber) :
 						new Translation(type!).get(pageNumber))

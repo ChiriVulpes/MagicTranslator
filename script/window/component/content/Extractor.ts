@@ -91,7 +91,7 @@ export default class Extractor extends Component {
 			.appendTo(this);
 
 		Header.setTitle(() => new Translation("title").get({
-			root: mediaRoot.name,
+			root: mediaRoot.getDisplayName(),
 			volume: `${volumeNumber}`,
 			chapter: `${chapterNumber}`,
 			page: `${pageNumber}`,

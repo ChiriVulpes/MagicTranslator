@@ -75,6 +75,10 @@ class MediaRoot {
 		this.structure = structure || this.structure;
 	}
 
+	public getDisplayName () {
+		return this.name || path.basename(this.root);
+	}
+
 	public async load () {
 		this.volumes = await this.getVolumes();
 		return this;
