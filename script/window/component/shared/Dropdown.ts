@@ -41,6 +41,7 @@ export default class Dropdown<O> extends Component {
 
 		this.listeners.add("remove", this.wrapper.remove);
 		this.listeners.add("click", this.onClick);
+		this.listeners.add("contextmenu", this.onContextMenu);
 	}
 
 	public getSelected () {
@@ -95,6 +96,14 @@ export default class Dropdown<O> extends Component {
 			.forEach(child => child.setDisabled(false));
 
 		this.options.get(this.selected)!.focus();
+	}
+
+	@Bound private onContextMenu () {
+		if (this.options.get(this.selected)!.isLast()) {
+			this.select(this.options.keyStream().first()!);
+		} else {
+			this.select(this.getOptionFromComponent(this.options.get(this.selected)!.nextSibling()!)!);
+		}
 	}
 
 	@Bound private async onBlur () {

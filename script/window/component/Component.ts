@@ -259,6 +259,28 @@ export default class Component {
 		return this.internalElement!.matches(selector);
 	}
 
+	public getIndex () {
+		return this.parent && Array.from(this.parent.element().childNodes).indexOf(this.element());
+	}
+
+	public isFirst () {
+		return this.parent && this.parent.element().firstElementChild === this.element();
+	}
+
+	public isLast () {
+		return this.parent && this.parent.element().lastElementChild === this.element();
+	}
+
+	public nextSibling () {
+		const next = this.element().nextElementSibling;
+		return next && Component.get(next);
+	}
+
+	public previousSibling () {
+		const prev = this.element().previousElementSibling;
+		return prev && Component.get(prev);
+	}
+
 	////////////////////////////////////
 	// Misc
 	//
