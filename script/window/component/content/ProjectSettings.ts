@@ -4,7 +4,7 @@ import Input from "component/shared/Input";
 import Interrupt from "component/shared/Interrupt";
 import LabelledRow from "component/shared/LabelledRow";
 import Tooltip from "component/shared/Tooltip";
-import Projects, { PagePathSegment, pathSegments, pathTypes, ProjectStructure } from "data/Projects";
+import Projects, { PagePathSegment, pathSegments, pathTypes, ProjectStructure, PagePathType } from "data/Projects";
 import { exact, tuple } from "util/Arrays";
 import { generalRandom } from "util/Random";
 import Stream from "util/stream/Stream";
@@ -72,7 +72,7 @@ export default class ProjectSettings extends SettingsInterrupt {
 		if (PagePathSegment.is(pathType)) {
 			error = (/#[^#]+#/.test(inputText) || /[\\/]/.test(inputText)) &&
 				new Translation("path-segment-input-error").get(pathType);
-		} else {
+		} else if (PagePathType.is(pathType)) {
 			const match = inputText.match(RegExp(`^[^{}]*?${pathSegments.map(segment => `{${segment}}`).join("[^{}]*?/[^{}]*?")}[^{}]*?$`));
 			if (!match) error = new Translation("path-full-input-error").get(pathType);
 		}
