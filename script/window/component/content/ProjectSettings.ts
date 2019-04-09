@@ -117,7 +117,8 @@ export default class ProjectSettings extends SettingsInterrupt {
 	}
 
 	@Bound private async onClose () {
-		await Projects.get(this.root)!.load();
+		const project = Projects.get(this.root);
+		if (project) await project.load();
 		this.emit("close");
 	}
 
