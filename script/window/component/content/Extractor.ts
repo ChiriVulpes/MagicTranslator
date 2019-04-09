@@ -105,7 +105,7 @@ export default class Extractor extends Component {
 
 		const roots = {
 			capture: this.getCapturePagePath(),
-			character: MediaRoots.get(this.root)!.characters.getCharactersPath(),
+			character: MediaRoots.get(this.root)!.characters.getPath(),
 		};
 
 		const captureComponent = new Capture(roots, capture)

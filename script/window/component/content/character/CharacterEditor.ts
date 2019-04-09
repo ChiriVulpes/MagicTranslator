@@ -14,15 +14,15 @@ export default class CharacterEditor extends Component {
 
 	public static async setRoot (root: string) {
 		const editor = Component.get<CharacterEditor>("#character-editor");
+		const characters = MediaRoots.get(root)!.characters;
 
-		if (editor.characters === MediaRoots.get(root)!.characters) return;
-		editor.characters = MediaRoots.get(root)!.characters;
+		if (editor.characters === characters) return;
+		editor.characters = characters;
 
-		const { characterId, characters } = await editor.characters.load();
-		editor.characterId = characterId;
+		await characters.load();
 
 		editor.characterWrapper.dump();
-		characters.stream()
+		characters.characters.stream()
 			.filter<undefined>(character => character)
 			.merge(Enums.values(BasicCharacter))
 			.forEach(editor.addCharacter);
@@ -91,8 +91,6 @@ export default class CharacterEditor extends Component {
 		return CharacterEditor.getCharacter(character);
 	}
 
-	private characterId = 0;
-
 	private readonly characterWrapper: Component;
 	private readonly actionRow: Component;
 	private startingCharacter: number | BasicCharacter = BasicCharacter.Unknown;
@@ -147,10 +145,10 @@ export default class CharacterEditor extends Component {
 			reader.readAsArrayBuffer(blob!);
 		});
 
-		const charactersPath = this.characters.getCharactersPath();
+		const charactersPath = this.characters.getPath();
 		await FileSystem.mkdir(charactersPath);
 
-		const id = this.characterId++;
+		const id = this.characters.characterId++;
 
 		await FileSystem.writeFile(`${charactersPath}/${pad(id, 3)}.png`, buffer);
 
@@ -195,7 +193,7 @@ export default class CharacterEditor extends Component {
 	}
 
 	@Bound private addCharacter (character: CharacterData | BasicCharacter) {
-		const characterButton = new Character(this.characters.getCharactersPath(), character, typeof character === "object")
+		const characterButton = new Character(this.characters.getPath(), character, typeof character === "object")
 			.listeners.add("click", this.select)
 			.listeners.add("change-name", event => {
 				this.select(event, false);
@@ -211,13 +209,10 @@ export default class CharacterEditor extends Component {
 	}
 
 	@Bound private async updateJson () {
-		await this.characters.save({
-			characterId: this.characterId,
-			characters: this.characterWrapper.children<Character>()
-				.map(button => button.character)
-				.filter<BasicCharacter>(character => typeof character === "object")
-				.toArray(),
-		});
+		this.characters.characters = this.characterWrapper.children<Character>()
+			.map(button => button.character)
+			.filter<BasicCharacter>(character => typeof character === "object")
+			.toArray();
 	}
 
 	@Bound private choose () {

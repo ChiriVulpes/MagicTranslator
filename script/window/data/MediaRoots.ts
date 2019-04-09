@@ -1,7 +1,7 @@
 import Captures from "data/Captures";
 import Characters from "data/Characters";
+import Serializable, { Serialized } from "data/Serialized";
 import { tuple } from "util/Arrays";
-import { TriggerHandler, Triggers } from "util/FieldSetTriggers";
 import FileSystem from "util/FileSystem";
 import IndexedMap from "util/Map";
 import Stream from "util/stream/Stream";
@@ -15,12 +15,12 @@ export default new class Media extends Map<string, MediaRoot> {
 	}
 
 	public async addRoot (root: string) {
-		this.set(root, await MediaRoot.initialize(root));
+		this.set(root, await new MediaRoot(root).load());
 	}
 
 	private async getRoots () {
 		return options.rootFolders.stream()
-			.map(async root => tuple(root, await MediaRoot.initialize(root)))
+			.map(async root => tuple(root, await new MediaRoot(root).load()))
 			.rest();
 	}
 };
@@ -43,22 +43,12 @@ export interface RootMetadata {
 	};
 }
 
-@TriggerHandler("save")
-class MediaRoot {
-
-	public static async initialize (root: string) {
-		const jsonData = await FileSystem.readFile(`${root}/metadata.json`, "utf8")
-			.catch(() => { });
-
-		const metadata: Partial<RootMetadata> = JSON.parse(jsonData || "{}");
-
-		return new MediaRoot(root, metadata.name, metadata.structure).load();
-	}
+class MediaRoot extends Serializable {
 
 	public readonly characters = new Characters(this.root);
 
-	@Triggers public name: string | undefined;
-	@Triggers public structure: RootMetadata["structure"] = {
+	@Serialized public name: string | undefined;
+	@Serialized public structure: RootMetadata["structure"] = {
 		volume: "vol##",
 		chapter: "ch###",
 		page: "###",
@@ -70,27 +60,18 @@ class MediaRoot {
 
 	public volumes: IndexedMap<string, IndexedMap<string, Page[]>>;
 
-	private constructor (private readonly root: string, name?: string, structure?: RootMetadata["structure"]) {
-		this.name = name;
-		this.structure = structure || this.structure;
+	public constructor (private readonly root: string) {
+		super(`${root}/metadata.json`);
 	}
 
 	public getDisplayName () {
 		return this.name || path.basename(this.root);
 	}
 
-	public async load () {
+	@Override public async load () {
+		await super.load();
 		this.volumes = await this.getVolumes();
 		return this;
-	}
-
-	public async save () {
-		const data: RootMetadata = {
-			name: this.name,
-			structure: this.structure,
-		};
-
-		await FileSystem.writeFile(`${this.root}/metadata.json`, JSON.stringify(data, undefined, "\t"));
 	}
 
 	public getPath (pathType: "raw" | "translated" | "capture" | "save", volume: number, chapter: number, page: number): string;

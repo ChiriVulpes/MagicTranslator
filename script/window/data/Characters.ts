@@ -1,4 +1,4 @@
-import FileSystem from "util/FileSystem";
+import Serializable, { Serialized } from "data/Serialized";
 
 export interface CharacterData {
 	id: number;
@@ -17,27 +17,16 @@ export enum BasicCharacter {
 	Unknown = "unknown",
 }
 
-export default class Characters {
+export default class Characters extends Serializable {
 
-	public constructor (private readonly root: string) { }
+	@Serialized public characterId = 0;
+	@Serialized public characters: CharacterData[] = [];
 
-	public async load (): Promise<CharactersData> {
-		const jsonData = await FileSystem.priority.readFile(`${this.getCharactersPath()}/characters.json`, "utf8")
-			.catch(() => { });
-
-		const charactersData: Partial<CharactersData> = JSON.parse(jsonData || "{}");
-
-		return {
-			characterId: charactersData.characterId || 0,
-			characters: charactersData.characters || [],
-		};
+	public constructor (private readonly root: string) {
+		super(`${root}/character/characters.json`);
 	}
 
-	public async save (data: CharactersData) {
-		await FileSystem.writeFile(`${this.getCharactersPath()}/characters.json`, JSON.stringify(data, undefined, "\t"));
-	}
-
-	public getCharactersPath () {
+	public getPath () {
 		return `${this.root}/character`;
 	}
 }

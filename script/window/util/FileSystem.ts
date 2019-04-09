@@ -82,6 +82,15 @@ class FileSystem {
 		});
 	}
 
+	public async rename (filepath: string, newFilepath: string) {
+		return this.concurrent.promise<void>((resolve, reject) => {
+			nodefs.rename(filepath, newFilepath, err => {
+				if (err) reject(err);
+				else resolve();
+			});
+		});
+	}
+
 }
 
 export default new class extends FileSystem {

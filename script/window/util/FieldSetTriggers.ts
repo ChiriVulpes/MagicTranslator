@@ -1,4 +1,5 @@
 const SYMBOL_TRIGGER_FIELDS = Symbol("TRIGGER_FIELDS");
+const SYMBOL_NON_PROXY_STORAGE = Symbol("NON_PROXY_STORAGE");
 
 interface TriggerHandlerClass {
 	[SYMBOL_TRIGGER_FIELDS]: Map<any, (string | number | symbol)[]>;
@@ -11,17 +12,33 @@ export function Triggers (host: any, property: string | number | symbol) {
 		.push(property);
 }
 
+export module Triggers {
+	export function get<T> (inst: T): (keyof T)[] {
+		const h = inst.constructor as any as TriggerHandlerClass;
+		return (h[SYMBOL_TRIGGER_FIELDS] || new Map())
+			.getOrDefault(h, () => []) as any;
+	}
+
+	export function getNonProxyValue<T, P extends keyof T> (inst: T, prop: P): T[P] {
+		const nonProxyStorage = (inst as any)[SYMBOL_NON_PROXY_STORAGE];
+		return nonProxyStorage && nonProxyStorage[prop];
+	}
+}
+
 export function TriggerHandler<M extends string | number | symbol> (method: M) {
 	// tslint:disable-next-line ban-types
 	return <C extends Function & { prototype: { [key in M]: (...args: any[]) => any } }> (constructor: C): C => {
 		return class extends (constructor as any) {
+
+			private [SYMBOL_NON_PROXY_STORAGE]: any = {};
+
 			public constructor (...args: any[]) {
 				super(...args);
 				const host = this.constructor as any as TriggerHandlerClass;
 				for (const [hostClass, triggers] of host[SYMBOL_TRIGGER_FIELDS] || new Map()) {
 					if (this instanceof hostClass) {
 						for (const property of triggers) {
-							let baseValue = this[property as keyof this];
+							let baseValue = this[SYMBOL_NON_PROXY_STORAGE][property] = this[property as keyof this];
 							let value: any | undefined;
 							Object.defineProperty(this, property, {
 								get () {
@@ -31,7 +48,7 @@ export function TriggerHandler<M extends string | number | symbol> (method: M) {
 									return value;
 								},
 								set (newValue: any) {
-									baseValue = newValue;
+									baseValue = this[SYMBOL_NON_PROXY_STORAGE][property] = newValue;
 									value = undefined;
 									(this[method] as any)(newValue, property);
 								},
