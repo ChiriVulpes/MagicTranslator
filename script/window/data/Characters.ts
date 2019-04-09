@@ -22,7 +22,7 @@ export default class Characters {
 	public constructor (private readonly root: string) { }
 
 	public async load (): Promise<CharactersData> {
-		const jsonData = await FileSystem.readFile(`${this.getCharactersPath()}/characters.json`, "utf8")
+		const jsonData = await FileSystem.priority.readFile(`${this.getCharactersPath()}/characters.json`, "utf8")
 			.catch(() => { });
 
 		const charactersData: Partial<CharactersData> = JSON.parse(jsonData || "{}");
