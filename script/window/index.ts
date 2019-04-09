@@ -22,7 +22,6 @@ declare global {
 	}
 
 	const options: Options;
-	function actionBar<K extends string | number> (...actions: Action<K>[]): ActionBar<K>;
 
 	type RequireFunction = <T = any>(module: string) => T;
 
@@ -98,18 +97,10 @@ delete (window as any).nodeRequire;
 // Document
 //
 
-import ActionBar, { Action } from "component/actionbar/ActionBar";
 import Component from "component/Component";
 import Content from "component/content/Content";
 import Header from "component/header/Header";
 
-const actionBar = new ActionBar();
-(window as any).actionBar = (...actions: any[]) => {
-	if (actions.length) return actionBar.setActions(...actions);
-	return actionBar;
-};
-
 Component.get(document.body)
 	.append(new Header())
-	.append((window as any).app = new Content())
-	.append(actionBar);
+	.append((window as any).app = new Content());
