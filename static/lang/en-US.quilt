@@ -44,7 +44,7 @@ import: Import
 add-project: Add Project
 confirm-remove-project: Are you sure you want to remove\n"{0}"?
 confirm-remove-project-description: No metadata will be deleted, so you can add this project again at a later date.
-settings: Settings
+app-settings: App Settings
 file-structure: File Structure
 volume-path: Volume Path
 chapter-path: Chapter Path
@@ -73,3 +73,4 @@ requires-restart: Changing this option requires a restart.
 requires-restart-description: Would you like to restart?
 missing-translations: Missing Translations
 character-dropdown: {0}
+project-settings: Project Settings

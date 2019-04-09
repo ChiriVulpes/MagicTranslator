@@ -56,7 +56,7 @@ export default class Explorer extends Component {
 
 		new Component("button")
 			.classes.add("float-right")
-			.setText("settings")
+			.setText("app-settings")
 			.listeners.add("click", this.onSettings)
 			.appendTo(this.actionWrapper);
 
@@ -68,6 +68,12 @@ export default class Explorer extends Component {
 		this.explorerWrapper.dump();
 
 		this.addBackButton(this.showProjects);
+
+		new Component("button")
+			.classes.add("float-right")
+			.setText("project-settings")
+			.listeners.add("click", this.onRootSettings(root))
+			.appendTo(this.actionWrapper);
 
 		const project = Projects.current = Projects.get(root)!;
 
@@ -170,10 +176,7 @@ export default class Explorer extends Component {
 	@Bound private addProjectButton (root: string) {
 		return this.addImageButton(root)
 			.classes.add("project-button")
-			.listeners.add("click", () => this.showVolumes(root))
-			.append(new Component("button")
-				.setText("settings")
-				.listeners.add("click", this.onRootSettings(root)));
+			.listeners.add("click", () => this.showVolumes(root));
 	}
 
 	private addImageButton (volume?: number, chapter?: number, page?: number): ImageButton;
@@ -281,8 +284,9 @@ export default class Explorer extends Component {
 
 			const rootSettingsButton = Component.get(event).ancestors<ImageButton>(".project-button").first()!;
 
-			if (!Projects.has(root)) rootSettingsButton.remove();
-			else rootSettingsButton.title.refreshText();
+			const project = Projects.get(root);
+			if (!project) rootSettingsButton.remove();
+			else Header.setTitle(() => new Translation("title").get({ root: project.getDisplayName() }));
 		};
 	}
 
