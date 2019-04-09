@@ -42,7 +42,7 @@ export default class Extractor extends Component {
 
 		const project = Projects.get(root)!;
 
-		const [volumeNumber, chapterNumber, pageNumber] = project.getNumbers(volume, chapter, page);
+		const [volumeNumber, chapterNumber, pageNumber] = project.getSegmentNumbers(volume, chapter, page);
 
 		new Component()
 			.classes.add("page-wrapper")
@@ -105,7 +105,7 @@ export default class Extractor extends Component {
 
 		const roots = {
 			capture: this.getCapturePagePath(),
-			character: Projects.get(this.root)!.characters.getPath(),
+			character: Projects.get(this.root)!.getPath("characters"),
 		};
 
 		const captureComponent = new Capture(roots, capture)

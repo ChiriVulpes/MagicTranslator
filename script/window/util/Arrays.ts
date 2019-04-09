@@ -1,5 +1,14 @@
 import { generalRandom } from "util/Random";
 
+/**
+ * This is functionally identical to `as const`, except it only works on primitives.
+ * But it's shorter!
+ */
+export function exact<T extends string | number | boolean | null | undefined> (item: T): T;
+export function exact<T> (item: T): T {
+	return item;
+}
+
 export function tuple<T extends any[]> (...items: T): T {
 	return items;
 }

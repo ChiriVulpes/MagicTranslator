@@ -104,6 +104,8 @@
 			margin: 15px;
 			border: 1px solid #fff1;
 			text-align: left;
+			max-height: calc(100vh - 200px);
+			overflow: auto;
 			
 			> h2 {
 				margin-top: 0;

@@ -30,30 +30,43 @@ export interface Page {
 	captures: Captures;
 }
 
-export interface ProjectStructure {
-	volume: string;
-	chapter: string;
-	page: string;
-	raw: string;
-	translated: string;
-	capture: string;
-	save: string;
+function stringTuple<A extends string[]> (...args: A): A { return args; }
+
+export const pathSegments = stringTuple("volume", "chapter", "page");
+export type PagePathSegment = (typeof pathSegments)[number];
+export module PagePathSegment {
+	export function is (value: unknown): value is PagePathSegment {
+		return pathSegments.includes(value as any);
+	}
 }
+
+export const pathTypes = stringTuple("raw", "translated", "capture", "save");
+export type PagePathType = (typeof pathTypes)[number];
+export module PagePathType {
+	export function is (value: unknown): value is PagePathType {
+		return pathTypes.includes(value as any);
+	}
+}
+
+export type ProjectStructure = typeof defaultProjectStructure;
+
+const defaultProjectStructure = {
+	volume: "vol##",
+	chapter: "ch###",
+	page: "###",
+	characters: "character",
+	raw: "{volume}/{chapter}/raw/{page}.png",
+	translated: "{volume}/{chapter}/translated/{page}.png",
+	capture: "{volume}/{chapter}/capture/{page}",
+	save: "{volume}/{chapter}/save/{page}",
+};
 
 class Project extends Serializable {
 
-	public readonly characters = new Characters(this.root);
+	public characters: Characters;
 
 	@Serialized public name: string | undefined;
-	@Serialized public structure: ProjectStructure = {
-		volume: "vol##",
-		chapter: "ch###",
-		page: "###",
-		raw: "{volume}/{chapter}/raws/{page}.png",
-		translated: "{volume}/{chapter}/translated/{page}.png",
-		capture: "{volume}/{chapter}/capture/{page}",
-		save: "{volume}/{chapter}/save/{page}",
-	};
+	@Serialized public structure: ProjectStructure = { ...defaultProjectStructure };
 
 	public volumes: IndexedMap<string, IndexedMap<string, Page[]>>;
 
@@ -67,14 +80,29 @@ class Project extends Serializable {
 
 	@Override public async load () {
 		await super.load();
+		this.canSave = false;
+
+		for (const key of Stream.keys(defaultProjectStructure)) {
+			if (!(key in this.structure)) {
+				this.structure[key] = defaultProjectStructure[key];
+			}
+		}
+
+		this.canSave = true;
+
+		this.characters = await new Characters(this.getPath("characters")).load();
 		this.volumes = await this.getVolumes();
 		return this;
 	}
 
-	public getPath (pathType: "raw" | "translated" | "capture" | "save", volume: number, chapter: number, page: number): string;
-	public getPath (pathType: "raw" | "translated" | "capture" | "save", volume: string, chapter: string, page: string): string;
-	public getPath (pathType: "raw" | "translated" | "capture" | "save", volume: string | number, chapter: string | number, page: string | number) {
-		[volume, chapter, page] = this.getNumbers(volume as number, chapter as number, page as number);
+	public getPath (pathType: "characters"): string;
+	public getPath (pathType: PagePathType, volume: number, chapter: number, page: number): string;
+	public getPath (pathType: PagePathType, volume: string, chapter: string, page: string): string;
+	public getPath (pathType: PagePathType | "characters", volume?: string | number, chapter?: string | number, page?: string | number) {
+		if (pathType === "characters")
+			return path.join(this.root, this.structure[pathType]);
+
+		[volume, chapter, page] = this.getSegmentNumbers(volume as number, chapter as number, page as number);
 		const result = path.join(this.root, interpolate(this.structure[pathType], Stream.entries({ volume, chapter, page })
 			.map(([name, value]) => tuple(name, this.getSegment(name, value)))
 			.toObject()));
@@ -86,12 +114,12 @@ class Project extends Serializable {
 		return this.volumes.getByIndex(volume)!.getByIndex(chapter)![page];
 	}
 
-	public getPaths (volume: number): [string];
-	public getPaths (volume: number, chapter: number): [string, string];
-	public getPaths (volume: number, chapter: number, page: number): [string, string, string];
-	public getPaths (volume: number, chapter: number, page?: number): [string, string?, string?];
-	public getPaths (volume: number, chapter?: number, page?: number): [string?, string?, string?];
-	public getPaths (volume: number, chapter?: number, page?: number): [string?, string?, string?] {
+	public getPathSegments (volume: number): [string];
+	public getPathSegments (volume: number, chapter: number): [string, string];
+	public getPathSegments (volume: number, chapter: number, page: number): [string, string, string];
+	public getPathSegments (volume: number, chapter: number, page?: number): [string, string?, string?];
+	public getPathSegments (volume: number, chapter?: number, page?: number): [string?, string?, string?];
+	public getPathSegments (volume: number, chapter?: number, page?: number): [string?, string?, string?] {
 		const volumeString = this.volumes.getKey(volume);
 		if (chapter === undefined) return [volumeString];
 
@@ -103,19 +131,19 @@ class Project extends Serializable {
 		return [volumeString, chapterString, pages[page] && pages[page].filename];
 	}
 
-	public getNumbers (volume: number): [number];
-	public getNumbers (volume: number, chapter: number): [number, number];
-	public getNumbers (volume: number, chapter: number, page: number): [number, number, number];
-	public getNumbers (volume: number, chapter: number, page?: number): [number, number, number?];
-	public getNumbers (volume: number, chapter?: number, page?: number): [number, number?, number?];
-	public getNumbers (volume: string): [number];
-	public getNumbers (volume: string, chapter: string): [number, number];
-	public getNumbers (volume: string, chapter: string, page: string): [number, number, number];
-	public getNumbers (volume: string, chapter: string, page?: string): [number, number, number?];
-	public getNumbers (volume: string, chapter?: string, page?: string): [number, number?, number?];
-	public getNumbers (volume: number | string, chapter?: number | string, page?: number | string): [number?, number?, number?] {
+	public getSegmentNumbers (volume: number): [number];
+	public getSegmentNumbers (volume: number, chapter: number): [number, number];
+	public getSegmentNumbers (volume: number, chapter: number, page: number): [number, number, number];
+	public getSegmentNumbers (volume: number, chapter: number, page?: number): [number, number, number?];
+	public getSegmentNumbers (volume: number, chapter?: number, page?: number): [number, number?, number?];
+	public getSegmentNumbers (volume: string): [number];
+	public getSegmentNumbers (volume: string, chapter: string): [number, number];
+	public getSegmentNumbers (volume: string, chapter: string, page: string): [number, number, number];
+	public getSegmentNumbers (volume: string, chapter: string, page?: string): [number, number, number?];
+	public getSegmentNumbers (volume: string, chapter?: string, page?: string): [number, number?, number?];
+	public getSegmentNumbers (volume: number | string, chapter?: number | string, page?: number | string): [number?, number?, number?] {
 		if (typeof volume === "number") {
-			[volume, chapter, page] = this.getPaths(volume, chapter as number, page as number);
+			[volume, chapter, page] = this.getPathSegments(volume, chapter as number, page as number);
 		}
 
 		return [
@@ -159,7 +187,7 @@ class Project extends Serializable {
 		return RegExp(post(`^${this.structure[key]}$`.replace(/#/g, "\\d")));
 	}
 
-	private getSegment (name: "volume" | "chapter" | "page", value: number | string) {
+	private getSegment (name: PagePathSegment, value: number | string) {
 		let segment = this.structure[name];
 		if (name === "chapter" && !Number.isInteger(parseFloat(`${value}`))) segment = segment.replace("#", "###");
 		return typeof value === "string" ? value : segment.replace(/#+/, match => pad(value, match.length));

@@ -49,11 +49,12 @@ file-structure: File Structure
 volume-path: Volume Path
 chapter-path: Chapter Path
 page-path: Page Path
+characters-path: Characters Path
 example: Example
 main: Main
 directory: Directory
 restore: Restore
-path-segment-input-error: {0} path cannot have separated digits.
+path-segment-input-error: {0} path cannot have separated digits or slashes /.
 path-full-input-error: {0} path must use \{volume\}, \{chapter\}, and \{page\}, in this order, each a different folder, or subfolder.
 raw-path: Raw Page Path
 translated-path: Translated Page Path

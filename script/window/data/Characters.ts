@@ -23,10 +23,10 @@ export default class Characters extends Serializable {
 	@Serialized public characters: CharacterData[] = [];
 
 	public constructor (private readonly root: string) {
-		super(`${root}/character/characters.json`);
+		super(`${root}/characters.json`);
 	}
 
 	public getPath () {
-		return `${this.root}/character`;
+		return this.root;
 	}
 }

@@ -4,14 +4,12 @@ import Input from "component/shared/Input";
 import Interrupt from "component/shared/Interrupt";
 import LabelledRow from "component/shared/LabelledRow";
 import Tooltip from "component/shared/Tooltip";
-import Projects, { ProjectStructure } from "data/Projects";
-import { tuple } from "util/Arrays";
+import Projects, { PagePathSegment, pathSegments, pathTypes, ProjectStructure } from "data/Projects";
+import { exact, tuple } from "util/Arrays";
 import { generalRandom } from "util/Random";
 import Stream from "util/stream/Stream";
 import { interpolate } from "util/string/Interpolator";
 import Translation from "util/string/Translation";
-
-const pathSegments = ["volume", "chapter", "page"] as (keyof ProjectStructure)[];
 
 export default class ProjectSettings extends SettingsInterrupt {
 	private readonly pathInputs = new Map<keyof ProjectStructure, Input>();
@@ -37,12 +35,12 @@ export default class ProjectSettings extends SettingsInterrupt {
 			.append(new Component("button")
 				.classes.add("float-right")
 				.setText("remove")
-				.listeners.add("click", this.onRemove));
+				.listeners.add("click", this.onRemoveProject));
 
 		this.addSection("file-structure")
-			.append(Stream.of<(keyof ProjectStructure)[]>("volume", "chapter", "page", "raw", "translated", "save", "capture")
+			.append(Stream.of(...pathSegments, ...pathTypes, exact("characters"))
 				.map(pathType => new Component()
-					.classes.toggle(!pathSegments.includes(pathType), "path-full")
+					.classes.toggle(!PagePathSegment.is(pathType), "path-full")
 					.append(new LabelledRow(`${pathType}-path`)
 						.append(new Input()
 							.attributes.set("path-type", pathType)
@@ -51,11 +49,13 @@ export default class ProjectSettings extends SettingsInterrupt {
 							.schedule(input => this.pathInputs.set(pathType, input
 								.schedule(Tooltip.register, tooltip => tooltip
 									.setText(() => input.attributes.get("error")!))))))
-					.append(pathSegments.includes(pathType) ? undefined : new LabelledRow("example")
+					.append(PagePathSegment.is(pathType) ? undefined : new LabelledRow("example")
 						.classes.add("example")
 						.append(new Component("span")
 							.classes.add("file-structure-path-example")
 							.setText(this.getPathExample(pathType))))));
+
+		this.listeners.add("remove", this.onClose);
 	}
 
 	public wasFileStructureChanged () {
@@ -68,8 +68,8 @@ export default class ProjectSettings extends SettingsInterrupt {
 		const inputText = input.getText().trim();
 		const pathType = input.attributes.get<keyof ProjectStructure>("path-type");
 		let error: false | string = false;
-		if (pathSegments.includes(pathType)) {
-			error = /#[^#]+#/.test(inputText) &&
+		if (PagePathSegment.is(pathType)) {
+			error = (/#[^#]+#/.test(inputText) || /[\\/]/.test(inputText)) &&
 				new Translation("path-segment-input-error").get(pathType);
 		} else {
 			const match = inputText.match(RegExp(`^[^{}]*?${pathSegments.map(segment => `{${segment}}`).join("[^{}]*?/[^{}]*?")}[^{}]*?$`));
@@ -90,7 +90,7 @@ export default class ProjectSettings extends SettingsInterrupt {
 		this.changedFileStructure = true;
 	}
 
-	@Bound private async onRemove () {
+	@Bound private async onRemoveProject () {
 		const confirm = await Interrupt.confirm(interrupt => interrupt
 			.setTitle(() => new Translation("confirm-remove-project").get(path.basename(this.root)))
 			.setDescription("confirm-remove-project-description"));
@@ -113,6 +113,11 @@ export default class ProjectSettings extends SettingsInterrupt {
 		Projects.addProject(this.root);
 		options.projectFolders.push(this.root);
 		this.restoreButton!.remove();
+	}
+
+	@Bound private async onClose () {
+		await Projects.get(this.root)!.load();
+		this.emit("close");
 	}
 
 	private getPathExample (pathType: keyof ProjectStructure) {

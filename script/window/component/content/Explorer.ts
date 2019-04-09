@@ -6,7 +6,7 @@ import Header from "component/header/Header";
 import Tooltip from "component/shared/Tooltip";
 import { CaptureData } from "data/Captures";
 import Dialog from "data/Dialog";
-import Projects from "data/Projects";
+import Projects, { PagePathSegment } from "data/Projects";
 import Options from "Options";
 import { tuple } from "util/Arrays";
 import { sleep } from "util/Async";
@@ -113,7 +113,7 @@ export default class Explorer extends Component {
 				.listeners.add("click", () => this.showPages(root, volume, index));
 		}
 
-		const [volumeNumber] = project.getNumbers(volume);
+		const [volumeNumber] = project.getSegmentNumbers(volume);
 		Header.setTitle(() => new Translation("title").get({
 			root: project.getDisplayName(),
 			volume: `${volumeNumber}`,
@@ -162,7 +162,7 @@ export default class Explorer extends Component {
 						.data = tuple(root, volume, chapter, i, i > 0, i < pages.length - 1)));
 		}
 
-		const [volumeNumber, chapterNumber] = project.getNumbers(volume, chapter);
+		const [volumeNumber, chapterNumber] = project.getSegmentNumbers(volume, chapter);
 		Header.setTitle(() => new Translation("title").get({
 			root: project.getDisplayName(),
 			volume: `${volumeNumber}`,
@@ -182,11 +182,11 @@ export default class Explorer extends Component {
 	private addImageButton (root: string, volume?: number, chapter?: number, page?: number) {
 		const missingTranslations = this.getMissingTranslations(root, volume, chapter, page).count();
 
-		let type: "root" | "volume" | "chapter" | "page" | undefined;
+		let type: "root" | PagePathSegment | undefined;
 		[type, volume, chapter, page] = this.getPreviewImageData(root, volume, chapter, page);
 
 		const project = Projects.get(root)!;
-		const [volumeNumber, chapterNumber, pageNumber] = project.getNumbers(volume, chapter, page);
+		const [volumeNumber, chapterNumber, pageNumber] = project.getSegmentNumbers(volume, chapter, page);
 
 		return new ImageButton(project.getPath("raw", volume, chapter, page))
 			.setText(() => type === "root" ? project.getDisplayName() :
@@ -202,7 +202,7 @@ export default class Explorer extends Component {
 	}
 
 	private getPreviewImageData (root: string, volume?: number, chapter?: number, page?: number) {
-		let type: "root" | "volume" | "chapter" | "page" | undefined;
+		let type: "root" | PagePathSegment | undefined;
 		const project = Projects.get(root)!;
 		if (volume === undefined) type = type || "root", [volume] = project.volumes.indexedEntries().first()!;
 
@@ -265,10 +265,9 @@ export default class Explorer extends Component {
 			event.stopPropagation();
 
 			const projectSettings = new ProjectSettings(root);
-			await projectSettings.listeners.waitFor("remove");
+			await projectSettings.listeners.waitFor("close");
 
 			if (projectSettings.wasFileStructureChanged()) {
-				await Projects.get(root)!.load();
 				this.showProjects();
 				return;
 			}

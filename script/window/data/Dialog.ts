@@ -10,8 +10,8 @@ import FileSystem from "util/FileSystem";
 export class DialogImpl {
 	public async export (root: string, volume: number, chapter: number, page?: number) {
 		const project = Projects.get(root)!;
-		const [volumeString, chapterString] = project.getPaths(volume, chapter);
-		const [volumeNumber, chapterNumber, pageNumber] = project.getNumbers(volume, chapter, page);
+		const [volumeString, chapterString] = project.getPathSegments(volume, chapter);
+		const [volumeNumber, chapterNumber, pageNumber] = project.getSegmentNumbers(volume, chapter, page);
 
 		let result = `# Volume ${volumeNumber}, Chapter ${chapterNumber}`;
 
@@ -43,7 +43,7 @@ export class DialogImpl {
 
 	private async exportPage (root: string, volume: number, chapter: number, page: number) {
 		const project = Projects.get(root)!;
-		const [, , pageNumber] = project.getNumbers(volume, chapter, page);
+		const [, , pageNumber] = project.getSegmentNumbers(volume, chapter, page);
 		let result = `Page ${pageNumber}\n\n`;
 
 		const captures = await project.getPage(volume, chapter, page).captures;

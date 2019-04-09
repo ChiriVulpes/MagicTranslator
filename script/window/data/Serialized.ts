@@ -8,8 +8,8 @@ export { Triggers as Serialized };
 @TriggerHandler("save")
 export default class Serializable {
 
+	protected canSave = false;
 	private saving?: Promise<void>;
-	private canSave = false;
 
 	public constructor (private readonly path: string) { }
 
