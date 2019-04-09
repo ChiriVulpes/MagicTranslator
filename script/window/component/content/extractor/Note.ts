@@ -5,7 +5,7 @@ import { sleep } from "util/Async";
 
 export default class Note extends SortableListItem {
 
-	private readonly ja = new Textarea()
+	protected readonly ja = new Textarea()
 		.classes.add("japanese")
 		.listeners.add("change", this.changeTextarea)
 		.listeners.add("blur", this.blurTextarea)
@@ -14,7 +14,7 @@ export default class Note extends SortableListItem {
 		.setPlaceholder("source-placeholder")
 		.appendTo(this);
 
-	private readonly en = new Textarea()
+	protected readonly en = new Textarea()
 		.classes.add("translation")
 		.listeners.add("change", this.changeTextarea)
 		.listeners.add("blur", this.blurTextarea)
@@ -42,10 +42,10 @@ export default class Note extends SortableListItem {
 		const textarea = Component.get<Textarea>(event);
 		const ja = textarea.classes.has("japanese");
 		this.noteData[ja ? 0 : 1] = textarea.getText();
-		sleep(0.2).then(() => {
-			const height = Math.max(this.ja.getHeight(), this.en.getHeight());
-			[this.en, this.ja].forEach(t => t.setHeight(height));
-		});
+		// sleep(0.2).then(() => {
+		// 	const height = Math.max(this.ja.getHeight(), this.en.getHeight());
+		// 	[this.en, this.ja].forEach(t => t.setHeight(height));
+		// });
 		this.emit("note-change");
 	}
 

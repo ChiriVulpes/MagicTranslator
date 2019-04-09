@@ -6,7 +6,6 @@ import Header from "component/header/Header";
 import Dropdown from "component/shared/Dropdown";
 import Interrupt from "component/shared/Interrupt";
 import SortableList, { SortableListEvent } from "component/shared/SortableList";
-import Textarea from "component/shared/Textarea";
 import Captures, { CaptureData } from "data/Captures";
 import { BasicCharacter } from "data/Characters";
 import Dialog from "data/Dialog";
@@ -353,11 +352,11 @@ export default class Extractor extends Component {
 			}
 		}
 
-		if (Extractor.displayMode === DisplayMode.Translate) {
-			for (const textarea of this.capturesWrapper.descendants<Textarea>(".textarea")) {
-				textarea.setHeight();
-			}
-		}
+		// if (Extractor.displayMode === DisplayMode.Translate) {
+		// 	for (const textarea of this.capturesWrapper.descendants<Textarea>(".textarea")) {
+		// 		textarea.setHeight();
+		// 	}
+		// }
 
 		this.setPageImage();
 	}

@@ -1,8 +1,26 @@
 import Component, { TextGenerator } from "component/Component";
-import { sleep } from "util/Async";
 import Translation from "util/string/Translation";
 
 export default class Textarea extends Component {
+
+	private static readonly list: Textarea[] = [];
+	private static index = 0;
+	private static setTextareaHeight () {
+		if (!Textarea.list.length) return;
+
+		const count = Math.min(50, Textarea.list.length);
+		for (let i = 0; i < count; i++) {
+			if (!Textarea.list.length) return;
+			if (Textarea.index >= Textarea.list.length || Textarea.index < 0) Textarea.index = 0;
+
+			const textarea = Textarea.list[Textarea.index++];
+			// if (!document.contains(textarea.element())) Textarea.list.splice(--Textarea.index, 1);
+			// else
+			textarea.setHeight();
+		}
+
+		setTimeout(Textarea.setTextareaHeight, 10);
+	}
 
 	private textarea = new Component("textarea")
 		.listeners.add(["change", "keyup", "paste", "input", "focus"], this.onChange)
@@ -15,11 +33,22 @@ export default class Textarea extends Component {
 		.appendTo(this);
 
 	private placeholderTextGenerator: () => string | number;
-	private handleHeight = true;
 
 	public constructor () {
 		super();
 		this.classes.add("textarea");
+
+		const shouldStart = !Textarea.list.length;
+		Textarea.list.push(this);
+		if (shouldStart) Textarea.setTextareaHeight();
+		this.listeners.waitFor("remove")
+			.then(() => {
+				const index = Textarea.list.indexOf(this);
+				if (index >= 0) {
+					Textarea.list.splice(index, 1);
+					Textarea.index--;
+				}
+			});
 	}
 
 	public getText () {
@@ -28,16 +57,6 @@ export default class Textarea extends Component {
 
 	public getHeight () {
 		return this.hiddenTextarea.box().height;
-	}
-
-	public setHandleHeight (handleHeight: boolean) {
-		this.handleHeight = handleHeight;
-		return this;
-	}
-
-	@Bound public setHeight (height = this.getHeight()) {
-		this.style.set("--height", `${height}px`);
-		return this;
 	}
 
 	public setPlaceholder (translation: TextGenerator) {
@@ -51,7 +70,7 @@ export default class Textarea extends Component {
 		this.textarea.element<HTMLTextAreaElement>().value = this.textGenerator ? `${this.textGenerator()}` : "";
 		this.setHiddenTextareaText();
 		this.attributes.set("placeholder", this.placeholderTextGenerator ? `${this.placeholderTextGenerator()}` : "");
-		if (this.handleHeight) sleep(0.2).then(() => this.setHeight());
+		this.setHeight();
 		this.emit("change");
 		return this;
 	}
@@ -62,8 +81,13 @@ export default class Textarea extends Component {
 		}
 
 		this.setHiddenTextareaText();
-		if (this.handleHeight) sleep(0.01).then(() => this.setHeight());
+		this.setHeight();
 		this.emit("change");
+	}
+
+	@Bound private setHeight (height = this.getHeight()) {
+		this.style.set("--height", `${height}px`);
+		return this;
 	}
 
 	private setHiddenTextareaText () {
