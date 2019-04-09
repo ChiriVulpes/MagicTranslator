@@ -277,16 +277,14 @@ export default class Explorer extends Component {
 			const projectSettings = new ProjectSettings(root);
 			await projectSettings.listeners.waitFor("close");
 
-			if (projectSettings.wasFileStructureChanged()) {
+			const project = Projects.get(root);
+
+			if (projectSettings.wasFileStructureChanged() || !project) {
 				this.showProjects();
 				return;
 			}
 
-			const rootSettingsButton = Component.get(event).ancestors<ImageButton>(".project-button").first()!;
-
-			const project = Projects.get(root);
-			if (!project) rootSettingsButton.remove();
-			else Header.setTitle(() => new Translation("title").get({ root: project.getDisplayName() }));
+			if (project) Header.setTitle(() => new Translation("title").get({ root: project.getDisplayName() }));
 		};
 	}
 
