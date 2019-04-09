@@ -1,4 +1,6 @@
 import Serializable, { Serialized } from "data/Serialized";
+import Enums from "util/Enums";
+import Translation from "util/string/Translation";
 
 export interface CharacterData {
 	id: number;
@@ -22,11 +24,30 @@ export default class Characters extends Serializable {
 	@Serialized public characterId = 0;
 	@Serialized public characters: CharacterData[] = [];
 
-	public constructor (private readonly root: string) {
+	public constructor (root: string) {
 		super(`${root}/characters.json`);
 	}
 
-	public getPath () {
-		return this.root;
+	public get (id: number) {
+		return this.characters.stream()
+			.first(character => character.id === id);
+	}
+
+	public findByName (name: string) {
+		const basicCharacter = Enums.values(BasicCharacter)
+			.filter(character => new Translation(`character-${character}`).get().toLowerCase() === name.toLowerCase())
+			.first();
+
+		if (basicCharacter !== undefined) return basicCharacter;
+
+		return this.characters.stream()
+			.first(character => character.name === name, {} as CharacterData)
+			.id;
+	}
+
+	public getName (character: number | BasicCharacter | CharacterData): string;
+	public getName (character: number | BasicCharacter | CharacterData | undefined) {
+		if (typeof character === "number") character = this.get(character);
+		return !character ? "" : typeof character === "object" ? character.name : new Translation(`character-${character.toLowerCase()}`).get();
 	}
 }

@@ -2,6 +2,7 @@ import { tuple } from "util/Arrays";
 import { TriggerHandler, Triggers } from "util/FieldSetTriggers";
 import FileSystem from "util/FileSystem";
 import { Objects } from "util/Objects";
+import Path from "util/string/Path";
 
 export { Triggers as Serialized };
 
@@ -46,7 +47,7 @@ export default class Serializable {
 		if (jsonData) try {
 			return JSON.parse(jsonData);
 		} catch (err) {
-			const ext = path.extname(this.path);
+			const ext = Path.extname(this.path);
 			await FileSystem.rename(this.path, this.path.slice(0, -ext.length) + ".error" + ext);
 		}
 
@@ -57,7 +58,7 @@ export default class Serializable {
 		if (!this.shouldSaveFileExist())
 			return FileSystem.unlink(this.path);
 
-		await FileSystem.mkdir(path.dirname(this.path));
+		await FileSystem.mkdir(Path.dirname(this.path));
 
 		const translationData = await this.loadInternal();
 		const newTranslationData = Triggers.get(this).stream()

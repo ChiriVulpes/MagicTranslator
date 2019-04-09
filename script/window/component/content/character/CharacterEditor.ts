@@ -8,66 +8,19 @@ import Enums from "util/Enums";
 import FileSystem from "util/FileSystem";
 import { ComponentEvent } from "util/Manipulator";
 import { pad } from "util/string/String";
-import Translation from "util/string/Translation";
 
 export default class CharacterEditor extends Component {
 
-	public static async setRoot (root: string) {
-		const editor = Component.get<CharacterEditor>("#character-editor");
-		const characters = Projects.get(root)!.characters;
-
-		if (editor.characters === characters) return;
-		editor.characters = characters;
-
-		await characters.load();
-
-		editor.characterWrapper.dump();
-		characters.characters.stream()
-			.filter<undefined>(character => character)
-			.merge(Enums.values(BasicCharacter))
-			.forEach(editor.addCharacter);
-
-		editor.select(BasicCharacter.Unknown);
-	}
-
-	public static getCharacter (id: number) {
-		return Component.get<CharacterEditor>("#character-editor")
-			.characterWrapper
-			.children<Character>()
-			.map(button => button.character)
-			.filter(character => typeof character === "object" && character.id === id)
-			.first();
-	}
-
-	public static findCharacterByName (name: string) {
-		const basicCharacter = Enums.values(BasicCharacter)
-			.filter(character => new Translation(`character-${character}`).get().toLowerCase() === name.toLowerCase())
-			.first();
-
-		if (basicCharacter !== undefined) return basicCharacter;
-
-		return Component.get<CharacterEditor>("#character-editor")
-			.characterWrapper
-			.children<Character>()
-			.map(button => button.character)
-			.filter(character => typeof character === "object" && character.name === name)
-			.first();
-	}
-
-	public static getName (character: number | BasicCharacter | CharacterData): string;
-	public static getName (character: number | BasicCharacter | CharacterData | undefined) {
-		if (typeof character === "number") character = CharacterEditor.getCharacter(character);
-		return !character ? "" : typeof character === "object" ? character.name : new Translation(`character-${character.toLowerCase()}`).get();
-	}
-
 	public static async chooseCharacter (startingCharacter?: number | BasicCharacter) {
-		const characterEditor = Component.get<CharacterEditor>("#character-editor").showChoosing();
-		if (startingCharacter !== undefined) characterEditor.select(characterEditor.startingCharacter = startingCharacter);
+		const editor = await this.initializeEditor();
+		editor.showChoosing();
+
+		if (startingCharacter !== undefined) editor.select(editor.startingCharacter = startingCharacter);
 
 		return new Promise<number | BasicCharacter>(resolve => {
-			characterEditor.listeners.until("choose")
+			editor.listeners.until("choose")
 				.add<ComponentEvent<number | BasicCharacter>>("choose", event => {
-					characterEditor.hide();
+					editor.hide();
 					resolve(event.data);
 				});
 		});
@@ -84,11 +37,32 @@ export default class CharacterEditor extends Component {
 			return;
 		}
 
-		const characterEditor = Component.get<CharacterEditor>("#character-editor");
+		const characterEditor = await this.initializeEditor();
 		const character = await characterEditor.createCharacter(path, name);
 		characterEditor.showViewing(character);
 
-		return CharacterEditor.getCharacter(character);
+		return Projects.current!.characters.get(character);
+	}
+
+	private static async initializeEditor () {
+		const editor = Component.get<CharacterEditor>("#character-editor");
+
+		const characters = Projects.current!.characters;
+		if (editor.characters !== characters) {
+			editor.characters = characters;
+
+			await characters.load();
+
+			editor.characterWrapper.dump();
+			characters.characters.stream()
+				.filter<undefined>(character => character)
+				.merge(Enums.values(BasicCharacter))
+				.forEach(editor.addCharacter);
+
+			editor.select(BasicCharacter.Unknown);
+		}
+
+		return editor;
 	}
 
 	private readonly characterWrapper: Component;
@@ -145,7 +119,7 @@ export default class CharacterEditor extends Component {
 			reader.readAsArrayBuffer(blob!);
 		});
 
-		const charactersPath = this.characters.getPath();
+		const charactersPath = Projects.current!.getPath("characters");
 		await FileSystem.mkdir(charactersPath);
 
 		const id = this.characters.characterId++;
@@ -193,7 +167,7 @@ export default class CharacterEditor extends Component {
 	}
 
 	@Bound private addCharacter (character: CharacterData | BasicCharacter) {
-		const characterButton = new Character(this.characters.getPath(), character, typeof character === "object")
+		const characterButton = new Character(character, typeof character === "object")
 			.listeners.add("click", this.select)
 			.listeners.add("change-name", event => {
 				this.select(event, false);

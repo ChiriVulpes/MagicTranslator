@@ -37,7 +37,7 @@ export default class Content extends Component {
 		this.showExplorer();
 	}
 
-	public showExplorer (startLocation?: [string, number, number]) {
+	public showExplorer (startLocation?: [number, number]) {
 		this.children().drop(2).collectStream().forEach(child => child.remove());
 
 		new Explorer(startLocation)
@@ -45,21 +45,21 @@ export default class Content extends Component {
 			.appendTo(this);
 	}
 
-	public async extractPage (root: string, volume: number, chapter: number, page: number) {
-		const pages = Projects.get(root)!.volumes.getByIndex(volume)!.getByIndex(chapter)!;
+	public async extractPage (volume: number, chapter: number, page: number) {
+		const pages = Projects.current!.volumes.getByIndex(volume)!.getByIndex(chapter)!;
 		return this.onExtractPage({ data: [volume, chapter, page, page > 0, page < pages.length - 1] } as any);
 	}
 
-	@Bound private async onExtractPage ({ data }: ComponentEvent<[string, number, number, number, boolean, boolean]>): Promise<Extractor> {
+	@Bound private async onExtractPage ({ data }: ComponentEvent<[number, number, number, boolean, boolean]>): Promise<Extractor> {
 		this.children().drop(2).collectStream().forEach(child => child.remove());
 
-		const [root, volume, chapter, page] = data;
-		const pages = Projects.get(root)!.volumes.getByIndex(volume)!.getByIndex(chapter)!;
+		const [volume, chapter, page] = data;
+		const pages = Projects.current!.volumes.getByIndex(volume)!.getByIndex(chapter)!;
 
 		return new Extractor(...data)
-			.listeners.add("quit", () => this.showExplorer(tuple(root, volume, chapter)))
-			.listeners.add("previous", () => this.onExtractPage({ data: [root, volume, chapter, page - 1, page > 1, true] } as any))
-			.listeners.add("next", () => this.onExtractPage({ data: [root, volume, chapter, page + 1, true, page < pages.length - 2] } as any))
+			.listeners.add("quit", () => this.showExplorer(tuple(volume, chapter)))
+			.listeners.add("previous", () => this.onExtractPage({ data: [volume, chapter, page - 1, page > 1, true] } as any))
+			.listeners.add("next", () => this.onExtractPage({ data: [volume, chapter, page + 1, true, page < pages.length - 2] } as any))
 			.appendTo(this)
 			.initialize();
 	}

@@ -1,12 +1,11 @@
 import Component, { TextGenerator } from "component/Component";
-import CharacterEditor from "component/content/character/CharacterEditor";
 import GlobalSettings from "component/content/GlobalSettings";
 import ProjectSettings from "component/content/ProjectSettings";
 import Header from "component/header/Header";
 import Tooltip from "component/shared/Tooltip";
 import { CaptureData } from "data/Captures";
 import Dialog from "data/Dialog";
-import Projects, { PagePathSegment } from "data/Projects";
+import Projects, { PagePathSegment, Project } from "data/Projects";
 import Options from "Options";
 import { tuple } from "util/Arrays";
 import { sleep } from "util/Async";
@@ -17,7 +16,7 @@ export default class Explorer extends Component {
 	private readonly explorerWrapper: Component;
 	private readonly actionWrapper: Component;
 
-	public constructor (private readonly startLocation?: [string, number, number]) {
+	public constructor (private readonly startLocation?: [number, number]) {
 		super();
 		this.setId("explorer");
 
@@ -68,49 +67,47 @@ export default class Explorer extends Component {
 		this.actionWrapper.dump();
 		this.explorerWrapper.dump();
 
-		await CharacterEditor.setRoot(root);
-
 		this.addBackButton(this.showProjects);
 
-		const project = Projects.get(root)!;
+		const project = Projects.current = Projects.get(root)!;
 
 		// Dropdown.from(mediaRoot.users)
 		// 	.classes.add("float-right")
 		// 	.appendTo(this.actionWrapper);
 
 		for (const [volumeIndex] of project.volumes.indexedEntries()) {
-			this.addImageButton(root, volumeIndex)
-				.listeners.add("click", () => this.showChapters(root, volumeIndex));
+			this.addImageButton(volumeIndex)
+				.listeners.add("click", () => this.showChapters(volumeIndex));
 		}
 
 		Header.setTitle(() => new Translation("title").get({ root: project.getDisplayName() }));
 	}
 
-	private showChapters (root: string, volume: number) {
+	private showChapters (volume: number) {
 		this.actionWrapper.dump();
 		this.explorerWrapper.dump();
 
-		this.addBackButton(() => this.showVolumes(root));
+		const project = Projects.current!;
 
-		const project = Projects.get(root)!;
+		this.addBackButton(() => this.showVolumes(project.root));
 
 		new Component("button")
 			.setDisabled(volume === 0)
 			.setText("prev-volume")
-			.listeners.add("click", () => this.showChapters(root, volume - 1))
+			.listeners.add("click", () => this.showChapters(volume - 1))
 			.appendTo(this.actionWrapper);
 
 		new Component("button")
 			.setDisabled(volume === project.volumes.size - 1)
 			.setText("next-volume")
-			.listeners.add("click", () => this.showChapters(root, volume + 1))
+			.listeners.add("click", () => this.showChapters(volume + 1))
 			.appendTo(this.actionWrapper);
 
 		const chapters = project.volumes.getByIndex(volume)!;
 
 		for (const [index] of chapters.indexedEntries()) {
-			this.addImageButton(root, volume, index)
-				.listeners.add("click", () => this.showPages(root, volume, index));
+			this.addImageButton(volume, index)
+				.listeners.add("click", () => this.showPages(volume, index));
 		}
 
 		const [volumeNumber] = project.getSegmentNumbers(volume);
@@ -120,46 +117,46 @@ export default class Explorer extends Component {
 		}));
 	}
 
-	private async showPages (root: string, volume: number, chapter: number) {
+	private async showPages (volume: number, chapter: number) {
 		this.actionWrapper.dump();
 		this.explorerWrapper.dump();
 
-		this.addBackButton(() => this.showChapters(root, volume));
+		this.addBackButton(() => this.showChapters(volume));
 
-		const project = Projects.get(root)!;
+		const project = Projects.current!;
 		const chapters = project.volumes.getByIndex(volume)!;
 
 		new Component("button")
 			.setDisabled(chapter === 0)
 			.setText("prev-chapter")
-			.listeners.add("click", () => this.showPages(root, volume, chapter - 1))
+			.listeners.add("click", () => this.showPages(volume, chapter - 1))
 			.appendTo(this.actionWrapper);
 
 		new Component("button")
 			.setDisabled(chapter === chapters.size - 1)
 			.setText("next-chapter")
-			.listeners.add("click", () => this.showPages(root, volume, chapter + 1))
+			.listeners.add("click", () => this.showPages(volume, chapter + 1))
 			.appendTo(this.actionWrapper);
 
 		new Component("button")
 			.classes.add("float-right")
 			.setText("export")
-			.listeners.add("click", () => this.export(root, volume, chapter))
+			.listeners.add("click", () => this.export(volume, chapter))
 			.appendTo(this.actionWrapper);
 
 		new Component("button")
 			.classes.add("float-right")
 			.setText("import")
-			.listeners.add("click", () => this.import(root, volume, chapter))
+			.listeners.add("click", () => this.import(volume, chapter))
 			.appendTo(this.actionWrapper);
 
 		const pages = await project.volumes.getByIndex(volume)!.getByIndex(chapter)!;
 
 		for (let i = 0; i < pages.length; i++) {
-			this.addImageButton(root, volume, chapter, i)
+			this.addImageButton(volume, chapter, i)
 				.listeners.add("click", () => this
-					.emit<[string, number, number, number, boolean, boolean]>("extract", event => event
-						.data = tuple(root, volume, chapter, i, i > 0, i < pages.length - 1)));
+					.emit<[number, number, number, boolean, boolean]>("extract", event => event
+						.data = tuple(volume, chapter, i, i > 0, i < pages.length - 1)));
 		}
 
 		const [volumeNumber, chapterNumber] = project.getSegmentNumbers(volume, chapter);
@@ -179,13 +176,24 @@ export default class Explorer extends Component {
 				.listeners.add("click", this.onRootSettings(root)));
 	}
 
-	private addImageButton (root: string, volume?: number, chapter?: number, page?: number) {
-		const missingTranslations = this.getMissingTranslations(root, volume, chapter, page).count();
+	private addImageButton (volume?: number, chapter?: number, page?: number): ImageButton;
+	private addImageButton (root: string): ImageButton;
+	private addImageButton (root?: string | number, volume?: number, chapter?: number, page?: number) {
+		let project = Projects.current!;
+		if (typeof root === "string") {
+			project = Projects.get(root)!;
+			volume = undefined;
+		} else {
+			page = chapter;
+			chapter = volume;
+			volume = root;
+		}
+
+		const missingTranslations = this.getMissingTranslations(project.root, volume, chapter, page).count();
 
 		let type: "root" | PagePathSegment | undefined;
-		[type, volume, chapter, page] = this.getPreviewImageData(root, volume, chapter, page);
+		[type, volume, chapter, page] = this.getPreviewImageData(project, volume, chapter, page);
 
-		const project = Projects.get(root)!;
 		const [volumeNumber, chapterNumber, pageNumber] = project.getSegmentNumbers(volume, chapter, page);
 
 		return new ImageButton(project.getPath("raw", volume, chapter, page))
@@ -201,9 +209,8 @@ export default class Explorer extends Component {
 			.appendTo(this.explorerWrapper);
 	}
 
-	private getPreviewImageData (root: string, volume?: number, chapter?: number, page?: number) {
+	private getPreviewImageData (project: Project, volume?: number, chapter?: number, page?: number) {
 		let type: "root" | PagePathSegment | undefined;
-		const project = Projects.get(root)!;
 		if (volume === undefined) type = type || "root", [volume] = project.volumes.indexedEntries().first()!;
 
 		const chapters = project.volumes.getByIndex(volume)!;
@@ -279,12 +286,12 @@ export default class Explorer extends Component {
 		};
 	}
 
-	@Bound private async export (root: string, volume: number, chapter: number) {
-		await Dialog.export(root, volume, chapter);
+	@Bound private async export (volume: number, chapter: number) {
+		await Dialog.export(volume, chapter);
 	}
 
-	@Bound private async import (root: string, volume: number, chapter: number) {
-		await Dialog.import(root, volume, chapter);
+	@Bound private async import (volume: number, chapter: number) {
+		await Dialog.import(volume, chapter);
 	}
 
 	@Bound private keyup (event: KeyboardEvent) {

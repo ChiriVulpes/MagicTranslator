@@ -40,7 +40,7 @@ export default class Capture extends SortableListItem {
 
 		new Component()
 			.classes.add("capture-action-row")
-			.append(new Character(roots.character, capture.character)
+			.append(new Character(capture.character)
 				.listeners.add("click", this.changeCharacter))
 			.append(new Component("button")
 				.setText("paste-notes")

@@ -6,9 +6,13 @@ import FileSystem from "util/FileSystem";
 import IndexedMap from "util/Map";
 import Stream from "util/stream/Stream";
 import { interpolate } from "util/string/Interpolator";
+import Path from "util/string/Path";
 import { mask, pad } from "util/string/String";
 
 export default new class Projects extends Map<string, Project> {
+
+	public current?: Project;
+
 	public async load () {
 		(await this.getProjects())
 			.toMap(this);
@@ -61,7 +65,7 @@ const defaultProjectStructure = {
 	save: "{volume}/{chapter}/save/{page}",
 };
 
-class Project extends Serializable {
+export class Project extends Serializable {
 
 	public characters: Characters;
 
@@ -70,12 +74,12 @@ class Project extends Serializable {
 
 	public volumes: IndexedMap<string, IndexedMap<string, Page[]>>;
 
-	public constructor (private readonly root: string) {
+	public constructor (public readonly root: string) {
 		super(`${root}/metadata.json`);
 	}
 
 	public getDisplayName () {
-		return this.name || path.basename(this.root);
+		return this.name || Path.basename(this.root);
 	}
 
 	@Override public async load () {
@@ -100,10 +104,10 @@ class Project extends Serializable {
 	public getPath (pathType: PagePathType, volume: string, chapter: string, page: string): string;
 	public getPath (pathType: PagePathType | "characters", volume?: string | number, chapter?: string | number, page?: string | number) {
 		if (pathType === "characters")
-			return path.join(this.root, this.structure[pathType]);
+			return Path.join(this.root, this.structure[pathType]);
 
 		[volume, chapter, page] = this.getSegmentNumbers(volume as number, chapter as number, page as number);
-		const result = path.join(this.root, interpolate(this.structure[pathType], Stream.entries({ volume, chapter, page })
+		const result = Path.join(this.root, interpolate(this.structure[pathType], Stream.entries({ volume, chapter, page })
 			.map(([name, value]) => tuple(name, this.getSegment(name, value)))
 			.toObject()));
 
@@ -195,17 +199,17 @@ class Project extends Serializable {
 
 	private getVolumeDirectory (type: keyof ProjectStructure) {
 		const [, match] = /^([^{}]*?){volume}/.match(this.structure[type]);
-		return path.join(this.root, match);
+		return Path.join(this.root, match);
 	}
 
 	private getChapterDirectory (type: keyof ProjectStructure, volume: string | number) {
 		const [, match] = /^([^{}]*?{volume}[^{}]*?){chapter}/.match(this.structure[type]);
-		return path.join(this.root, interpolate(match, { volume: this.getSegment("volume", volume) }));
+		return Path.join(this.root, interpolate(match, { volume: this.getSegment("volume", volume) }));
 	}
 
 	private getPageDirectory (type: keyof ProjectStructure, volume: string | number, chapter: string | number) {
 		const [, match] = /^([^{}]*?{volume}[^{}]*?{chapter}[^{}]*?){page}/.match(this.structure[type]);
-		return path.join(this.root, interpolate(match, {
+		return Path.join(this.root, interpolate(match, {
 			volume: this.getSegment("volume", volume),
 			chapter: this.getSegment("chapter", chapter),
 		}));

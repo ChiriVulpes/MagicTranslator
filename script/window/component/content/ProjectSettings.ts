@@ -9,6 +9,7 @@ import { exact, tuple } from "util/Arrays";
 import { generalRandom } from "util/Random";
 import Stream from "util/stream/Stream";
 import { interpolate } from "util/string/Interpolator";
+import Path from "util/string/Path";
 import Translation from "util/string/Translation";
 
 export default class ProjectSettings extends SettingsInterrupt {
@@ -25,7 +26,7 @@ export default class ProjectSettings extends SettingsInterrupt {
 		this.addSection("main")
 			.append(new LabelledRow("directory")
 				.append(new Component("span")
-					.setText(() => path.basename(this.root))
+					.setText(() => Path.basename(this.root))
 					.schedule(Tooltip.register, tooltip => tooltip
 						.setText(() => this.root))))
 			.append(new LabelledRow("name")
@@ -92,7 +93,7 @@ export default class ProjectSettings extends SettingsInterrupt {
 
 	@Bound private async onRemoveProject () {
 		const confirm = await Interrupt.confirm(interrupt => interrupt
-			.setTitle(() => new Translation("confirm-remove-project").get(path.basename(this.root)))
+			.setTitle(() => new Translation("confirm-remove-project").get(Path.basename(this.root)))
 			.setDescription("confirm-remove-project-description"));
 		if (!confirm) return;
 
@@ -123,8 +124,8 @@ export default class ProjectSettings extends SettingsInterrupt {
 	private getPathExample (pathType: keyof ProjectStructure) {
 		return () => {
 			const project = Projects.get(this.root)!;
-			const root = path.basename(this.root);
-			const examplePath = path.join(root, interpolate(project.structure[pathType], Stream.from(pathSegments)
+			const root = Path.basename(this.root);
+			const examplePath = Path.join(root, interpolate(project.structure[pathType], Stream.from(pathSegments)
 				.map(segment => tuple(segment, project.structure[segment]))
 				.toObject()))
 				.replace(/\\/g, "/");

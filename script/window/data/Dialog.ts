@@ -8,18 +8,18 @@ import File from "util/File";
 import FileSystem from "util/FileSystem";
 
 export class DialogImpl {
-	public async export (root: string, volume: number, chapter: number, page?: number) {
-		const project = Projects.get(root)!;
+	public async export (volume: number, chapter: number, page?: number) {
+		const project = Projects.current!;
 		const [volumeString, chapterString] = project.getPathSegments(volume, chapter);
 		const [volumeNumber, chapterNumber, pageNumber] = project.getSegmentNumbers(volume, chapter, page);
 
 		let result = `# Volume ${volumeNumber}, Chapter ${chapterNumber}`;
 
 		if (page !== undefined) {
-			result += ", " + await this.exportPage(root, volume, chapter, page);
+			result += ", " + await this.exportPage(volume, chapter, page);
 		} else {
 			const pages = await Promise.all(project.volumes.getByIndex(volume)!.getByIndex(chapter)!
-				.map((_, index) => this.exportPage(root, volume, chapter, index)));
+				.map((_, index) => this.exportPage(volume, chapter, index)));
 
 			result += "\n\n# " + pages.join("\n\n\n# ");
 		}
@@ -27,7 +27,7 @@ export class DialogImpl {
 		File.download(`dialog-${volumeString}-${chapterString}${pageNumber !== undefined ? `-${pageNumber}` : ""}.md`, result);
 	}
 
-	public async import (root: string, volume: number, chapter: number) {
+	public async import (volume: number, chapter: number) {
 		const file = await Options.chooseFile("prompt-dialog-file", result => result.endsWith(".md"));
 
 		if (!file) return;
@@ -37,12 +37,12 @@ export class DialogImpl {
 		const pageMatcher = /# Page (\d+)((?:(?:.|\r|\n)(?!# Page))*)/gm;
 
 		for (const [, pageNumber, pageContent] of pageMatcher.matches(text)) {
-			await this.importPage(root, volume, chapter, +pageNumber - 1, pageContent);
+			await this.importPage(volume, chapter, +pageNumber - 1, pageContent);
 		}
 	}
 
-	private async exportPage (root: string, volume: number, chapter: number, page: number) {
-		const project = Projects.get(root)!;
+	private async exportPage (volume: number, chapter: number, page: number) {
+		const project = Projects.current!;
 		const [, , pageNumber] = project.getSegmentNumbers(volume, chapter, page);
 		let result = `Page ${pageNumber}\n\n`;
 
@@ -51,7 +51,7 @@ export class DialogImpl {
 		let lastCharacter: number | BasicCharacter | undefined;
 		for (const capture of captures.captures) {
 			if (capture.character && capture.character !== lastCharacter) {
-				result += `## ${CharacterEditor.getName(capture.character)}\n\n`;
+				result += `## ${project.characters.getName(capture.character)}\n\n`;
 				lastCharacter = capture.character;
 			}
 
@@ -71,8 +71,8 @@ export class DialogImpl {
 		return result;
 	}
 
-	private async importPage (root: string, volume: number, chapter: number, page: number, content: string) {
-		const extractor = await app.extractPage(root, volume, chapter, page);
+	private async importPage (volume: number, chapter: number, page: number, content: string) {
+		const extractor = await app.extractPage(volume, chapter, page);
 
 		const characterDialogMatcher = /## (.*?):((?:(?:.|\r|\n)(?!## .*?:))*)/gm;
 
@@ -84,7 +84,7 @@ export class DialogImpl {
 	}
 
 	private async importForCharacter (characterName: string, content: string, extractor: Extractor) {
-		let character = CharacterEditor.findCharacterByName(characterName) as CharacterData | number | BasicCharacter | undefined;
+		let character = Projects.current!.characters.findByName(characterName) as CharacterData | number | BasicCharacter | undefined;
 		if (character === undefined) character = await CharacterEditor.createCharacter(undefined, characterName);
 		character = character === undefined ? BasicCharacter.Unknown : typeof character === "object" ? character.id : character;
 

@@ -15,6 +15,7 @@ import { tuple } from "util/Arrays";
 import Enums from "util/Enums";
 import FileSystem from "util/FileSystem";
 import { Vector } from "util/math/Geometry";
+import Path from "util/string/Path";
 import { pad } from "util/string/String";
 import Translation from "util/string/Translation";
 
@@ -36,11 +37,11 @@ export default class Extractor extends Component {
 	private captureEnd: Vector;
 	private waitingForCapture?: [number, (value: [Vector, Vector]) => void];
 
-	public constructor (private readonly root: string, private readonly volume: number, private readonly chapter: number, private readonly page: number, hasPreviousPage = true, hasNextPage = true) {
+	public constructor (private readonly volume: number, private readonly chapter: number, private readonly page: number, hasPreviousPage = true, hasNextPage = true) {
 		super();
 		this.setId("extractor");
 
-		const project = Projects.get(root)!;
+		const project = Projects.current!;
 
 		const [volumeNumber, chapterNumber, pageNumber] = project.getSegmentNumbers(volume, chapter, page);
 
@@ -105,7 +106,7 @@ export default class Extractor extends Component {
 
 		const roots = {
 			capture: this.getCapturePagePath(),
-			character: Projects.get(this.root)!.getPath("characters"),
+			character: Projects.current!.getPath("characters"),
 		};
 
 		const captureComponent = new Capture(roots, capture)
@@ -130,7 +131,7 @@ export default class Extractor extends Component {
 	}
 
 	public async initialize () {
-		this.captures = await Projects.get(this.root)!.getPage(this.volume, this.chapter, this.page).captures.load();
+		this.captures = await Projects.current!.getPage(this.volume, this.chapter, this.page).captures.load();
 
 		for (const capture of this.captures.captures) {
 			await this.addCapture(capture);
@@ -362,7 +363,7 @@ export default class Extractor extends Component {
 	}
 
 	private async setPageImage () {
-		const project = Projects.get(this.root)!;
+		const project = Projects.current!;
 		const translated = Extractor.displayMode === DisplayMode.Translated;
 		const translatedPath = project.getPath(translated ? "translated" : "raw", this.volume, this.chapter, this.page);
 
@@ -378,7 +379,7 @@ export default class Extractor extends Component {
 					if (!options.imageMagickCLIPath) return;
 				}
 
-				await FileSystem.mkdir(path.dirname(translatedPath));
+				await FileSystem.mkdir(Path.dirname(translatedPath));
 				await childProcess.exec(`"${options.imageMagickCLIPath}" "${savePath}[0]" "${translatedPath}"`);
 			}
 		}
@@ -387,7 +388,7 @@ export default class Extractor extends Component {
 	}
 
 	@Bound private async export () {
-		await Dialog.export(this.root, this.volume, this.chapter, this.page);
+		await Dialog.export(this.volume, this.chapter, this.page);
 	}
 
 	private async saveImage (capturePath: string, canvas: HTMLCanvasElement) {
@@ -404,7 +405,7 @@ export default class Extractor extends Component {
 		});
 
 		const capturePagePath = this.getCapturePagePath();
-		await FileSystem.mkdir(path.dirname(capturePagePath));
+		await FileSystem.mkdir(Path.dirname(capturePagePath));
 		await FileSystem.mkdir(capturePagePath);
 
 		capturePath = `${capturePagePath}/${capturePath}`;
@@ -433,6 +434,6 @@ export default class Extractor extends Component {
 	}
 
 	private getCapturePagePath () {
-		return Projects.get(this.root)!.getPath("capture", this.volume, this.chapter, this.page);
+		return Projects.current!.getPath("capture", this.volume, this.chapter, this.page);
 	}
 }
