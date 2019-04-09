@@ -65,10 +65,7 @@ class FileSystem {
 
 	public async mkdir (filepath: string) {
 		return this.concurrent.promise<void>((resolve, reject) => {
-			nodefs.mkdir(filepath, err => {
-				if (err && err.code !== "EEXIST") reject(err);
-				else resolve();
-			});
+			return this.mkdirp(filepath).then(resolve).catch(reject);
 		});
 	}
 
@@ -89,6 +86,26 @@ class FileSystem {
 				else resolve();
 			});
 		});
+	}
+
+	private async mkdirp (filepath: string) {
+		filepath = path.resolve(filepath);
+
+		return new Promise<void>((resolve, reject) => nodefs.mkdir(filepath, err => {
+			if (!err || err.code === "EEXIST") return resolve();
+
+			if (err.code === "ENOENT") {
+				this.mkdirp(path.dirname(filepath))
+					.then(() => this.mkdirp(filepath).then(resolve))
+					.catch(reject);
+				return;
+			}
+
+			nodefs.stat(filepath, (err2, stat) => {
+				if (err2 || !stat.isDirectory()) reject(err);
+				else resolve();
+			});
+		}));
 	}
 
 }
