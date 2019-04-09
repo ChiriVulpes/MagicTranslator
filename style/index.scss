@@ -25,10 +25,19 @@
 	--color-background-footer: #444;
 	--color-background-tooltip: #333;
 	
-	--color-border-tooltip: #555;
+	--color-button-background: #318bff80;
+	--color-button-border: #318bff82;
+	--color-button-hover-background: #318bffe6;
+	--color-button-hover-border: #4998ff;
+	--color-button-active-background: #318bff40;
+	--color-button-active-border: #318bff40;
 	
-	--color-button-hover: #fff5;
-	--color-button-active: #0002;
+	--color-input-border: transparent;
+	--color-input-hover-border: transparent;
+	--color-input-focus-border: #318bff;
+	--color-input-error-border: #f00;
+	
+	--color-border-tooltip: #555;
 	
 	--color-text: #fff;
 	
@@ -107,14 +116,19 @@ button {
 	font-family: inherit;
 	outline: none;
 	cursor: pointer;
+	box-shadow: 0 1px 2px #0003;
 	
-	background: #318bff80;
+	background: var(--color-button-background);
+	border: 1px solid var(--color-button-border);
 	&:hover, &:focus {
-		background: #318bffe6;
+		background: var(--color-button-hover-background);
+		border-color: var(--color-button-hover-border);
 	}
 	
 	&:active {
-		background: #318bff40;
+		background: var(--color-button-active-background);
+		border-color: var(--color-button-active-border);
+		box-shadow: inset 0 1px 2px #0003; 
 	}
 	
 	&.disabled {
@@ -127,7 +141,6 @@ textarea, input {
 	padding: 5px 10px;
 	box-sizing: border-box;
 	background: #0003;
-	border: 1px solid transparent;
 	outline: none;
 	color: inherit;
 	font-family: inherit;
@@ -136,12 +149,18 @@ textarea, input {
 	resize: none;
 	margin: 5px 0;
 	
+	border: 1px solid var(--color-input-border);
+	
+	&:hover {
+		border-color: var(--color-input-hover-border);
+	}
+
 	&:focus {
-		border-color: #0af
+		border-color: var(--color-input-focus-border);
 	}
 	
 	&.error {
-		border-color: #f00;
+		border-color: var(--color-input-error-border);
 	}
 }
 
