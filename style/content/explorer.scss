@@ -71,7 +71,7 @@
 	}
 }
 
-.root-button {
+.project-button {
 	grid-template-columns: 1fr auto;
 	&::before, & > .title {
 		grid-column: 1/3; 

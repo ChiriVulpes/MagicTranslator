@@ -186,7 +186,7 @@ export default class Options {
 	//
 
 	public customTitleBar = process.platform === "win32";
-	public rootFolders: string[] = [];
+	public projectFolders: string[] = [];
 	public capture2TextCLIPath: string = "";
 	public imageMagickCLIPath: string = "";
 }

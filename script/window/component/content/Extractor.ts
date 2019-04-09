@@ -10,7 +10,7 @@ import Textarea from "component/shared/Textarea";
 import Captures, { CaptureData } from "data/Captures";
 import { BasicCharacter } from "data/Characters";
 import Dialog from "data/Dialog";
-import MediaRoots from "data/MediaRoots";
+import Projects from "data/Projects";
 import { tuple } from "util/Arrays";
 import Enums from "util/Enums";
 import FileSystem from "util/FileSystem";
@@ -40,9 +40,9 @@ export default class Extractor extends Component {
 		super();
 		this.setId("extractor");
 
-		const mediaRoot = MediaRoots.get(root)!;
+		const project = Projects.get(root)!;
 
-		const [volumeNumber, chapterNumber, pageNumber] = mediaRoot.getNumbers(volume, chapter, page);
+		const [volumeNumber, chapterNumber, pageNumber] = project.getNumbers(volume, chapter, page);
 
 		new Component()
 			.classes.add("page-wrapper")
@@ -91,7 +91,7 @@ export default class Extractor extends Component {
 			.appendTo(this);
 
 		Header.setTitle(() => new Translation("title").get({
-			root: mediaRoot.getDisplayName(),
+			root: project.getDisplayName(),
 			volume: `${volumeNumber}`,
 			chapter: `${chapterNumber}`,
 			page: `${pageNumber}`,
@@ -105,7 +105,7 @@ export default class Extractor extends Component {
 
 		const roots = {
 			capture: this.getCapturePagePath(),
-			character: MediaRoots.get(this.root)!.characters.getPath(),
+			character: Projects.get(this.root)!.characters.getPath(),
 		};
 
 		const captureComponent = new Capture(roots, capture)
@@ -130,7 +130,7 @@ export default class Extractor extends Component {
 	}
 
 	public async initialize () {
-		this.captures = await MediaRoots.get(this.root)!.getPage(this.volume, this.chapter, this.page).captures.load();
+		this.captures = await Projects.get(this.root)!.getPage(this.volume, this.chapter, this.page).captures.load();
 
 		for (const capture of this.captures.captures) {
 			await this.addCapture(capture);
@@ -362,12 +362,12 @@ export default class Extractor extends Component {
 	}
 
 	private async setPageImage () {
-		const mediaRoot = MediaRoots.get(this.root)!;
+		const project = Projects.get(this.root)!;
 		const translated = Extractor.displayMode === DisplayMode.Translated;
-		const translatedPath = mediaRoot.getPath(translated ? "translated" : "raw", this.volume, this.chapter, this.page);
+		const translatedPath = project.getPath(translated ? "translated" : "raw", this.volume, this.chapter, this.page);
 
 		if (translated && !await FileSystem.exists(translatedPath)) {
-			const savePath = mediaRoot.getPath("save", this.volume, this.chapter, this.page);
+			const savePath = project.getPath("save", this.volume, this.chapter, this.page);
 			if (await FileSystem.exists(savePath)) {
 				if (!options.imageMagickCLIPath) {
 					if (!await Interrupt.confirm(interrupt => interrupt
@@ -433,6 +433,6 @@ export default class Extractor extends Component {
 	}
 
 	private getCapturePagePath () {
-		return MediaRoots.get(this.root)!.getPath("capture", this.volume, this.chapter, this.page);
+		return Projects.get(this.root)!.getPath("capture", this.volume, this.chapter, this.page);
 	}
 }

@@ -4,25 +4,25 @@ import Input from "component/shared/Input";
 import Interrupt from "component/shared/Interrupt";
 import LabelledRow from "component/shared/LabelledRow";
 import Tooltip from "component/shared/Tooltip";
-import MediaRoots, { RootMetadata } from "data/MediaRoots";
+import Projects, { ProjectStructure } from "data/Projects";
 import { tuple } from "util/Arrays";
 import { generalRandom } from "util/Random";
 import Stream from "util/stream/Stream";
 import { interpolate } from "util/string/Interpolator";
 import Translation from "util/string/Translation";
 
-const pathSegments = ["volume", "chapter", "page"] as (keyof RootMetadata["structure"])[];
+const pathSegments = ["volume", "chapter", "page"] as (keyof ProjectStructure)[];
 
-export default class RootSettings extends SettingsInterrupt {
-	private readonly pathInputs = new Map<keyof RootMetadata["structure"], Input>();
+export default class ProjectSettings extends SettingsInterrupt {
+	private readonly pathInputs = new Map<keyof ProjectStructure, Input>();
 	private restoreButton?: Component;
 	private changedFileStructure = false;
 
 	public constructor (private readonly root: string) {
 		super();
-		this.setId("root-settings");
+		this.setId("project-settings");
 
-		const mediaRoot = MediaRoots.get(root)!;
+		const project = Projects.get(root)!;
 
 		this.addSection("main")
 			.append(new LabelledRow("directory")
@@ -32,21 +32,21 @@ export default class RootSettings extends SettingsInterrupt {
 						.setText(() => this.root))))
 			.append(new LabelledRow("name")
 				.append(new Input()
-					.setText(() => mediaRoot.name || "")
-					.listeners.add("change", event => mediaRoot.name = Component.get<Input>(event).getText())))
+					.setText(() => project.name || "")
+					.listeners.add("change", event => project.name = Component.get<Input>(event).getText())))
 			.append(new Component("button")
 				.classes.add("float-right")
 				.setText("remove")
 				.listeners.add("click", this.onRemove));
 
 		this.addSection("file-structure")
-			.append(Stream.of<(keyof RootMetadata["structure"])[]>("volume", "chapter", "page", "raw", "translated", "save", "capture")
+			.append(Stream.of<(keyof ProjectStructure)[]>("volume", "chapter", "page", "raw", "translated", "save", "capture")
 				.map(pathType => new Component()
 					.classes.toggle(!pathSegments.includes(pathType), "path-full")
 					.append(new LabelledRow(`${pathType}-path`)
 						.append(new Input()
 							.attributes.set("path-type", pathType)
-							.setText(() => mediaRoot.structure && mediaRoot.structure[pathType])
+							.setText(() => project.structure && project.structure[pathType])
 							.listeners.add("change", this.onPathInputChange)
 							.schedule(input => this.pathInputs.set(pathType, input
 								.schedule(Tooltip.register, tooltip => tooltip
@@ -66,7 +66,7 @@ export default class RootSettings extends SettingsInterrupt {
 	@Bound private onPathInputChange (event: Event) {
 		const input = Component.get<Input>(event);
 		const inputText = input.getText().trim();
-		const pathType = input.attributes.get<keyof RootMetadata["structure"]>("path-type");
+		const pathType = input.attributes.get<keyof ProjectStructure>("path-type");
 		let error: false | string = false;
 		if (pathSegments.includes(pathType)) {
 			error = /#[^#]+#/.test(inputText) &&
@@ -77,8 +77,8 @@ export default class RootSettings extends SettingsInterrupt {
 		}
 
 		if (!error) {
-			const mediaRoot = MediaRoots.get(this.root)!;
-			mediaRoot.structure[pathType] = inputText;
+			const project = Projects.get(this.root)!;
+			project.structure[pathType] = inputText;
 		}
 
 		input.classes.toggle(!!error, "error");
@@ -92,14 +92,14 @@ export default class RootSettings extends SettingsInterrupt {
 
 	@Bound private async onRemove () {
 		const confirm = await Interrupt.confirm(interrupt => interrupt
-			.setTitle(() => new Translation("confirm-remove-root").get(path.basename(this.root)))
-			.setDescription("confirm-remove-root-description"));
+			.setTitle(() => new Translation("confirm-remove-project").get(path.basename(this.root)))
+			.setDescription("confirm-remove-project-description"));
 		if (!confirm) return;
 
 		this.classes.add("removed");
 
-		MediaRoots.delete(this.root);
-		options.rootFolders.splice(options.rootFolders.indexOf(this.root), 1);
+		Projects.delete(this.root);
+		options.projectFolders.splice(options.projectFolders.indexOf(this.root), 1);
 
 		this.restoreButton = new Component("button")
 			.classes.add("float-right")
@@ -110,17 +110,17 @@ export default class RootSettings extends SettingsInterrupt {
 
 	@Bound private async onRestore () {
 		this.classes.remove("removed");
-		MediaRoots.addRoot(this.root);
-		options.rootFolders.push(this.root);
+		Projects.addProject(this.root);
+		options.projectFolders.push(this.root);
 		this.restoreButton!.remove();
 	}
 
-	private getPathExample (pathType: keyof RootMetadata["structure"]) {
+	private getPathExample (pathType: keyof ProjectStructure) {
 		return () => {
-			const mediaRoot = MediaRoots.get(this.root)!;
+			const project = Projects.get(this.root)!;
 			const root = path.basename(this.root);
-			const examplePath = path.join(root, interpolate(mediaRoot.structure[pathType], Stream.from(pathSegments)
-				.map(segment => tuple(segment, mediaRoot.structure[segment]))
+			const examplePath = path.join(root, interpolate(project.structure[pathType], Stream.from(pathSegments)
+				.map(segment => tuple(segment, project.structure[segment]))
 				.toObject()))
 				.replace(/\\/g, "/");
 

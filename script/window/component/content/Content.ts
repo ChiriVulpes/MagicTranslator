@@ -3,7 +3,7 @@ import CharacterEditor from "component/content/character/CharacterEditor";
 import Explorer from "component/content/Explorer";
 import Extractor from "component/content/Extractor";
 import Interrupt from "component/shared/Interrupt";
-import MediaRoots from "data/MediaRoots";
+import Projects from "data/Projects";
 import Options from "Options";
 import { tuple } from "util/Arrays";
 import { ComponentEvent } from "util/Manipulator";
@@ -28,7 +28,7 @@ export default class Content extends Component {
 		await Promise.all([
 			Options.waitForOptions(),
 			new CharacterEditor().hide().appendTo(this),
-			MediaRoots.load(),
+			Projects.load(),
 		]);
 
 		Component.window.listeners.until(this.listeners.waitFor("remove"))
@@ -46,7 +46,7 @@ export default class Content extends Component {
 	}
 
 	public async extractPage (root: string, volume: number, chapter: number, page: number) {
-		const pages = MediaRoots.get(root)!.volumes.getByIndex(volume)!.getByIndex(chapter)!;
+		const pages = Projects.get(root)!.volumes.getByIndex(volume)!.getByIndex(chapter)!;
 		return this.onExtractPage({ data: [volume, chapter, page, page > 0, page < pages.length - 1] } as any);
 	}
 
@@ -54,7 +54,7 @@ export default class Content extends Component {
 		this.children().drop(2).collectStream().forEach(child => child.remove());
 
 		const [root, volume, chapter, page] = data;
-		const pages = MediaRoots.get(root)!.volumes.getByIndex(volume)!.getByIndex(chapter)!;
+		const pages = Projects.get(root)!.volumes.getByIndex(volume)!.getByIndex(chapter)!;
 
 		return new Extractor(...data)
 			.listeners.add("quit", () => this.showExplorer(tuple(root, volume, chapter)))

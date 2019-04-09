@@ -1,7 +1,7 @@
 import CharacterEditor from "component/content/character/CharacterEditor";
 import Extractor from "component/content/Extractor";
 import { BasicCharacter, CharacterData } from "data/Characters";
-import MediaRoots from "data/MediaRoots";
+import Projects from "data/Projects";
 import Options from "Options";
 import { tuple } from "util/Arrays";
 import File from "util/File";
@@ -9,16 +9,16 @@ import FileSystem from "util/FileSystem";
 
 export class DialogImpl {
 	public async export (root: string, volume: number, chapter: number, page?: number) {
-		const mediaRoot = MediaRoots.get(root)!;
-		const [volumeString, chapterString] = mediaRoot.getPaths(volume, chapter);
-		const [volumeNumber, chapterNumber, pageNumber] = mediaRoot.getNumbers(volume, chapter, page);
+		const project = Projects.get(root)!;
+		const [volumeString, chapterString] = project.getPaths(volume, chapter);
+		const [volumeNumber, chapterNumber, pageNumber] = project.getNumbers(volume, chapter, page);
 
 		let result = `# Volume ${volumeNumber}, Chapter ${chapterNumber}`;
 
 		if (page !== undefined) {
 			result += ", " + await this.exportPage(root, volume, chapter, page);
 		} else {
-			const pages = await Promise.all(mediaRoot.volumes.getByIndex(volume)!.getByIndex(chapter)!
+			const pages = await Promise.all(project.volumes.getByIndex(volume)!.getByIndex(chapter)!
 				.map((_, index) => this.exportPage(root, volume, chapter, index)));
 
 			result += "\n\n# " + pages.join("\n\n\n# ");
@@ -42,11 +42,11 @@ export class DialogImpl {
 	}
 
 	private async exportPage (root: string, volume: number, chapter: number, page: number) {
-		const mediaRoot = MediaRoots.get(root)!;
-		const [, , pageNumber] = mediaRoot.getNumbers(volume, chapter, page);
+		const project = Projects.get(root)!;
+		const [, , pageNumber] = project.getNumbers(volume, chapter, page);
 		let result = `Page ${pageNumber}\n\n`;
 
-		const captures = await mediaRoot.getPage(volume, chapter, page).captures;
+		const captures = await project.getPage(volume, chapter, page).captures;
 
 		let lastCharacter: number | BasicCharacter | undefined;
 		for (const capture of captures.captures) {

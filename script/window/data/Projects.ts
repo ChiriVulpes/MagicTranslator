@@ -8,19 +8,19 @@ import Stream from "util/stream/Stream";
 import { interpolate } from "util/string/Interpolator";
 import { mask, pad } from "util/string/String";
 
-export default new class Media extends Map<string, MediaRoot> {
+export default new class Projects extends Map<string, Project> {
 	public async load () {
-		(await this.getRoots())
+		(await this.getProjects())
 			.toMap(this);
 	}
 
-	public async addRoot (root: string) {
-		this.set(root, await new MediaRoot(root).load());
+	public async addProject (root: string) {
+		this.set(root, await new Project(root).load());
 	}
 
-	private async getRoots () {
-		return options.rootFolders.stream()
-			.map(async root => tuple(root, await new MediaRoot(root).load()))
+	private async getProjects () {
+		return options.projectFolders.stream()
+			.map(async root => tuple(root, await new Project(root).load()))
 			.rest();
 	}
 };
@@ -30,25 +30,22 @@ export interface Page {
 	captures: Captures;
 }
 
-export interface RootMetadata {
-	name?: string;
-	structure: {
-		volume: string;
-		chapter: string;
-		page: string;
-		raw: string;
-		translated: string;
-		capture: string;
-		save: string;
-	};
+export interface ProjectStructure {
+	volume: string;
+	chapter: string;
+	page: string;
+	raw: string;
+	translated: string;
+	capture: string;
+	save: string;
 }
 
-class MediaRoot extends Serializable {
+class Project extends Serializable {
 
 	public readonly characters = new Characters(this.root);
 
 	@Serialized public name: string | undefined;
-	@Serialized public structure: RootMetadata["structure"] = {
+	@Serialized public structure: ProjectStructure = {
 		volume: "vol##",
 		chapter: "ch###",
 		page: "###",
@@ -158,7 +155,7 @@ class MediaRoot extends Serializable {
 			.toArray();
 	}
 
-	private getRegex (key: keyof RootMetadata["structure"], post: (rs: string) => string = rs => rs) {
+	private getRegex (key: keyof ProjectStructure, post: (rs: string) => string = rs => rs) {
 		return RegExp(post(`^${this.structure[key]}$`.replace(/#/g, "\\d")));
 	}
 
@@ -168,17 +165,17 @@ class MediaRoot extends Serializable {
 		return typeof value === "string" ? value : segment.replace(/#+/, match => pad(value, match.length));
 	}
 
-	private getVolumeDirectory (type: keyof RootMetadata["structure"]) {
+	private getVolumeDirectory (type: keyof ProjectStructure) {
 		const [, match] = /^([^{}]*?){volume}/.match(this.structure[type]);
 		return path.join(this.root, match);
 	}
 
-	private getChapterDirectory (type: keyof RootMetadata["structure"], volume: string | number) {
+	private getChapterDirectory (type: keyof ProjectStructure, volume: string | number) {
 		const [, match] = /^([^{}]*?{volume}[^{}]*?){chapter}/.match(this.structure[type]);
 		return path.join(this.root, interpolate(match, { volume: this.getSegment("volume", volume) }));
 	}
 
-	private getPageDirectory (type: keyof RootMetadata["structure"], volume: string | number, chapter: string | number) {
+	private getPageDirectory (type: keyof ProjectStructure, volume: string | number, chapter: string | number) {
 		const [, match] = /^([^{}]*?{volume}[^{}]*?{chapter}[^{}]*?){page}/.match(this.structure[type]);
 		return path.join(this.root, interpolate(match, {
 			volume: this.getSegment("volume", volume),

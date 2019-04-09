@@ -2,7 +2,7 @@ import Component from "component/Component";
 import Character from "component/content/character/Character";
 import SortableList, { SortableListEvent } from "component/shared/SortableList";
 import Characters, { BasicCharacter, CharacterData } from "data/Characters";
-import MediaRoots from "data/MediaRoots";
+import Projects from "data/Projects";
 import Options from "Options";
 import Enums from "util/Enums";
 import FileSystem from "util/FileSystem";
@@ -14,7 +14,7 @@ export default class CharacterEditor extends Component {
 
 	public static async setRoot (root: string) {
 		const editor = Component.get<CharacterEditor>("#character-editor");
-		const characters = MediaRoots.get(root)!.characters;
+		const characters = Projects.get(root)!.characters;
 
 		if (editor.characters === characters) return;
 		editor.characters = characters;
