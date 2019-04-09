@@ -1,11 +1,13 @@
 import Component from "component/Component";
-import Character from "component/content/character/Character";
-import CharacterEditor from "component/content/character/CharacterEditor";
 import Note from "component/content/extractor/Note";
+import Dropdown from "component/shared/Dropdown";
 import SortableList, { SortableListEvent, SortableListItem } from "component/shared/SortableList";
 import Textarea from "component/shared/Textarea";
 import { CaptureData } from "data/Captures";
+import { BasicCharacter } from "data/Characters";
+import Projects from "data/Projects";
 import { tuple } from "util/Arrays";
+import Enums from "util/Enums";
 import { pad } from "util/string/String";
 
 export default class Capture extends SortableListItem {
@@ -38,10 +40,23 @@ export default class Capture extends SortableListItem {
 				.listeners.add(SortableListEvent.SortComplete, () => this.emit("capture-change")))
 			.appendTo(this);
 
+		const characters = Projects.current!.characters;
+
 		new Component()
 			.classes.add("capture-action-row")
-			.append(new Character(capture.character)
-				.listeners.add("click", this.changeCharacter))
+			.append(Dropdown.of(...characters.characters.map(c => c.id), ...Enums.values(BasicCharacter))
+				.classes.add("character-preview-button")
+				.style.set("--headshot", typeof capture.character !== "number" ? "" : `url("${Projects.current!.getPath("characters", capture.character)}")`)
+				.setTranslationHandler(characters.getName)
+				.setTitle("character-dropdown")
+				.select(characters.getId(capture.character || BasicCharacter.Unknown)!)
+				.schedule(dropdown => dropdown.optionStream()
+					.forEach(([character, option]) => option
+						.classes.add("character-preview-button")
+						.style.set("--headshot", typeof character !== "number" ? "" : `url("${Projects.current!.getPath("characters", character)}")`)))
+				.listeners.add("select", this.changeCharacter)
+				.listeners.add("open", () => this.classes.add("active"))
+				.listeners.add("close", () => this.classes.remove("active")))
 			.append(new Component("button")
 				.setText("paste-notes")
 				.listeners.add("click", this.pasteNotes))
@@ -71,7 +86,9 @@ export default class Capture extends SortableListItem {
 	}
 
 	@Bound private async changeCharacter (event: Event) {
-		Component.get<Character>(event).setCharacter(this.capture.character = await CharacterEditor.chooseCharacter(this.capture.character));
+		const dropdown = Component.get<Dropdown<number | BasicCharacter>>(event);
+		const character = this.capture.character = dropdown.getSelected();
+		dropdown.style.set("--headshot", typeof character !== "number" ? "" : `url("${Projects.current!.getPath("characters", character)}")`);
 		this.emit("capture-change");
 	}
 

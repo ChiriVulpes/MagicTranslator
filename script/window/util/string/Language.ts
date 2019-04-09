@@ -39,6 +39,10 @@ export default class Language {
 		return "";
 	}
 
+	public exists (translation: keyof Translations) {
+		return translation in this.quilt || translation in Language.fallback.quilt;
+	}
+
 	// tslint:disable cyclomatic-complexity
 	private importQuilt (quiltText: string) {
 		let inside: "key" | "value" = "key";

@@ -237,18 +237,23 @@
 		}
 	}
 	
-	.capture:not(:focus-within) &.empty {
-		opacity: 0;
-		pointer-events: none;
-		height: 0;
-	}
-	
 	&:not(.empty), & > * {
 		pointer-events: all;
 	}
 	
-	.capture:not(:focus-within) &.empty > * {
+	transition: opacity .1s ease-in-out .2s;
+	> * {
+		transition: margin-top .1s ease-in-out .1s;
+	}
+	
+	.capture:not(:focus-within):not(.active) &.empty {
+		opacity: 0;
 		pointer-events: none;
+		transition: opacity .1s ease-in-out 0s;
+		> * {
+			pointer-events: none;
+			margin-top: calc(var(--height) * -1);
+		}
 	}
 	
 	/*
@@ -280,6 +285,52 @@
 	}
 }
 
+.character-preview-button {
+	position: relative;
+
+	&::before {
+		content: "";
+		display: block;
+		position: absolute;
+		height: 100%;
+		width: 100%;
+		top: 0;
+		left: 0;
+		background: var(--headshot);
+		background-size: contain;
+		background-repeat: no-repeat;
+		background-position: left center;
+		pointer-events: none;
+	}
+	
+	&.option {
+		font-size: 16pt;
+		font-weight: lighter;
+		padding: 11px 0 !important;
+		&:not(:hover):not(:focus):not(:active) {
+			background: #3C3C3C;
+		}
+	}
+	
+	&.dropdown {
+		&:not(:hover):not(:focus):not(:active):not(.open) {
+			background: none;
+			border-color: transparent;
+			box-shadow: none;
+		}
+		&:hover, &:focus {
+			background: #5559;
+			border-color: #555b;
+			box-shadow: 0 1px 2px #0003;
+		}
+		&:active, &.open {
+			background: #5554;
+			border-color: #5554;
+			box-shadow: inset 0 1px 2px #0002;
+		}
+	}
+}
+
 ////////////////////////////////////
 // "Read" display mode
 //
@@ -301,20 +352,26 @@
 		display: block;
 	}
 	
-	.capture-action-row > :not(.character) {
+	.capture-action-row > :not(.character-preview-button) {
 		display: none;
 	}
 	
-	.character {
+	.character-preview-button {
 		pointer-events: none;
 		font-size: 24pt;
 		margin-top: -10px;
-		margin-bottom: -10px;
+		margin-bottom: -2px;
 		left: -60px;
 		--height: 50px;
+		padding-left: 55px;
 		
-		> *::before {
-			top: 10px;
+		&::before {
+			top: 16px;
+			left: -8px;
+		}
+		
+		&::after {
+			display: none;
 		}
 	}
 	

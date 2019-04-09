@@ -247,11 +247,11 @@ export class EventListenerManipulator<T> extends Manipulator<T, ListenUntil<T>> 
 	}
 
 	public async waitFor (events: string | string[]) {
-		return new Promise<void>(resolve => {
-			let cb: () => void;
-			this.add(events, cb = () => {
+		return new Promise<Event>(resolve => {
+			let cb: (event: Event) => void;
+			this.add(events, cb = event => {
 				this.remove(events, cb);
-				resolve();
+				resolve(event);
 			});
 		});
 	}

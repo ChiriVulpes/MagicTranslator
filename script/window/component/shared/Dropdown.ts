@@ -29,7 +29,7 @@ export default class Dropdown<O> extends Component {
 				.classes.add("option")
 				.setDisabled()
 				.setText(() => this.translationHandler ? this.translationHandler(option) :
-					typeof option === "string" ? new Translation(option).get() :
+					typeof option === "string" && Translation.exists(option) ? new Translation(option).get() :
 						`${option}`)
 				.listeners.add("click", this.onDropdownMemberActivate)
 				.listeners.add("blur", this.onBlur)
@@ -54,11 +54,14 @@ export default class Dropdown<O> extends Component {
 
 	public setTitle (translation: string) {
 		this.title = new Translation(translation).get;
+		this.refreshText();
 		return this;
 	}
 
 	public setTranslationHandler (handler: (option: O) => string) {
 		this.translationHandler = handler;
+		this.refreshText();
+		for (const option of this.options.values()) option.refreshText();
 		return this;
 	}
 
@@ -70,24 +73,33 @@ export default class Dropdown<O> extends Component {
 		return this;
 	}
 
+	public optionStream () {
+		return this.options.entryStream();
+	}
+
 	private close () {
+		this.classes.remove("open");
 		this.wrapper
 			.style.set("max-height", "none")
 			.hide(true)
 			.children()
 			.forEach(child => child.setDisabled());
+
 		this.focus();
+		this.emit("close");
 	}
 
 	@Bound private onClick () {
 		const box = this.box();
 
 		const goingUp = box.top + box.height / 2 > window.innerHeight / 2;
-		const maxHeight = goingUp ? box.top : window.innerHeight - box.bottom;
+		const maxHeight = (goingUp ? box.top : window.innerHeight - box.bottom) - 100;
+
+		this.classes.add("open");
 
 		this.wrapper
 			.style.set("max-height", maxHeight)
-			.style.set("min-width", box.width)
+			.style.set("width", box.width)
 			.style.set("left", box.left)
 			.style.set(goingUp ? "top" : "bottom", "auto")
 			.style.set(goingUp ? "bottom" : "top", goingUp ? window.innerHeight - box.top : box.bottom)
@@ -95,7 +107,15 @@ export default class Dropdown<O> extends Component {
 			.children()
 			.forEach(child => child.setDisabled(false));
 
+		Component.window.listeners.until(this.listeners.waitFor("close"))
+			.add(["wheel", "resize"], event => {
+				if (event.type === "resize" || !Component.get(event).matches(".dropdown-wrapper, .dropdown-wrapper *")) {
+					this.close();
+				}
+			});
+
 		this.options.get(this.selected)!.focus();
+		this.emit("open");
 	}
 
 	@Bound private onContextMenu () {

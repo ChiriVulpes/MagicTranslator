@@ -14,13 +14,20 @@
 
 .dropdown-wrapper {
     position: fixed;
-    display: flex;
-    flex-direction: column;
 	background: black;
 	overflow-y: auto;
-    z-index: 1;
+	overflow-x: visible;
+	z-index: 1;
+	
+	&.transparent {
+		pointer-events: none;
+	}
 
 	> .option {
+		position: relative;
+		width: 100%;
 		margin: 0;
+		border: none !important;
+		box-shadow: none !important;
 	}
 }

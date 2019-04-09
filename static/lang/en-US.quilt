@@ -72,3 +72,4 @@ custom-title-bar: Custom Title Bar
 requires-restart: Changing this option requires a restart.
 requires-restart-description: Would you like to restart?
 missing-translations: Missing Translations
+character-dropdown: {0}

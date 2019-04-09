@@ -4,10 +4,10 @@ import { SortableListItem } from "component/shared/SortableList";
 import { BasicCharacter, CharacterData } from "data/Characters";
 import Projects from "data/Projects";
 import FileSystem from "util/FileSystem";
-import { pad } from "util/string/String";
 import Translation from "util/string/Translation";
 
 export default class Character extends SortableListItem {
+
 	private name?: Component;
 
 	private _character: CharacterData | BasicCharacter;
@@ -30,7 +30,7 @@ export default class Character extends SortableListItem {
 		this._character = character;
 
 		if (typeof this._character === "object") {
-			this.style.set("--headshot", `url("${Projects.current!.getPath("characters")}/${pad(this._character.id, 3)}.png")`);
+			this.style.set("--headshot", `url("${Projects.current!.getPath("characters", this._character.id)}")`);
 
 		} else {
 			this.style.remove("--headshot");
@@ -81,7 +81,7 @@ export default class Character extends SortableListItem {
 		this.emit("change-name");
 
 		if (typeof this.character === "object") {
-			await FileSystem.unlink(`${Projects.current!.getPath("characters")}/${pad(this.character.id, 3)}.png`)
+			await FileSystem.unlink(`${Projects.current!.getPath("characters", this.character.id)}`)
 				.catch(() => { });
 		}
 	}

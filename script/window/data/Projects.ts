@@ -99,12 +99,15 @@ export class Project extends Serializable {
 		return this;
 	}
 
-	public getPath (pathType: "characters"): string;
+	public getPath (pathType: "characters", character?: number): string;
 	public getPath (pathType: PagePathType, volume: number, chapter: number, page: number): string;
 	public getPath (pathType: PagePathType, volume: string, chapter: string, page: string): string;
 	public getPath (pathType: PagePathType | "characters", volume?: string | number, chapter?: string | number, page?: string | number) {
-		if (pathType === "characters")
-			return Path.join(this.root, this.structure[pathType]);
+		if (pathType === "characters") {
+			const character = volume;
+			const charactersPath = Path.join(this.root, this.structure[pathType]);
+			return character === undefined ? charactersPath : Path.join(charactersPath, `${pad(character, 3)}.png`);
+		}
 
 		[volume, chapter, page] = this.getSegmentNumbers(volume as number, chapter as number, page as number);
 		const result = Path.join(this.root, interpolate(this.structure[pathType], Stream.entries({ volume, chapter, page })

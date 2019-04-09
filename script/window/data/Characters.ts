@@ -45,9 +45,13 @@ export default class Characters extends Serializable {
 			.id;
 	}
 
-	public getName (character: number | BasicCharacter | CharacterData): string;
-	public getName (character: number | BasicCharacter | CharacterData | undefined) {
+	@Bound public getName (character: number | BasicCharacter | CharacterData | undefined) {
 		if (typeof character === "number") character = this.get(character);
 		return !character ? "" : typeof character === "object" ? character.name : new Translation(`character-${character.toLowerCase()}`).get();
+	}
+
+	public getId (character: number | BasicCharacter | CharacterData) {
+		if (typeof character !== "object") return character;
+		return character.id;
 	}
 }
