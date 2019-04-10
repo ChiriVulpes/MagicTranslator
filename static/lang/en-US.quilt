@@ -46,20 +46,21 @@ confirm-remove-project: Are you sure you want to remove\n"{0}"?
 confirm-remove-project-description: No metadata will be deleted, so you can add this project again at a later date.
 app-settings: App Settings
 file-structure: File Structure
-volume-path: Volume Path
-chapter-path: Chapter Path
-page-path: Page Path
-characters-path: Characters Path
+volume-path: Volume Name
+chapter-path: Chapter Name
+page-path: Page Name
+character-path: Character Folder
+thumb-path: Thumbnail Folder
 example: Example
 main: Main
 directory: Directory
 restore: Restore
 path-segment-input-error: {0} path cannot have separated digits or slashes /.
 path-full-input-error: {0} path must use \{volume\}, \{chapter\}, and \{page\}, in this order, each a different folder, or subfolder.
-raw-path: Raw Page Path
-translated-path: Translated Page Path
-save-path: Page Save Path
-capture-path: Page Captures Path
+raw-path: Raw Pages
+translated-path: Translated Pages
+save-path: Page Saves
+capture-path: Page Captures
 dropdown-title-default: Select: {0}
 capture2text-path: Capture2Text Path
 imagemagick-path: ImageMagick Path

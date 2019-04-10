@@ -25,7 +25,6 @@ declare global {
 
 	type RequireFunction = <T = any>(module: string) => T;
 
-	const childProcess: typeof import("mz/child_process");
 	const app: Content;
 }
 
@@ -40,21 +39,6 @@ declare global {
 	ipcRenderer.on(event, callback);
 };
 
-const nodeChildProcess = req<typeof import("child_process")>("child_process");
-
-(window as any).childProcess = {
-	async exec (command: string) {
-		return new Promise<[string, string]>((resolve, reject) => {
-			nodeChildProcess.exec(command, (err, stdout, stderr) => {
-				if (err) reject(err);
-				else resolve([stdout, stderr]);
-			});
-		});
-	},
-};
-
-(window as any).path = req("path");
-
 
 ////////////////////////////////////
 // Initialize external dependencies for utility classes
@@ -62,9 +46,13 @@ const nodeChildProcess = req<typeof import("child_process")>("child_process");
 
 const fs = req<typeof import("fs")>("fs");
 const path = req<typeof import("path")>("path");
+const childProcess = req<typeof import("child_process")>("child_process");
 
 import FileSystem from "util/FileSystem";
 FileSystem.initialize(fs, path);
+
+import ChildProcess from "util/ChildProcess";
+ChildProcess.initialize(childProcess);
 
 import Path from "util/string/Path";
 Path.initialize(path);

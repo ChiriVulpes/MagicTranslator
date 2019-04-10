@@ -30,7 +30,7 @@ export default class Character extends SortableListItem {
 		this._character = character;
 
 		if (typeof this._character === "object") {
-			this.style.set("--headshot", `url("${Projects.current!.getPath("characters", this._character.id)}")`);
+			this.style.set("--headshot", `url("${Projects.current!.getPath("character", this._character.id)}")`);
 
 		} else {
 			this.style.remove("--headshot");
@@ -81,7 +81,7 @@ export default class Character extends SortableListItem {
 		this.emit("change-name");
 
 		if (typeof this.character === "object") {
-			await FileSystem.unlink(`${Projects.current!.getPath("characters", this.character.id)}`)
+			await FileSystem.unlink(`${Projects.current!.getPath("character", this.character.id)}`)
 				.catch(() => { });
 		}
 	}

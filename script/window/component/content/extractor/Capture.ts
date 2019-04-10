@@ -46,14 +46,14 @@ export default class Capture extends SortableListItem {
 			.classes.add("capture-action-row")
 			.append(Dropdown.of(...characters.characters.map(c => c.id), ...Enums.values(BasicCharacter))
 				.classes.add("character-preview-button")
-				.style.set("--headshot", typeof capture.character !== "number" ? "" : `url("${Projects.current!.getPath("characters", capture.character)}")`)
+				.style.set("--headshot", typeof capture.character !== "number" ? "" : `url("${Projects.current!.getPath("character", capture.character)}")`)
 				.setTranslationHandler(characters.getName)
 				.setTitle("character-dropdown")
 				.select(characters.getId(capture.character || BasicCharacter.Unknown)!)
 				.schedule(dropdown => dropdown.optionStream()
 					.forEach(([character, option]) => option
 						.classes.add("character-preview-button")
-						.style.set("--headshot", typeof character !== "number" ? "" : `url("${Projects.current!.getPath("characters", character)}")`)))
+						.style.set("--headshot", typeof character !== "number" ? "" : `url("${Projects.current!.getPath("character", character)}")`)))
 				.listeners.add("select", this.changeCharacter)
 				.listeners.add("open", () => this.classes.add("active"))
 				.listeners.add("close", () => this.classes.remove("active")))
@@ -88,7 +88,7 @@ export default class Capture extends SortableListItem {
 	@Bound private async changeCharacter (event: Event) {
 		const dropdown = Component.get<Dropdown<number | BasicCharacter>>(event);
 		const character = this.capture.character = dropdown.getSelected();
-		dropdown.style.set("--headshot", typeof character !== "number" ? "" : `url("${Projects.current!.getPath("characters", character)}")`);
+		dropdown.style.set("--headshot", typeof character !== "number" ? "" : `url("${Projects.current!.getPath("character", character)}")`);
 		this.emit("capture-change");
 	}
 

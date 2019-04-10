@@ -119,7 +119,7 @@ export default class CharacterEditor extends Component {
 			reader.readAsArrayBuffer(blob!);
 		});
 
-		const charactersPath = Projects.current!.getPath("characters");
+		const charactersPath = Projects.current!.getPath("character");
 		await FileSystem.mkdir(charactersPath);
 
 		const id = this.characters.characterId++;

@@ -199,7 +199,7 @@ export default class Explorer extends Component {
 
 		const [volumeNumber, chapterNumber, pageNumber] = project.getSegmentNumbers(volume, chapter, page);
 
-		return new ImageButton(project.getPath("raw", volume, chapter, page))
+		return new ImageButton(project.root, project.getPath("raw", volume, chapter, page))
 			.setText(() => type === "root" ? project.getDisplayName() :
 				type === "volume" ? new Translation(type!).get(volumeNumber) :
 					type === "chapter" ? new Translation(type!).get(chapterNumber) :
@@ -308,7 +308,7 @@ class ImageButton extends Component {
 			.setText(this.textGenerator))
 		.appendTo(this);
 
-	public constructor (private readonly imagePath: string) {
+	public constructor (private readonly root: string, private readonly imagePath: string) {
 		super("a");
 		this.classes.add("image-button");
 		this.attributes.set("href", "#");
@@ -327,7 +327,8 @@ class ImageButton extends Component {
 	}
 
 	private async loadPreview () {
-		this.style.set("--preview", `url("${this.imagePath.replace(/\\/g, "/")}")`);
+		const thumbnail = await Projects.get(this.root)!.thumbs.get(this.imagePath);
+		this.style.set("--preview", `url("${thumbnail}")`);
 	}
 }
 

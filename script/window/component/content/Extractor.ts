@@ -11,6 +11,8 @@ import { BasicCharacter } from "data/Characters";
 import Dialog from "data/Dialog";
 import Projects from "data/Projects";
 import { tuple } from "util/Arrays";
+import Canvas from "util/Canvas";
+import ChildProcess from "util/ChildProcess";
 import Enums from "util/Enums";
 import FileSystem from "util/FileSystem";
 import { Vector } from "util/math/Geometry";
@@ -105,7 +107,7 @@ export default class Extractor extends Component {
 
 		const roots = {
 			capture: this.getCapturePagePath(),
-			character: Projects.current!.getPath("characters"),
+			character: Projects.current!.getPath("character"),
 		};
 
 		const captureComponent = new Capture(roots, capture)
@@ -379,7 +381,7 @@ export default class Extractor extends Component {
 				}
 
 				await FileSystem.mkdir(Path.dirname(translatedPath));
-				await childProcess.exec(`"${options.imageMagickCLIPath}" "${savePath}[0]" "${translatedPath}"`);
+				await ChildProcess.exec(`"${options.imageMagickCLIPath}" "${savePath}[0]" "${translatedPath}"`);
 			}
 		}
 
@@ -391,26 +393,9 @@ export default class Extractor extends Component {
 	}
 
 	private async saveImage (capturePath: string, canvas: HTMLCanvasElement) {
-		const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve));
-
-		const buffer = await new Promise<Buffer>(resolve => {
-			const reader = new FileReader();
-			reader.onload = async () => {
-				if (reader.readyState === 2) {
-					resolve(Buffer.from(reader.result as ArrayBuffer));
-				}
-			};
-			reader.readAsArrayBuffer(blob!);
-		});
-
-		const capturePagePath = this.getCapturePagePath();
-		await FileSystem.mkdir(Path.dirname(capturePagePath));
-		await FileSystem.mkdir(capturePagePath);
-
-		capturePath = `${capturePagePath}/${capturePath}`;
-		await FileSystem.writeFile(capturePath, buffer);
-
-		return capturePath;
+		const filename = `${this.getCapturePagePath()}/${capturePath}`;
+		await Canvas.saveToFile(filename, canvas);
+		return filename;
 	}
 
 	private async saveCapture (capturePath: string, canvas: HTMLCanvasElement, size: Vector) {
@@ -418,7 +403,7 @@ export default class Extractor extends Component {
 
 		const vertical = size.x < size.y;
 
-		const [out] = await childProcess.exec(`"${options.capture2TextCLIPath}" --language Japanese --image "${capturePath}" --line-breaks${vertical ? " --vertical" : ""}`);
+		const [out] = await ChildProcess.exec(`"${options.capture2TextCLIPath}" --language Japanese --image "${capturePath}" --line-breaks${vertical ? " --vertical" : ""}`);
 		return out.toString("utf8").trim();
 	}
 

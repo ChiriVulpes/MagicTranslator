@@ -4,8 +4,8 @@ import Input from "component/shared/Input";
 import Interrupt from "component/shared/Interrupt";
 import LabelledRow from "component/shared/LabelledRow";
 import Tooltip from "component/shared/Tooltip";
-import Projects, { PagePathSegment, pathSegments, pathTypes, ProjectStructure, PagePathType } from "data/Projects";
-import { exact, tuple } from "util/Arrays";
+import Projects, { PagePathSegment, PagePathType, pathSegments, pathTypes, ProjectStructure } from "data/Projects";
+import { tuple } from "util/Arrays";
 import { generalRandom } from "util/Random";
 import Stream from "util/stream/Stream";
 import { interpolate } from "util/string/Interpolator";
@@ -39,7 +39,7 @@ export default class ProjectSettings extends SettingsInterrupt {
 				.listeners.add("click", this.onRemoveProject));
 
 		this.addSection("file-structure")
-			.append(Stream.of(...pathSegments, ...pathTypes, exact("characters"))
+			.append(Stream.of(...pathSegments, ...pathTypes, ...["character", "thumb"] as const)
 				.map(pathType => new Component()
 					.classes.toggle(!PagePathSegment.is(pathType), "path-full")
 					.append(new LabelledRow(`${pathType}-path`)

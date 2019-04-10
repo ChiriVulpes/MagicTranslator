@@ -1,6 +1,7 @@
 import Captures from "data/Captures";
 import Characters from "data/Characters";
 import Serializable, { Serialized } from "data/Serialized";
+import Thumbs from "data/Thumbs";
 import { tuple } from "util/Arrays";
 import FileSystem from "util/FileSystem";
 import IndexedMap from "util/Map";
@@ -58,7 +59,8 @@ const defaultProjectStructure = {
 	volume: "vol##",
 	chapter: "ch###",
 	page: "###",
-	characters: "character",
+	character: "character",
+	thumb: ".magictranslator/thumb",
 	raw: "{volume}/{chapter}/raw/{page}.png",
 	translated: "{volume}/{chapter}/translated/{page}.png",
 	capture: "{volume}/{chapter}/capture/{page}",
@@ -68,6 +70,7 @@ const defaultProjectStructure = {
 export class Project extends Serializable {
 
 	public characters: Characters;
+	public thumbs: Thumbs;
 
 	@Serialized public name: string | undefined;
 	@Serialized public structure: ProjectStructure = { ...defaultProjectStructure };
@@ -94,27 +97,29 @@ export class Project extends Serializable {
 
 		this.canSave = true;
 
-		this.characters = await new Characters(this.getPath("characters")).load();
+		this.characters = await new Characters(this.getPath("character")).load();
+		this.thumbs = await new Thumbs(Path.join(this.root, this.structure.thumb)).load();
 		this.volumes = await this.getVolumes();
 		return this;
 	}
 
-	public getPath (pathType: "characters", character?: number): string;
+	public getPath (pathType: "character", character?: number): string;
 	public getPath (pathType: PagePathType, volume: number, chapter: number, page: number): string;
 	public getPath (pathType: PagePathType, volume: string, chapter: string, page: string): string;
-	public getPath (pathType: PagePathType | "characters", volume?: string | number, chapter?: string | number, page?: string | number) {
-		if (pathType === "characters") {
-			const character = volume;
-			const charactersPath = Path.join(this.root, this.structure[pathType]);
-			return character === undefined ? charactersPath : Path.join(charactersPath, `${pad(character, 3)}.png`);
+	public getPath (pathType: PagePathType | "character" | "thumb", volume?: string | number, chapter?: string | number, page?: string | number) {
+		const pathTypeSetting = this.structure[pathType];
+		switch (pathType) {
+			case "character":
+				const character = volume;
+				const charactersPath = Path.join(this.root, pathTypeSetting);
+				return character === undefined ? charactersPath : Path.join(charactersPath, `${pad(character, 3)}.png`);
+
+			default:
+				[volume, chapter, page] = this.getSegmentNumbers(volume as number, chapter as number, page as number);
+				return Path.join(this.root, interpolate(pathTypeSetting, Stream.entries({ volume, chapter, page })
+					.map(([name, value]) => tuple(name, this.getSegment(name, value)))
+					.toObject()));
 		}
-
-		[volume, chapter, page] = this.getSegmentNumbers(volume as number, chapter as number, page as number);
-		const result = Path.join(this.root, interpolate(this.structure[pathType], Stream.entries({ volume, chapter, page })
-			.map(([name, value]) => tuple(name, this.getSegment(name, value)))
-			.toObject()));
-
-		return result;
 	}
 
 	public getPage (volume: number, chapter: number, page: number) {

@@ -1,3 +1,4 @@
+import { Stats } from "fs";
 import Concurrency from "util/Concurrency";
 
 let nodefs: typeof import("fs");
@@ -40,6 +41,14 @@ class FileSystem {
 		return new Promise<boolean>((resolve, reject) => {
 			nodefs.stat(filepath, (err: NodeJS.ErrnoException | undefined, stats) => {
 				resolve(!err);
+			});
+		});
+	}
+
+	public async stat (filepath: string) {
+		return new Promise<Stats | undefined>((resolve, reject) => {
+			nodefs.stat(filepath, (err: NodeJS.ErrnoException | undefined, stats) => {
+				resolve(err ? undefined : stats);
 			});
 		});
 	}
