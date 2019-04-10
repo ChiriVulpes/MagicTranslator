@@ -49,20 +49,17 @@ export default class CharacterEditor extends Component {
 	private static async initializeEditor () {
 		const editor = Component.get<CharacterEditor>("#character-editor");
 
-		const characters = Projects.current!.characters;
-		if (editor.characters !== characters) {
-			editor.characters = characters;
+		editor.characters = Projects.current!.characters;
 
-			await characters.load();
+		await editor.characters.load();
 
-			editor.characterWrapper.dump();
-			characters.characters.stream()
-				.filter<undefined>(character => character)
-				.merge(Enums.values(BasicCharacter))
-				.forEach(editor.addCharacter);
+		editor.characterWrapper.dump();
+		editor.characters.characters.stream()
+			.filter<undefined>(character => character)
+			.merge(Enums.values(BasicCharacter))
+			.forEach(editor.addCharacter);
 
-			editor.select(BasicCharacter.Unknown);
-		}
+		editor.select(BasicCharacter.Unknown);
 
 		return editor;
 	}
