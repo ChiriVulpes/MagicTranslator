@@ -43,7 +43,7 @@
 	border: 2px solid transparent;
 	position: relative;
 
-	&:focus, &:hover {
+	:not(.moving) > &:focus, &:hover {
 		background: #318bff44;
 		border-color: #318bffe6;
 	}
@@ -85,11 +85,6 @@
 
 .project-button {
 	float: none;
-	
-	.moving & {
-		background: none;
-		border: none;
-	}
 	
 	grid-template-columns: 1fr auto;
 	&::before, & > .title {
