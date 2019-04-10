@@ -32,12 +32,11 @@ export default class Thumbs extends Serializable {
 	private async update (filename: string) {
 		await FileSystem.priority.mkdir(this.root);
 
-		const id = this.thumbIndex++;
+		const id = this.thumbs[filename] ? this.thumbs[filename]!.id : this.thumbIndex++;
 		const thumbFilename = this.getThumbFilename(id)!;
 		await Canvas.saveToFile(thumbFilename, await downScaleImage(filename, 350 / 1600));
 
-		let thumb = this.thumbs[filename];
-		if (!thumb) thumb = this.thumbs[filename] = { modificationTime: Date.now(), id };
+		this.thumbs[filename] = { modificationTime: Date.now(), id };
 	}
 
 	private async needsUpdate (filename: string) {
