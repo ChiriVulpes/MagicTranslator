@@ -73,7 +73,8 @@
 		--transform: translate(-50%, -50%);
 		font-size: 60pt;
 		color: #fff5;
-		animation: spin 1s infinite;
+		animation: spin 2.5s infinite;
+		animation-timing-function: cubic-bezier(.5,.15,.5,.85);
 		// height: 117px;
 	    height: 1.48em;
 	}
@@ -101,7 +102,7 @@
 
 @keyframes spin {
 	from { transform: var(--transform) rotate(0deg); }
-	to { transform: var(--transform) rotate(360deg); }
+	to { transform: var(--transform) rotate(calc(360deg * 3)); }
 }
 
 .project-button {
