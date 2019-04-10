@@ -4,26 +4,17 @@
 	> * {
 		width: 100%;
 		height: auto;
-		max-width: 600px;
+		max-width: calc(100vw - 150px);
 		max-height: calc(100vh - 100px);
 		text-align: center; 
 		display: grid;
-		grid-template-rows: 1fr auto auto;
-		
-		.character {
-			--background: #0003;
-			--height: 75px;
-			font-size: calc(var(--height) / 2);
-			font-weight: 100;
-			padding: 5px 0;
-			cursor: -webkit-grab;
-		}
+		grid-template-rows: 1fr auto;
 	}
 }
 
 .character-editor-action-row {
 	width: 100%;
-	text-align: left;
+	text-align: center;
 }
 
 .character-wrapper {
@@ -32,89 +23,60 @@
 	padding: 0 15px;
 }
 
-.character-new {
-	height: 75px;
-	
-	margin: 10px 15px 20px;
-	font-size: 24pt;
-	font-weight: 200;
-	
-	background: #0003;
-	&:hover, &:focus {
-		background: #5559
-	}
-	&:active {
-		background: #0005;
-	}
-}
-
 .character {
-	--height: 31px;
+	--height: 70px;
 	--background: transparent;
 		
+	height: var(--height);
 	text-align: left;
 	position: relative;
-	width: 100%;
-	background: none !important;
+	font-size: calc(var(--height) / 2);
 	padding: 0;
-	margin: 0;
-	border: none !important;
-	box-shadow: none !important;
+	--padding-top: 8px;
+	padding-top: var(--padding-top);
+	--padding-left: calc(var(--height) * 1.25);
+	padding-left: var(--padding-left);
+	width: calc(435px + var(--padding-left));
+	margin: 10px;
+	box-sizing: border-box;
 	
-	> * {
-		position: relative;
-		min-height: var(--height);
-		padding: .3em .5em;
-		padding-left: calc(var(--height) * 1.25);
-		box-sizing: border-box;
-		background: var(--background);
-		pointer-events: none;
-		border: 1px solid transparent;
-	
-		&::before {
-			content: "";
-			display: block;
-			position: absolute;
-			height: var(--height);
-			width: var(--height);
-			top: 0;
-			left: 0;
-			background: var(--headshot);
-			background-size: contain;
-		}
+	&::before {
+		content: "";
+		display: block;
+		position: absolute;
+		height: var(--height);
+		width: var(--height);
+		top: 0;
+		left: 0;
+		background: var(--headshot);
+		background-size: contain;
 	}
 		
 	&:hover, &:focus {
-		> * {
-			background: #5559;
-			border-color: #555b;
-			box-shadow: 0 1px 2px #0003;
-		}
+		background: #5559;
+		border-color: #555b;
+		box-shadow: 0 1px 2px #0003;
 	}
 	
 	&:active {
-		> * {
-			background: #5554;
-			border-color: #5554;
-			box-shadow: inset 0 1px 2px #0002;
-		}
+		background: #5554;
+		border-color: #5554;
+		box-shadow: inset 0 1px 2px #0002;
 	}
 	
-	&.selected > * {
+	&.selected {
 		box-shadow: 0 0 0 3px #318bff;
 	}
 	
 	textarea {
 		margin: 0;
+		margin-top: calc(var(--padding-top) * -1);
 		width: 100%;
-		pointer-events: all;
+		height: var(--height);
+		padding-top: 8px;
+		box-sizing: border-box;
+		font-size: inherit;
+		vertical-align: middle;
+		border: none !important;
 	}
-	
-	.character-action-row {
-		text-align: right;
-		> button {
-			pointer-events: all;
-			font-size: 16px;
-		}
-	} 
 }

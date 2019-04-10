@@ -174,7 +174,7 @@ export default class Extractor extends Component {
 	}
 
 	@Bound private keyup (event: KeyboardEvent) {
-		if (Component.all(".interrupt:not(.hidden)").first()) return;
+		if (document.querySelector(".interrupt:not(.hidden), .dropdown-wrapper:not(.transparent)")) return;
 
 		if (event.code === "Equal" && event.ctrlKey) this.zoomIn();
 		else if (event.code === "Minus" && event.ctrlKey) this.zoomOut();

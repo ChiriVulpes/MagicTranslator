@@ -32,6 +32,13 @@
 	--color-button-active-background: #318bff40;
 	--color-button-active-border: #318bff40;
 	
+	--color-button-warning-background: #792424;
+	--color-button-warning-border: #a10f0f;
+	--color-button-warning-hover-background: #a02929;
+	--color-button-warning-hover-border: #f00;
+	--color-button-warning-active-background: #491a1a;
+	--color-button-warning-active-border: #792424;
+	
 	--color-input-border: transparent;
 	--color-input-hover-border: transparent;
 	--color-input-focus-border: #318bff;
@@ -132,6 +139,21 @@ button {
 		box-shadow: inset 0 1px 2px #0003; 
 	}
 	
+	&.warning {
+		background: var(--color-button-warning-background);
+		border: 1px solid var(--color-button-warning-border);
+		&:hover, &:focus {
+			background: var(--color-button-warning-hover-background);
+			border-color: var(--color-button-warning-hover-border);
+		}
+		
+		&:active {
+			background: var(--color-button-warning-active-background);
+			border-color: var(--color-button-warning-active-border);
+			box-shadow: inset 0 1px 2px #0003; 
+		}
+	}
+	
 	&.disabled {
 		opacity: .3;
 		pointer-events: none;
@@ -189,6 +211,10 @@ textarea, input {
 
 .float-right {
 	float: right;
+}
+
+.float-left {
+	float: left;
 }
 	
 ::-webkit-scrollbar {

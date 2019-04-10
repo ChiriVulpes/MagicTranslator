@@ -1,6 +1,7 @@
 import Component from "component/Component";
 import Character from "component/content/character/Character";
-import SortableList, { SortableListEvent } from "component/shared/SortableList";
+import Interrupt from "component/shared/Interrupt";
+import SortableTiles from "component/shared/SortableTiles";
 import Characters, { BasicCharacter, CharacterData } from "data/Characters";
 import Projects from "data/Projects";
 import Options from "Options";
@@ -8,6 +9,7 @@ import Enums from "util/Enums";
 import FileSystem from "util/FileSystem";
 import { ComponentEvent } from "util/Manipulator";
 import { pad } from "util/string/String";
+import Translation from "util/string/Translation";
 
 export default class CharacterEditor extends Component {
 
@@ -65,7 +67,7 @@ export default class CharacterEditor extends Component {
 		return editor;
 	}
 
-	private readonly characterWrapper: Component;
+	private readonly characterWrapper: SortableTiles<Character>;
 	private readonly actionRow: Component;
 	private startingCharacter: number | BasicCharacter = BasicCharacter.Unknown;
 	private characters: Characters;
@@ -77,20 +79,26 @@ export default class CharacterEditor extends Component {
 
 		const content = new Component().appendTo(this);
 
-		this.characterWrapper = new SortableList()
+		this.characterWrapper = new SortableTiles<Character>()
 			.classes.add("character-wrapper")
-			.listeners.add(SortableListEvent.SortComplete, this.updateJson)
-			.appendTo(content);
-
-		new Component("button")
-			.classes.add("character-new")
-			.setText("character-new")
-			.listeners.add("click", () => CharacterEditor.createCharacter())
+			.listeners.add("sort", this.updateJson)
 			.appendTo(content);
 
 		this.actionRow = new Component()
 			.classes.add("character-editor-action-row")
 			.appendTo(content);
+
+		new Component("button")
+			.classes.add("permanent")
+			.setText("character-new")
+			.listeners.add("click", () => CharacterEditor.createCharacter())
+			.appendTo(this.actionRow);
+
+		new Component("button")
+			.classes.add("permanent", "warning")
+			.setText("remove-selected-character")
+			.listeners.add("click", this.removeSelectedCharacter)
+			.appendTo(this.actionRow);
 
 		this.listeners.add("show", () =>
 			Component.window.listeners.until(this.listeners.waitFor("hide"))
@@ -134,8 +142,9 @@ export default class CharacterEditor extends Component {
 	}
 
 	private showChoosing () {
-		this.actionRow.dump()
+		this.actionRow.dump(child => !child.classes.has("permanent"))
 			.append(new Component("button")
+				.classes.add("float-left")
 				.setText("cancel")
 				.listeners.add("click", this.cancel))
 			.append(new Component("button")
@@ -147,7 +156,7 @@ export default class CharacterEditor extends Component {
 	}
 
 	private showViewing (characterId?: number) {
-		this.actionRow.dump()
+		this.actionRow.dump(child => !child.classes.has("permanent"))
 			.append(new Component("button")
 				.classes.add("float-right")
 				.setText("done")
@@ -156,9 +165,8 @@ export default class CharacterEditor extends Component {
 		this.show();
 
 		if (characterId !== undefined) {
-			const showButton = this.characterWrapper.children<Character>()
-				.filter(button => typeof button.character === "object" && button.character.id === characterId)
-				.first()!;
+			const showButton = this.characterWrapper.tiles()
+				.first(button => typeof button.character === "object" && button.character.id === characterId)!;
 
 			if (showButton) showButton.focusInput();
 		}
@@ -169,21 +177,40 @@ export default class CharacterEditor extends Component {
 	@Bound private addCharacter (character: CharacterData | BasicCharacter) {
 		const characterButton = new Character(character, typeof character === "object")
 			.listeners.add("click", this.select)
-			.listeners.add("change-name", event => {
+			.listeners.add(["change-name", "blur"], event => {
 				this.select(event, false);
 				this.updateJson();
-			})
-			.appendTo(this.characterWrapper);
+			});
 
-		for (const oldButton of characterButton.siblings<Character>().filter(button => typeof button.character === "string").toArray()) {
-			oldButton.appendTo(this.characterWrapper);
-		}
+		this.characterWrapper.addTile(characterButton);
+
+		// put the basic characters beneath the new character button
+		this.characterWrapper.tiles()
+			.filter(button => typeof button.character === "string")
+			.forEach(button => button.parent!.appendTo(this.characterWrapper));
 
 		return characterButton;
 	}
 
+	@Bound private async removeSelectedCharacter () {
+		const selected = this.getSelected();
+		if (typeof selected.character !== "object") return;
+
+		const confirm = await Interrupt.confirm(interrupt => interrupt
+			.setTitle(() => new Translation("confirm-remove-character").get(selected.getName()))
+			.setDescription("confirm-remove-character-description"));
+
+		if (!confirm) return;
+
+		selected.parent!.remove();
+		this.updateJson();
+
+		await FileSystem.unlink(`${Projects.current!.getPath("character", selected.character.id)}`)
+			.catch(() => { });
+	}
+
 	@Bound private async updateJson () {
-		this.characters.characters = this.characterWrapper.children<Character>()
+		this.characters.characters = this.characterWrapper.tiles()
 			.map(button => button.character)
 			.filter<BasicCharacter>(character => typeof character === "object")
 			.toArray();
@@ -191,13 +218,14 @@ export default class CharacterEditor extends Component {
 
 	@Bound private choose () {
 		this.emit("choose", chooseEvent => {
-			const character = this.characterWrapper.children<Character>()
-				.filter(button => button.classes.has("selected"))
-				.first()!
-				.character;
-
+			const character = this.getSelected().character;
 			chooseEvent.data = typeof character === "object" ? character.id : character;
 		});
+	}
+
+	private getSelected () {
+		return this.characterWrapper.tiles()
+			.first(button => button.classes.has("selected"))!;
 	}
 
 	@Bound private cancel () {
@@ -211,13 +239,14 @@ export default class CharacterEditor extends Component {
 
 		if (typeof eventOrCharacter === "object") {
 			characterButton = Component.get(eventOrCharacter);
+			if (!characterButton.classes.has("character"))
+				characterButton = characterButton.ancestors<Character>(".character").first()!;
 
 		} else {
-			characterButton = this.characterWrapper.children<Character>()
-				.filter(button => typeof eventOrCharacter === "string" ?
+			characterButton = this.characterWrapper.tiles()
+				.first(button => typeof eventOrCharacter === "string" ?
 					button.character === eventOrCharacter :
-					typeof button.character === "object" && button.character.id === eventOrCharacter)
-				.first()!;
+					typeof button.character === "object" && button.character.id === eventOrCharacter)!;
 		}
 
 		if (!characterButton) {
@@ -229,9 +258,9 @@ export default class CharacterEditor extends Component {
 
 		if (focus) characterButton.focus();
 
-		characterButton.classes.add("selected")
-			.siblings()
+		this.characterWrapper.descendants(".selected")
 			.forEach(sibling => sibling.classes.remove("selected"));
+		characterButton.classes.add("selected");
 	}
 
 	@Bound private keyup (event: KeyboardEvent) {

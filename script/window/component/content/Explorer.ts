@@ -16,7 +16,7 @@ import Translation from "util/string/Translation";
 export default class Explorer extends Component {
 	private readonly explorerWrapper: Component;
 	private readonly actionWrapper: Component;
-	private projects: SortableTiles;
+	private projects: SortableTiles<ImageButton>;
 
 	public constructor (private readonly startLocation?: [number, number]) {
 		super();
@@ -48,7 +48,7 @@ export default class Explorer extends Component {
 	@Bound private showProjects () {
 		this.actionWrapper.dump();
 		this.explorerWrapper.dump();
-		this.projects = new SortableTiles()
+		this.projects = new SortableTiles<ImageButton>()
 			.listeners.add("sort", this.onSortProjects)
 			.appendTo(this.explorerWrapper);
 
@@ -295,8 +295,8 @@ export default class Explorer extends Component {
 	}
 
 	@Bound private onSortProjects () {
-		options.projectFolders = this.projects.children()
-			.map(project => project.descendants(".project-button").first()!.data.get("root")!)
+		options.projectFolders = this.projects.tiles()
+			.map(project => project.data.get("root")!)
 			.toArray();
 	}
 

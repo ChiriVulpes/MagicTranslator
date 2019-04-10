@@ -1,4 +1,5 @@
 import Component from "component/Component";
+import CharacterEditor from "component/content/character/CharacterEditor";
 import Note from "component/content/extractor/Note";
 import Dropdown from "component/shared/Dropdown";
 import SortableList, { SortableListEvent, SortableListItem } from "component/shared/SortableList";
@@ -44,19 +45,19 @@ export default class Capture extends SortableListItem {
 
 		new Component()
 			.classes.add("capture-action-row")
-			.append(Dropdown.of(...characters.characters.map(c => c.id), ...Enums.values(BasicCharacter))
+			.append(Dropdown.from(() => [...characters.characters.map(c => c.id), ...Enums.values(BasicCharacter)])
 				.classes.add("character-preview-button")
 				.style.set("--headshot", typeof capture.character !== "number" ? "" : `url("${Projects.current!.getPath("character", capture.character)}")`)
 				.setTranslationHandler(characters.getName)
 				.setTitle("character-dropdown")
 				.select(characters.getId(capture.character || BasicCharacter.Unknown)!)
-				.schedule(dropdown => dropdown.optionStream()
-					.forEach(([character, option]) => option
-						.classes.add("character-preview-button")
-						.style.set("--headshot", typeof character !== "number" ? "" : `url("${Projects.current!.getPath("character", character)}")`)))
+				.setOptionInitializer((option, character) => option
+					.classes.add("character-preview-button")
+					.style.set("--headshot", typeof character !== "number" ? "" : `url("${Projects.current!.getPath("character", character)}")`))
 				.listeners.add("select", this.changeCharacter)
 				.listeners.add("open", () => this.classes.add("active"))
-				.listeners.add("close", () => this.classes.remove("active")))
+				.listeners.add("close", () => this.classes.remove("active"))
+				.listeners.add("click", this.onCharacterDropdownClick))
 			.append(new Component("button")
 				.setText("paste-notes")
 				.listeners.add("click", this.pasteNotes))
@@ -134,5 +135,10 @@ export default class Capture extends SortableListItem {
 		const textarea = Component.get<Textarea>(event);
 		this.capture[textarea.classes.has("japanese") ? "text" : "translation"] = textarea.getText();
 		this.emit("capture-change");
+	}
+
+	@Bound private async onCharacterDropdownClick (event: MouseEvent) {
+		if (!event.ctrlKey) return;
+		this.capture.character = await CharacterEditor.chooseCharacter();
 	}
 }

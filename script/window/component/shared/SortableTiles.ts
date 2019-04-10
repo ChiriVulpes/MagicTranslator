@@ -2,28 +2,33 @@ import Component from "component/Component";
 import { sleep } from "util/Async";
 import { Vector } from "util/math/Geometry";
 
-export default class SortableTiles extends Component {
+export default class SortableTiles<T extends Component> extends Component {
 	public constructor () {
 		super();
 		this.classes.add("sortable-tiles");
 	}
 
-	public addTile (...children: ArrayOfIterablesOr<Component>) {
-		new SortableTile()
-			.appendTo(this)
+	public tiles () {
+		return this.children<SortableTile<T>>()
+			.map(child => child instanceof SortableTile ? child.content : child);
+	}
+
+	public addTile (content: T) {
+		new SortableTile<T>(content)
 			.listeners.add("moved", () => this.emit("sort"))
-			.content.append(...children);
+			.appendTo(this);
 	}
 }
 
-class SortableTile extends Component {
+class SortableTile<T extends Component> extends Component {
 
-	public readonly content = new Component().appendTo(this);
 	private mouseOffset: Vector;
 
-	public constructor () {
+	public constructor (public readonly content: T) {
 		super();
 		this.classes.add("sortable-tile");
+		content.appendTo(this)
+			.listeners.add("remove", this.remove);
 
 		this.listeners.add("mousedown", this.onMouseDown);
 	}
@@ -62,8 +67,8 @@ class SortableTile extends Component {
 		const hoveredElement = document.elementFromPoint(center.x, center.y);
 		const hoveredTile = hoveredElement && hoveredElement.closest(".sortable-tile");
 		if (hoveredTile && hoveredTile !== this.element()) {
-			const isLast = hoveredTile === hoveredTile.parentElement!.lastElementChild;
-			this.appendTo(this.parent!, isLast ? { after: hoveredTile } : { before: hoveredTile });
+			const isAfter = Component.get(hoveredTile).getIndex()! > this.getIndex()!;
+			this.appendTo(this.parent!, isAfter ? { after: hoveredTile } : { before: hoveredTile });
 		}
 	}
 

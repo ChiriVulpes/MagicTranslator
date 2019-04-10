@@ -195,9 +195,19 @@ export default class Component {
 		this.element().remove();
 	}
 
-	public dump () {
-		while (this.element().lastChild) {
-			this.element().removeChild(this.element().lastChild!);
+	/**
+	 * @param filter Returns `true` to remove, `false` to keep
+	 */
+	public dump (filter?: (child: Component) => boolean) {
+		if (filter) {
+			for (const child of this.children().toArray()) {
+				if (filter(child)) child.remove();
+			}
+
+		} else {
+			while (this.element().lastChild) {
+				this.element().removeChild(this.element().lastChild!);
+			}
 		}
 
 		return this;

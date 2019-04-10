@@ -1,12 +1,9 @@
 import Component from "component/Component";
-import Interrupt from "component/shared/Interrupt";
-import { SortableListItem } from "component/shared/SortableList";
 import { BasicCharacter, CharacterData } from "data/Characters";
 import Projects from "data/Projects";
-import FileSystem from "util/FileSystem";
 import Translation from "util/string/Translation";
 
-export default class Character extends SortableListItem {
+export default class Character extends Component {
 
 	private name?: Component;
 
@@ -14,10 +11,8 @@ export default class Character extends SortableListItem {
 	public get character () { return this._character; }
 
 	public constructor (character: number | BasicCharacter | CharacterData = BasicCharacter.Unknown, private editable = false) {
-		super("button");
+		super();
 		this.classes.add("character");
-
-		new Component().appendTo(this);
 
 		this.setCharacter(character);
 	}
@@ -37,21 +32,15 @@ export default class Character extends SortableListItem {
 		}
 
 		if (typeof character !== "string" && this.editable) {
-			this.child(0)!
-				.dump()
+			this.dump()
 				.append(this.name = new Component("textarea")
 					.attributes.set("rows", "1")
 					.attributes.set("placeholder", new Translation("name").get())
-					.setText(this.getCharacterName)
-					.listeners.add(["change", "keyup", "paste", "input", "focus"], this.changeName))
-				.append(new Component()
-					.classes.add("character-action-row")
-					.append(new Component("button")
-						.setText("remove")
-						.listeners.add("click", this.removeCharacter)));
+					.setText(this.getName)
+					.listeners.add(["change", "keyup", "paste", "input", "focus"], this.changeName));
 
 		} else {
-			this.child(0)!.setText(this.getCharacterName);
+			this.setText(this.getName);
 		}
 	}
 
@@ -59,30 +48,17 @@ export default class Character extends SortableListItem {
 		if (this.name) this.name.focus();
 	}
 
-	@Bound private getCharacterName () {
+	@Bound public getName () {
 		return !this._character ? "" : typeof this._character === "object" ? this._character.name : new Translation(`character-${this._character.toLowerCase()}`).get();
 	}
 
 	@Bound private changeName (event: Event) {
 		const textarea = Component.get(event).element<HTMLTextAreaElement>();
-		const value = textarea.value;
-		(this._character as CharacterData).name = value.endsWith("\n") ? textarea.value = value.trim() : value;
-		this.emit("change-name");
-	}
-
-	@Bound private async removeCharacter () {
-		const confirm = await Interrupt.confirm(interrupt => interrupt
-			.setTitle(() => new Translation("confirm-remove-character").get(this.getCharacterName()))
-			.setDescription("confirm-remove-character-description"));
-
-		if (!confirm) return;
-
-		this.remove();
-		this.emit("change-name");
-
-		if (typeof this.character === "object") {
-			await FileSystem.unlink(`${Projects.current!.getPath("character", this.character.id)}`)
-				.catch(() => { });
+		const value = textarea.value.endsWith("\n") ? textarea.value = textarea.value.trim() : textarea.value;
+		const characterData = (this._character as CharacterData);
+		if (characterData.name !== value) {
+			characterData.name = value;
+			this.emit("change-name");
 		}
 	}
 }
