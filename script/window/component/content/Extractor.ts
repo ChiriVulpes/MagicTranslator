@@ -32,6 +32,7 @@ export default class Extractor extends Component {
 
 	private readonly pageImage: Component;
 	private readonly capturesWrapper: SortableList;
+	private readonly displayModeDropdown: Dropdown<DisplayMode>;
 
 	private captures: Captures;
 	private captureStart: Vector;
@@ -76,11 +77,10 @@ export default class Extractor extends Component {
 					.setText("next-page")
 					.setDisabled(!hasNextPage)
 					.listeners.add("click", () => this.emit("next")))
-				.append(Dropdown.from(Enums.values(DisplayMode))
+				.append(this.displayModeDropdown = Dropdown.from(Enums.values(DisplayMode))
 					.classes.add("float-right")
 					.setTitle("display-mode")
-					.listeners.add("select", this.changeDisplayMode)
-					.schedule(0, dropdown => dropdown.select(Extractor.displayMode)))
+					.listeners.add("select", this.changeDisplayMode))
 				.append(new Component("button")
 					.classes.add("float-right")
 					.setText("export")
@@ -137,6 +137,8 @@ export default class Extractor extends Component {
 		for (const capture of this.captures.captures) {
 			await this.addCapture(capture);
 		}
+
+		this.displayModeDropdown.select(Extractor.displayMode);
 
 		this.pageImage.listeners.add("mousedown", this.mouseDown);
 
