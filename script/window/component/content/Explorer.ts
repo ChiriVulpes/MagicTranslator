@@ -310,7 +310,7 @@ class ImageButton extends Component {
 
 	public constructor (private readonly root: string, private readonly imagePath: string) {
 		super("a");
-		this.classes.add("image-button");
+		this.classes.add("image-button", "loading");
 		this.attributes.set("href", "#");
 		this.loadPreview();
 	}
@@ -328,6 +328,7 @@ class ImageButton extends Component {
 
 	private async loadPreview () {
 		const thumbnail = await Projects.get(this.root)!.thumbs.get(this.imagePath);
+		this.classes.remove("loading");
 		this.style.set("--preview", `url("${thumbnail}")`);
 	}
 }

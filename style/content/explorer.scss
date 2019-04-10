@@ -35,9 +35,10 @@
 	text-decoration: none;
 	outline: none;
 	display: grid;
+    --height: 330;
+    grid-template-rows: var(--height) auto;
+    width: calc(1114px * (var(--height) / 1600));
 	float: left;
-	--scale: .204;
-	width: calc(1114px * var(--scale));
 	overflow: hidden;
 	border: 2px solid transparent;
 	position: relative;
@@ -55,15 +56,33 @@
 	// 	}
 	// }
 
-	&::before {
+	&:not(.loading)::before {
 		content: "";
-		display: block;
-		width: 100%;
-		height: calc(1600px * var(--scale));
 		background: var(--preview);
 		background-size: cover;
 		background-repeat: no-repeat;
 		box-shadow: inset 0 0 0 1px #fff3, 0 0 2px 1px #0005;
+	}
+	
+	&.loading::before {
+		content: "🗘";
+		position: absolute;
+		display: block;
+		top: 50%;
+		left: 50%;
+		--transform: translate(-50%, -50%);
+		font-size: 60pt;
+		color: #fff5;
+		animation: spin 1s infinite;
+		// height: 117px;
+	    height: 1.48em;
+	}
+	
+	[platform="win32"] &.loading::before {
+		content: "\E117";
+		font-family: "Segoe MDL2 Assets";
+		font-size: 60pt;
+		height: auto;
 	}
 
 	& > .title {
@@ -76,7 +95,13 @@
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
+		grid-row: 2;
 	}
+}
+
+@keyframes spin {
+	from { transform: var(--transform) rotate(0deg); }
+	to { transform: var(--transform) rotate(360deg); }
 }
 
 .project-button {
@@ -119,7 +144,7 @@
 
 .missing-translations {
     position: absolute;
-    top: 320px;
+    top: var(--height);
     right: 10px;
     min-width: 30px;
     box-sizing: border-box;
