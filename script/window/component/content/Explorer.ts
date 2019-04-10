@@ -2,6 +2,7 @@ import Component, { TextGenerator } from "component/Component";
 import GlobalSettings from "component/content/GlobalSettings";
 import ProjectSettings from "component/content/ProjectSettings";
 import Header from "component/header/Header";
+import SortableTiles from "component/shared/SortableTiles";
 import Tooltip from "component/shared/Tooltip";
 import { CaptureData } from "data/Captures";
 import Dialog from "data/Dialog";
@@ -15,6 +16,7 @@ import Translation from "util/string/Translation";
 export default class Explorer extends Component {
 	private readonly explorerWrapper: Component;
 	private readonly actionWrapper: Component;
+	private projects: SortableTiles;
 
 	public constructor (private readonly startLocation?: [number, number]) {
 		super();
@@ -46,6 +48,9 @@ export default class Explorer extends Component {
 	@Bound private showProjects () {
 		this.actionWrapper.dump();
 		this.explorerWrapper.dump();
+		this.projects = new SortableTiles()
+			.listeners.add("sort", this.onSortProjects)
+			.appendTo(this.explorerWrapper);
 
 		Projects.keys().forEach(this.addProjectButton);
 
@@ -72,7 +77,7 @@ export default class Explorer extends Component {
 		new Component("button")
 			.classes.add("float-right")
 			.setText("project-settings")
-			.listeners.add("click", this.onRootSettings(root))
+			.listeners.add("click", this.onProjectSettings(root))
 			.appendTo(this.actionWrapper);
 
 		const project = Projects.current = Projects.get(root)!;
@@ -174,9 +179,10 @@ export default class Explorer extends Component {
 	}
 
 	@Bound private addProjectButton (root: string) {
-		return this.addImageButton(root)
+		return this.projects.addTile(this.addImageButton(root)
+			.data.set("root", root)
 			.classes.add("project-button")
-			.listeners.add("click", () => this.showVolumes(root));
+			.listeners.add("click", () => this.showVolumes(root)));
 	}
 
 	private addImageButton (volume?: number, chapter?: number, page?: number): ImageButton;
@@ -270,7 +276,7 @@ export default class Explorer extends Component {
 		new GlobalSettings();
 	}
 
-	@Bound private onRootSettings (root: string) {
+	@Bound private onProjectSettings (root: string) {
 		return async (event: Event) => {
 			event.stopPropagation();
 
@@ -286,6 +292,12 @@ export default class Explorer extends Component {
 
 			if (project) Header.setTitle(() => new Translation("title").get({ root: project.getDisplayName() }));
 		};
+	}
+
+	@Bound private onSortProjects () {
+		options.projectFolders = this.projects.children()
+			.map(project => project.descendants(".project-button").first()!.data.get("root")!)
+			.toArray();
 	}
 
 	@Bound private async export (volume: number, chapter: number) {

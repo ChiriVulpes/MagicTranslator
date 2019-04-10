@@ -77,24 +77,52 @@ export class Vector {
 		this.y = y;
 	}
 
-	public plus (vector: { x: number; y: number }) {
-		return new Vector(this.x + vector.x, this.y + vector.y);
+	public plus (xAndY: number): Vector;
+	public plus (vector: { x: number; y: number }): Vector;
+	public plus (vector: number | { x: number; y: number }) {
+		return new Vector(
+			this.x + (typeof vector === "number" ? vector : vector.x),
+			this.y + (typeof vector === "number" ? vector : vector.y),
+		);
 	}
 
-	public minus (vector: { x: number; y: number }) {
-		return new Vector(this.x - vector.x, this.y - vector.y);
+	public minus (xAndY: number): Vector;
+	public minus (vector: { x: number; y: number }): Vector;
+	public minus (vector: number | { x: number; y: number }) {
+		return new Vector(
+			this.x - (typeof vector === "number" ? vector : vector.x),
+			this.y - (typeof vector === "number" ? vector : vector.y),
+		);
 	}
 
-	public times (vector: { x: number; y: number }) {
-		return new Vector(this.x * vector.x, this.y * vector.y);
+	public times (xAndY: number): Vector;
+	public times (vector: { x: number; y: number }): Vector;
+	public times (vector: number | { x: number; y: number }) {
+		return new Vector(
+			this.x * (typeof vector === "number" ? vector : vector.x),
+			this.y * (typeof vector === "number" ? vector : vector.y),
+		);
 	}
 
-	public over (vector: { x: number; y: number }) {
-		return new Vector(this.x / vector.x, this.y / vector.y);
+	public over (xAndY: number): Vector;
+	public over (vector: { x: number; y: number }): Vector;
+	public over (vector: number | { x: number; y: number }) {
+		return new Vector(
+			this.x / (typeof vector === "number" ? vector : vector.x),
+			this.y / (typeof vector === "number" ? vector : vector.y),
+		);
 	}
 
 	public abs () {
 		return new Vector(Math.abs(this.x), Math.abs(this.y));
+	}
+
+	public floor () {
+		return new Vector(Math.floor(this.x), Math.floor(this.y));
+	}
+
+	public round () {
+		return new Vector(Math.round(this.x), Math.round(this.y));
 	}
 
 	public raw () {

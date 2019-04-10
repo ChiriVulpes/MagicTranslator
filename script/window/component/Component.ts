@@ -167,13 +167,16 @@ export default class Component {
 	// Interelement Location
 	//
 
-	public appendTo (parent: Component, location: "beginning" | "end" | { before: Component | Node } = "end") {
+	public appendTo (parent: Component, location: "beginning" | "end" | { before: Component | Node } | { after: Component | Node } = "end") {
 		parent.emit("append-child", event => event.data = this);
 		const parentElement = parent.element();
 		if (location === "end" || !parentElement.firstChild) parentElement.appendChild(this.element());
 		else {
 			if (location === "beginning") location = { before: parentElement.firstChild };
-			parentElement.insertBefore(this.element(), location.before instanceof Component ? location.before.element() : location.before);
+			if ("before" in location)
+				parentElement.insertBefore(this.element(), location.before instanceof Component ? location.before.element() : location.before);
+			else
+				parentElement.insertBefore(this.element(), (location.after instanceof Component ? location.after.element() : location.after).nextSibling);
 		}
 
 		this.bindObserverForRemoval();

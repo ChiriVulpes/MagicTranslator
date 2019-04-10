@@ -92,6 +92,7 @@ body {
 
 * {
 	white-space: pre-wrap;
+	-webkit-user-drag: none; // disables link dragging
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -219,6 +220,7 @@ textarea, input {
 @import "component/check-button";
 @import "component/tooltips";
 @import "component/sortable-list";
+@import "component/sortable-tiles";
 @import "component/interrupt";
 
 ////////////////////////////////////

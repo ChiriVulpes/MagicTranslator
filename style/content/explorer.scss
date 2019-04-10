@@ -84,6 +84,13 @@
 }
 
 .project-button {
+	float: none;
+	
+	.moving & {
+		background: none;
+		border: none;
+	}
+	
 	grid-template-columns: 1fr auto;
 	&::before, & > .title {
 		grid-column: 1/3; 
