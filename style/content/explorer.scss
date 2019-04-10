@@ -63,28 +63,6 @@
 		background-repeat: no-repeat;
 		box-shadow: inset 0 0 0 1px #fff3, 0 0 2px 1px #0005;
 	}
-	
-	&.loading::before {
-		content: "🗘";
-		position: absolute;
-		display: block;
-		top: 50%;
-		left: 50%;
-		--transform: translate(-50%, -50%);
-		font-size: 60pt;
-		color: #fff5;
-		animation: spin 2.5s infinite;
-		animation-timing-function: cubic-bezier(.5,.15,.5,.85);
-		// height: 117px;
-	    height: 1.48em;
-	}
-	
-	[platform="win32"] &.loading::before {
-		content: "\E117";
-		font-family: "Segoe MDL2 Assets";
-		font-size: 60pt;
-		height: auto;
-	}
 
 	& > .title {
 		content: var(--text);

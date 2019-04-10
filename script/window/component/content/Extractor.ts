@@ -368,6 +368,8 @@ export default class Extractor extends Component {
 		const translated = Extractor.displayMode === DisplayMode.Translated;
 		const translatedPath = project.getPath(translated ? "translated" : "raw", this.volume, this.chapter, this.page);
 
+		this.pageImage.parent!.classes.add("loading");
+
 		if (translated && !await FileSystem.exists(translatedPath)) {
 			const savePath = project.getPath("save", this.volume, this.chapter, this.page);
 			if (await FileSystem.exists(savePath)) {
@@ -386,6 +388,7 @@ export default class Extractor extends Component {
 		}
 
 		this.pageImage.attributes.set("src", translatedPath);
+		this.pageImage.parent!.classes.remove("loading");
 	}
 
 	@Bound private async export () {
