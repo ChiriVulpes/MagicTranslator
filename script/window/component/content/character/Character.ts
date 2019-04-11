@@ -1,4 +1,5 @@
 import Component from "component/Component";
+import Input from "component/shared/Input";
 import { BasicCharacter, CharacterData } from "data/Characters";
 import Projects from "data/Projects";
 import Translation from "util/string/Translation";
@@ -11,7 +12,7 @@ export default class Character extends Component {
 	public get character () { return this._character; }
 
 	public constructor (character: number | BasicCharacter | CharacterData = BasicCharacter.Unknown, private editable = false) {
-		super();
+		super(typeof character === "string" ? "button" : undefined);
 		this.classes.add("character");
 
 		this.setCharacter(character);
@@ -33,23 +34,35 @@ export default class Character extends Component {
 
 		if (typeof character !== "string" && this.editable) {
 			this.dump()
-				.append(this.name = new Component("textarea")
-					.attributes.set("rows", "1")
-					.attributes.set("placeholder", new Translation("name").get())
+				.append(this.name = new Input()
+					.setPlaceholder("name")
 					.setText(this.getName)
-					.listeners.add(["change", "keyup", "paste", "input", "focus"], this.changeName));
+					.listeners.add("keydown", this.onNameInputKeydown)
+					.listeners.add("focus", () => this.emit("focus"))
+					.listeners.add("change", this.changeName));
 
 		} else {
 			this.setText(this.getName);
 		}
 	}
 
-	public focusInput () {
+	@Override public focus () {
 		if (this.name) this.name.focus();
+		else super.focus();
+		return this;
 	}
 
 	@Bound public getName () {
 		return !this._character ? "" : typeof this._character === "object" ? this._character.name : new Translation(`character-${this._character.toLowerCase()}`).get();
+	}
+
+	@Bound private onNameInputKeydown (event: KeyboardEvent): false | void {
+		if (event.code === "Delete" && event.ctrlKey) {
+			this.emit("should-remove");
+			event.stopPropagation();
+			event.preventDefault();
+			return false;
+		}
 	}
 
 	@Bound private changeName (event: Event) {

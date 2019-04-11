@@ -13,8 +13,8 @@ export default class SortableTiles<T extends Component> extends Component {
 			.map(child => child instanceof SortableTile ? child.content : child);
 	}
 
-	public addTile (content: T) {
-		new SortableTile<T>(content)
+	public addTile (content: T, sortable = true) {
+		new SortableTile<T>(content, sortable)
 			.listeners.add("moved", () => this.emit("sort"))
 			.appendTo(this);
 	}
@@ -24,13 +24,14 @@ class SortableTile<T extends Component> extends Component {
 
 	private mouseOffset: Vector;
 
-	public constructor (public readonly content: T) {
+	public constructor (public readonly content: T, sortable = true) {
 		super();
 		this.classes.add("sortable-tile");
+		this.classes.toggle(!sortable, "immobile");
 		content.appendTo(this)
 			.listeners.add("remove", this.remove);
 
-		this.listeners.add("mousedown", this.onMouseDown);
+		if (sortable) this.listeners.add("mousedown", this.onMouseDown);
 	}
 
 	public getCenter () {
@@ -65,7 +66,7 @@ class SortableTile<T extends Component> extends Component {
 
 		const center = this.getCenter();
 		const hoveredElement = document.elementFromPoint(center.x, center.y);
-		const hoveredTile = hoveredElement && hoveredElement.closest(".sortable-tile");
+		const hoveredTile = hoveredElement && hoveredElement.closest(".sortable-tile:not(.immobile)");
 		if (hoveredTile && hoveredTile !== this.element()) {
 			const isAfter = Component.get(hoveredTile).getIndex()! > this.getIndex()!;
 			this.appendTo(this.parent!, isAfter ? { after: hoveredTile } : { before: hoveredTile });

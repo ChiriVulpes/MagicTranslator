@@ -25,20 +25,20 @@
 
 .character {
 	--height: 70px;
-	--background: transparent;
 		
 	height: var(--height);
 	text-align: left;
 	position: relative;
 	font-size: calc(var(--height) / 2);
 	padding: 0;
-	--padding-top: 8px;
-	padding-top: var(--padding-top);
 	--padding-left: calc(var(--height) * 1.25);
 	padding-left: var(--padding-left);
 	width: calc(435px + var(--padding-left));
 	margin: 10px;
 	box-sizing: border-box;
+	background: none;
+	border: none;
+	box-shadow: none;
 	
 	&::before {
 		content: "";
@@ -73,12 +73,11 @@
 		box-shadow: 0 0 0 3px #318bff;
 	}
 	
-	textarea {
+	input {
 		margin: 0;
-		margin-top: calc(var(--padding-top) * -1);
 		width: 100%;
 		height: var(--height);
-		padding-top: 8px;
+		padding-top: 3px;
 		box-sizing: border-box;
 		font-size: inherit;
 		vertical-align: middle;

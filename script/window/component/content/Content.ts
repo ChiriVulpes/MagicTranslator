@@ -31,6 +31,9 @@ export default class Content extends Component {
 			Projects.load(),
 		]);
 
+		Projects.current = Projects.valueStream().first()!;
+		CharacterEditor.chooseCharacter();
+
 		Component.window.listeners.until(this.listeners.waitFor("remove"))
 			.add("keyup", this.keyup, true);
 

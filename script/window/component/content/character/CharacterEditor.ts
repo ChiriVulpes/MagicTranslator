@@ -64,6 +64,7 @@ export default class CharacterEditor extends Component {
 		return editor;
 	}
 
+	private readonly removeSelectedCharacterButton: Component;
 	private readonly characterWrapper: SortableTiles<Character>;
 	private readonly actionRow: Component;
 	private startingCharacter: number | BasicCharacter = BasicCharacter.Unknown;
@@ -91,7 +92,7 @@ export default class CharacterEditor extends Component {
 			.listeners.add("click", () => CharacterEditor.createCharacter())
 			.appendTo(this.actionRow);
 
-		new Component("button")
+		this.removeSelectedCharacterButton = new Component("button")
 			.classes.add("permanent", "warning")
 			.setText("remove-selected-character")
 			.listeners.add("click", this.removeSelectedCharacter)
@@ -131,11 +132,17 @@ export default class CharacterEditor extends Component {
 
 		await FileSystem.writeFile(`${charactersPath}/${pad(id, 3)}.png`, buffer);
 
-		this.addCharacter({ id, name }).focusInput();
+		this.addCharacter({ id, name }).focus();
 
 		this.updateJson();
 
 		return id;
+	}
+
+	@Override public show () {
+		super.show();
+		this.getSelected().focus();
+		return this;
 	}
 
 	private showChoosing () {
@@ -165,7 +172,7 @@ export default class CharacterEditor extends Component {
 			const showButton = this.characterWrapper.tiles()
 				.first(button => typeof button.character === "object" && button.character.id === characterId)!;
 
-			if (showButton) showButton.focusInput();
+			if (showButton) showButton.focus();
 		}
 
 		return this;
@@ -174,12 +181,13 @@ export default class CharacterEditor extends Component {
 	@Bound private addCharacter (character: CharacterData | BasicCharacter) {
 		const characterButton = new Character(character, typeof character === "object")
 			.listeners.add("click", this.select)
-			.listeners.add(["change-name", "blur"], event => {
+			.listeners.add("should-remove", this.removeSelectedCharacter)
+			.listeners.add(["change-name", "blur", "focus"], event => {
 				this.select(event, false);
 				this.updateJson();
 			});
 
-		this.characterWrapper.addTile(characterButton);
+		this.characterWrapper.addTile(characterButton, typeof character !== "string");
 
 		// put the basic characters beneath the new character button
 		this.characterWrapper.tiles()
@@ -258,6 +266,8 @@ export default class CharacterEditor extends Component {
 		this.characterWrapper.descendants(".selected")
 			.forEach(sibling => sibling.classes.remove("selected"));
 		characterButton.classes.add("selected");
+
+		this.removeSelectedCharacterButton.setDisabled(typeof characterButton.character === "string");
 	}
 
 	@Bound private keyup (event: KeyboardEvent) {
@@ -265,6 +275,10 @@ export default class CharacterEditor extends Component {
 
 		if (event.code === "Enter") this.choose();
 		if (event.code === "Escape") this.cancel();
+
+		if (event.code === "Delete" && event.ctrlKey && typeof this.getSelected() !== "string") {
+			this.removeSelectedCharacter();
+		}
 	}
 
 }

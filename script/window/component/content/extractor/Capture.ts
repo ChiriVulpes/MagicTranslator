@@ -141,6 +141,6 @@ export default class Capture extends SortableListItem {
 
 	@Bound private async onCharacterDropdownClick (event: MouseEvent) {
 		if (!event.ctrlKey) return;
-		this.capture.character = await CharacterEditor.chooseCharacter();
+		this.capture.character = await CharacterEditor.chooseCharacter(this.capture.character);
 	}
 }
