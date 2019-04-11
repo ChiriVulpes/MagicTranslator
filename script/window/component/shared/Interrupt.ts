@@ -56,9 +56,14 @@ export default class Interrupt extends Component {
 				.classes.add("interrupt-actions"))
 			.appendTo(this);
 
-		this.listeners.add("show", () =>
-			Component.window.listeners.until(this.listeners.waitFor(["hide", "remove"]))
-				.add("keyup", this.keyup, true));
+		this.listeners.add("show", this.onShow);
+
+		for (const focusable of Component.all("button, textarea, input, a")) {
+			if (focusable.matches(".interrupt:not(.hidden) *")) return;
+
+			focusable.data.set("previousTabindex", focusable.attributes.get("tabindex"));
+			focusable.attributes.set("tabindex", "-1");
+		}
 
 		this.show();
 	}
@@ -92,6 +97,19 @@ export default class Interrupt extends Component {
 	@Bound protected keyup (key: KeyboardEvent) {
 		if (key.code === "Enter") this.resolve(InterruptChoice.Yes) || this.resolve(InterruptChoice.Dismiss);
 		if (key.code === "Escape") this.resolve(InterruptChoice.No) || this.resolve(InterruptChoice.Done);
+	}
+
+	@Bound private async onShow () {
+		const closePromise = this.listeners.waitFor(["hide", "remove"]);
+		Component.window.listeners.until(closePromise)
+			.add("keyup", this.keyup, true);
+
+		await closePromise;
+
+		for (const focusable of Component.all("[data-previous-tabindex]")) {
+			focusable.attributes.set("tabindex", focusable.data.get("previousTabindex"));
+			focusable.data.remove("previousTabindex");
+		}
 	}
 
 	private resolve (choice: string) {
