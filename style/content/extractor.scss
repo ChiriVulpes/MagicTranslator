@@ -56,6 +56,8 @@
 		overflow: auto;
 		
 		> img {
+			--natural-width: 1114px;
+			--natural-height: 1600px;
 			--zoom: 0;
 			display: block;
 			max-width: calc(100% + (var(--natural-width) - 100%) * var(--zoom));
@@ -89,6 +91,10 @@
 				display: block;
 				padding-top: 30%;
 			}
+		}
+		
+		&.loading > img {
+			opacity: 0;
 		}
 	}
 }

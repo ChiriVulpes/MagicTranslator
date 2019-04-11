@@ -53,12 +53,10 @@ export default class Extractor extends Component {
 			.append(new Component()
 				.append(this.pageImage = new Img()
 					.setAlt("no-translated-image")
-					.hide(true)
 					.listeners.add("load", () => {
 						const image = this.pageImage.element<HTMLImageElement>();
 						this.pageImage.style.set("--natural-width", `${image.naturalWidth}px`);
 						this.pageImage.style.set("--natural-height", `${image.naturalHeight}px`);
-						this.pageImage.show();
 					})))
 			.appendTo(this);
 
