@@ -374,7 +374,7 @@ export default class Extractor extends Component {
 
 		if (translated) await this.initializePageImage(translatedPath);
 
-		this.pageImage.attributes.set("src", translatedPath);
+		this.pageImage.attributes.set("src", `${translatedPath}?cachebuster`);
 		this.pageImage.parent!.classes.remove("loading");
 	}
 
