@@ -1,6 +1,7 @@
 import Component from "component/Component";
 import { tuple } from "util/Arrays";
 import { sleep } from "util/Async";
+import Stream from "util/stream/Stream";
 import Translation from "util/string/Translation";
 
 export default class Dropdown<O> extends Component {
@@ -9,7 +10,8 @@ export default class Dropdown<O> extends Component {
 	}
 
 	public static from<O> (iterable: GetterOfOr<Iterable<O>>) {
-		return new Dropdown(() => [...typeof iterable === "function" ? iterable() : iterable]);
+		const entries = typeof iterable === "function" ? undefined : [...iterable];
+		return new Dropdown(typeof iterable === "function" ? iterable : () => entries!);
 	}
 
 	private selected: O;
@@ -21,7 +23,7 @@ export default class Dropdown<O> extends Component {
 		.classes.add("dropdown-wrapper")
 		.appendTo(Component.body);
 
-	private constructor (private readonly optionsGenerator: () => O[]) {
+	private constructor (private readonly optionsGenerator: () => Iterable<O>) {
 		super("button");
 		this.classes.add("dropdown");
 
@@ -56,10 +58,15 @@ export default class Dropdown<O> extends Component {
 	}
 
 	public select (option: O) {
-		this.selected = option;
-		this.inheritText(this.options.get(option)!, this.title);
 		this.close();
-		this.emit<O>("select", event => event.data = option);
+
+		if (this.selected !== option) {
+			this.selected = option;
+			this.emit<O>("select", event => event.data = option);
+		}
+
+		this.inheritText(this.options.get(option)!, this.title);
+
 		return this;
 	}
 
@@ -76,7 +83,7 @@ export default class Dropdown<O> extends Component {
 	private refresh () {
 		this.wrapper.dump();
 		const options = this.optionsGenerator();
-		this.options = options.stream()
+		this.options = Stream.from(options)
 			.map(option => tuple(option, new Component("button")
 				.classes.add("option")
 				.setDisabled()
@@ -89,7 +96,7 @@ export default class Dropdown<O> extends Component {
 				.appendTo(this.wrapper)))
 			.toMap();
 
-		this.select(this.selected === undefined ? options[0] : this.selected);
+		this.select(this.selected === undefined ? this.options.keyStream().first()! : this.selected);
 	}
 
 	private close () {
