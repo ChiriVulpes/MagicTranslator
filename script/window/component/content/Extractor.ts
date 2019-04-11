@@ -372,25 +372,32 @@ export default class Extractor extends Component {
 
 		this.pageImage.parent!.classes.add("loading");
 
-		if (translated && !await FileSystem.exists(translatedPath)) {
-			const savePath = project.getPath("save", this.volume, this.chapter, this.page);
-			if (await FileSystem.exists(savePath)) {
-				if (!options.imageMagickCLIPath) {
-					if (!await Interrupt.confirm(interrupt => interrupt
-						.setTitle("prompt-imagemagick-for-viewing-psd")
-						.setDescription("prompt-imagemagick-for-viewing-psd-description"))) return;
-
-					await new GlobalSettings().listeners.waitFor("remove");
-					if (!options.imageMagickCLIPath) return;
-				}
-
-				await FileSystem.mkdir(Path.dirname(translatedPath));
-				await ChildProcess.exec(`"${options.imageMagickCLIPath}" "${savePath}[0]" "${translatedPath}"`);
-			}
-		}
+		if (translated) await this.initializePageImage(translatedPath);
 
 		this.pageImage.attributes.set("src", translatedPath);
 		this.pageImage.parent!.classes.remove("loading");
+	}
+
+	private async initializePageImage (translatedPath: string) {
+		const project = Projects.current!;
+		const savePath = project.getPath("save", this.volume, this.chapter, this.page);
+		const [translatedStats, saveStats] = await Promise.all([FileSystem.stat(translatedPath), FileSystem.stat(savePath)]);
+		if (saveStats && (!translatedStats || translatedStats.mtime.getTime() < saveStats.mtime.getTime())) {
+			if (!options.imageMagickCLIPath) {
+				if (!await Interrupt.confirm(interrupt => interrupt
+					.setTitle("prompt-imagemagick-for-viewing-psd")
+					.setDescription("prompt-imagemagick-for-viewing-psd-description"))) return;
+
+				await new GlobalSettings().listeners.waitFor("remove");
+				if (!options.imageMagickCLIPath) return;
+			}
+
+			await FileSystem.mkdir(Path.dirname(translatedPath));
+			await ChildProcess.exec(`"${options.imageMagickCLIPath}" "${savePath}[0]" "${translatedPath}"`)
+				.catch(async err => Interrupt.info(screen => screen
+					.setTitle("imagemagick-unsupported")
+					.setDescription(() => err.message.replace(/^Command failed: .*?\n/, ""))));
+		}
 	}
 
 	@Bound private async export () {
