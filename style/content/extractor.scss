@@ -63,9 +63,31 @@
 			margin: auto;
 			-webkit-user-drag: none;
 			transition: opacity .1s ease-in-out, height 0s linear;
+			color: transparent;
 			
 			&.transparent {
 				height: 0;
+			}
+			
+			&::before {
+				position: absolute;
+				left: 0;
+				top: 0;
+				width: 20px;
+				height: 20px;
+				content: "";
+				display: block;
+				background: #252525;
+			}
+			
+			&::after {
+				content: attr(alt);
+				font-weight: lighter;
+				font-size: 48pt;
+				text-align: center;
+				color: #fffa;
+				display: block;
+				padding-top: 30%;
 			}
 		}
 	}

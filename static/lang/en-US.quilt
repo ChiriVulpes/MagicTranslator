@@ -77,3 +77,4 @@ character-dropdown: {0}
 project-settings: Project Settings
 remove-selected-character: Remove Selected Character
 imagemagick-unsupported: ImageMagick can't convert the save file. Error:
+no-translated-image: There is no translated\nversion of this page.

@@ -4,6 +4,7 @@ import Capture from "component/content/extractor/Capture";
 import GlobalSettings from "component/content/GlobalSettings";
 import Header from "component/header/Header";
 import Dropdown from "component/shared/Dropdown";
+import Img from "component/shared/Img";
 import Interrupt from "component/shared/Interrupt";
 import SortableList, { SortableListEvent } from "component/shared/SortableList";
 import Captures, { CaptureData } from "data/Captures";
@@ -30,7 +31,7 @@ export default class Extractor extends Component {
 
 	private static displayMode = DisplayMode.Translate;
 
-	private readonly pageImage: Component;
+	private readonly pageImage: Img;
 	private readonly capturesWrapper: SortableList;
 	private readonly displayModeDropdown: Dropdown<DisplayMode>;
 
@@ -50,7 +51,8 @@ export default class Extractor extends Component {
 		new Component()
 			.classes.add("page-wrapper")
 			.append(new Component()
-				.append(this.pageImage = new Component("img")
+				.append(this.pageImage = new Img()
+					.setAlt("no-translated-image")
 					.hide(true)
 					.listeners.add("load", () => {
 						const image = this.pageImage.element<HTMLImageElement>();
@@ -105,12 +107,7 @@ export default class Extractor extends Component {
 			capture.id = this.captures.captureId++;
 		}
 
-		const roots = {
-			capture: this.getCapturePagePath(),
-			character: Projects.current!.getPath("character"),
-		};
-
-		const captureComponent = new Capture(roots, capture)
+		const captureComponent = new Capture(this.getCapturePagePath(), capture)
 			.listeners.add("capture-change", this.updateJSON)
 			.listeners.add<MouseEvent>("mouseenter", this.mouseEnterCapture)
 			.listeners.add("remove-capture", this.removeCapture)
@@ -374,7 +371,7 @@ export default class Extractor extends Component {
 
 		if (translated) await this.initializePageImage(translatedPath);
 
-		this.pageImage.attributes.set("src", `${translatedPath}?cachebuster`);
+		this.pageImage.setSrc(`${translatedPath}?cachebuster`);
 		this.pageImage.parent!.classes.remove("loading");
 	}
 

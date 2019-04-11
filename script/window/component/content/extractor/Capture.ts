@@ -2,6 +2,7 @@ import Component from "component/Component";
 import CharacterEditor from "component/content/character/CharacterEditor";
 import Note from "component/content/extractor/Note";
 import Dropdown from "component/shared/Dropdown";
+import Img from "component/shared/Img";
 import SortableList, { SortableListEvent, SortableListItem } from "component/shared/SortableList";
 import Textarea from "component/shared/Textarea";
 import { CaptureData } from "data/Captures";
@@ -13,17 +14,18 @@ import { pad } from "util/string/String";
 
 export default class Capture extends SortableListItem {
 
-	private readonly img: Component;
+	private readonly img: Img;
 	private readonly notes: SortableList;
 
-	public constructor (roots: { capture: string; character: string }, private readonly capture: CaptureData) {
+	public constructor (private readonly captureRoot: string, private readonly capture: CaptureData) {
 		super();
 		this.classes.add("capture");
 
 		new Component()
-			.append(this.img = new Component("img")
-				.attributes.set("src", `${roots.capture}/cap${pad(capture.id!, 3)}.png`))
+			.append(this.img = new Img())
 			.appendTo(this);
+
+		this.refreshImage();
 
 		new Component()
 			.append(new Textarea()
@@ -83,7 +85,7 @@ export default class Capture extends SortableListItem {
 	}
 
 	public refreshImage () {
-		this.img.attributes.set("src", this.img.attributes.get("src")! + "?cachebuster");
+		this.img.setSrc(`${this.captureRoot}/cap${pad(this.capture.id!, 3)}.png?cachebuster`);
 	}
 
 	@Bound private async changeCharacter (event: Event) {
