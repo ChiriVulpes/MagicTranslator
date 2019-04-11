@@ -18,7 +18,7 @@ declare global {
 	// tslint:disable-next-line
 	interface Window {
 		send<T = void> (event: WindowEvent, ...args: any[]): Promise<T>;
-		on (event: WindowEvent, callback: (...args: any[]) => any): void;
+		// on (event: WindowEvent, callback: (...args: any[]) => any): void;
 	}
 
 	const options: Options;
@@ -35,9 +35,9 @@ declare global {
 	});
 };
 
-(window as any).on = (event: WindowEvent, callback: (...args: any[]) => any) => {
-	ipcRenderer.on(event, callback);
-};
+// (window as any).on = (event: WindowEvent, callback: (...args: any[]) => any) => {
+// 	ipcRenderer.on(event, callback);
+// };
 
 
 ////////////////////////////////////

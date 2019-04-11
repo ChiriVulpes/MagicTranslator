@@ -223,6 +223,8 @@ export default class Extractor extends Component {
 	}
 
 	@Bound private async mouseDown (event: MouseEvent) {
+		if (event.button !== 0) return;
+
 		if (!options.capture2TextCLIPath) {
 			if (!await Interrupt.confirm(interrupt => interrupt
 				.setTitle("no-capture2text-prompt")

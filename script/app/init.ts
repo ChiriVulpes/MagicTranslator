@@ -16,9 +16,9 @@ function on (windowEvent: WindowEvent, listener: (event: IpcEvent, ...args: any[
 	});
 }
 
-function send (windowEvent: WindowEvent) {
-	mainWindow.webContents.send(windowEvent);
-}
+// function send (windowEvent: WindowEvent) {
+// 	mainWindow.webContents.send(windowEvent);
+// }
 
 function createWindow () {
 
@@ -55,11 +55,6 @@ function createWindow () {
 	if (store.get("window.devtools")) {
 		mainWindow.webContents.openDevTools();
 	}
-
-	mainWindow.on("app-command", (e, command) => {
-		if (command === "browser-backward") send("window-back");
-		else if (command === "browser-forward") send("window-forward");
-	});
 
 
 	let storeTimeout: NodeJS.Timer | undefined;

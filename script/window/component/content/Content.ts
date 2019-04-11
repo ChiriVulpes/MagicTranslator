@@ -56,12 +56,22 @@ export default class Content extends Component {
 		const [volume, chapter, page] = data;
 		const pages = Projects.current!.volumes.getByIndex(volume)!.getByIndex(chapter)!;
 
-		return new Extractor(...data)
+		const extractPrevious = () => this.onExtractPage({ data: [volume, chapter, page - 1, page > 1, true] } as any);
+		const extractNext = () => this.onExtractPage({ data: [volume, chapter, page + 1, true, page < pages.length - 2] } as any);
+
+		const extractor = new Extractor(...data)
 			.listeners.add("quit", () => this.showExplorer(tuple(volume, chapter)))
-			.listeners.add("previous", () => this.onExtractPage({ data: [volume, chapter, page - 1, page > 1, true] } as any))
-			.listeners.add("next", () => this.onExtractPage({ data: [volume, chapter, page + 1, true, page < pages.length - 2] } as any))
-			.appendTo(this)
-			.initialize();
+			.listeners.add("previous", extractPrevious)
+			.listeners.add("next", extractNext)
+			.appendTo(this);
+
+		Component.window.listeners.until(extractor.listeners.waitFor("remove"))
+			.add<MouseEvent>("mouseup", event => {
+				if (event.button === 3 && page - 1 >= 0) extractPrevious();
+				if (event.button === 4 && page + 1 < pages.length) extractNext();
+			});
+
+		return extractor.initialize();
 	}
 
 	@Bound private keyup (event: KeyboardEvent) {

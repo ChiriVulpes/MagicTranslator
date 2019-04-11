@@ -26,6 +26,11 @@ export default class Component {
 
 			return this.listeners;
 		},
+		emit<D = any> (event: string | Event, manipulator?: (event: ComponentEvent<D>) => any) {
+			event = typeof event === "string" ? new Event(event) : event;
+			if (manipulator) manipulator(event as ComponentEvent);
+			return window.dispatchEvent(event);
+		},
 	};
 
 	public static get document () { return Component.get("html"); }
