@@ -1,7 +1,7 @@
 import Serializable, { Serialized } from "data/Serialized";
 import { sleep } from "util/Async";
 import Canvas from "util/Canvas";
-import Concurrency from "util/Concurrency";
+import Concurrency, { CancellablePromise } from "util/Concurrency";
 import FileSystem from "util/FileSystem";
 import Path from "util/string/Path";
 
@@ -13,6 +13,7 @@ interface Thumb {
 export default class Thumbs extends Serializable {
 	@Serialized private thumbIndex = 0;
 	@Serialized private readonly thumbs: { [key: string]: Thumb | undefined } = {};
+	private readonly updates = new Map<string, CancellablePromise<any>>();
 
 	public constructor (private readonly root: string) {
 		super(`${root}.json`);
@@ -23,6 +24,14 @@ export default class Thumbs extends Serializable {
 		return this.getThumbFilename(filename);
 	}
 
+	public cancel (filename: string) {
+		const promise = this.updates.get(filename);
+		if (promise) {
+			promise.cancel();
+			this.updates.delete(filename);
+		}
+	}
+
 	private getThumbFilename (filenameOrId: string | number): string;
 	private getThumbFilename (filenameOrId?: string | number) {
 		if (typeof filenameOrId === "string") filenameOrId = this.thumbs[filenameOrId] && this.thumbs[filenameOrId]!.id;
@@ -30,11 +39,21 @@ export default class Thumbs extends Serializable {
 	}
 
 	private async update (filename: string) {
-		await FileSystem.priority.mkdir(this.root);
+		if (this.updates.has(filename)) return;
 
 		const id = this.thumbs[filename] ? this.thumbs[filename]!.id : this.thumbIndex++;
 		const thumbFilename = this.getThumbFilename(id)!;
-		await Canvas.saveToFile(thumbFilename, await downScaleImage(filename, 350 / 1600));
+
+		const downscalingPromise = downScaleImage(filename, 350 / 1600);
+		this.updates.set(filename, downscalingPromise);
+
+		const canvas = await downscalingPromise;
+		this.updates.delete(filename);
+
+		if (!canvas) return;
+
+		await FileSystem.priority.mkdir(this.root);
+		await Canvas.saveToFile(thumbFilename, canvas);
 
 		this.thumbs[filename] = { modificationTime: Date.now(), id };
 	}
@@ -66,7 +85,7 @@ const concurrent = new Concurrency(2);
 
 // scales the image by (float) scale < 1
 // returns a canvas containing the scaled image.
-async function downScaleImage (filename: string, scale: number) {
+function downScaleImage (filename: string, scale: number) {
 	return concurrent.promise<HTMLCanvasElement>(async resolve => {
 		const img = new Image();
 		img.src = filename;

@@ -11,8 +11,11 @@ export default class Serializable {
 
 	protected canSave = false;
 	private saving?: Promise<void>;
+	private readonly filesystem: typeof FileSystem;
 
-	public constructor (private readonly path: string) { }
+	public constructor (private readonly path: string, priority = false) {
+		this.filesystem = priority ? FileSystem.priority as any : FileSystem;
+	}
 
 	public async load () {
 		this.canSave = false;
@@ -41,14 +44,14 @@ export default class Serializable {
 	}
 
 	private async loadInternal () {
-		const jsonData = await FileSystem.readFile(this.path, "utf8")
+		const jsonData = await this.filesystem.readFile(this.path, "utf8")
 			.catch(() => { });
 
 		if (jsonData) try {
 			return JSON.parse(jsonData);
 		} catch (err) {
 			const ext = Path.extname(this.path);
-			await FileSystem.rename(this.path, this.path.slice(0, -ext.length) + ".error" + ext);
+			await this.filesystem.rename(this.path, this.path.slice(0, -ext.length) + ".error" + ext);
 		}
 
 		return {};
@@ -56,9 +59,9 @@ export default class Serializable {
 
 	private async saveInternal () {
 		if (!this.shouldSaveFileExist())
-			return FileSystem.unlink(this.path);
+			return this.filesystem.unlink(this.path);
 
-		await FileSystem.mkdir(Path.dirname(this.path));
+		await this.filesystem.mkdir(Path.dirname(this.path));
 
 		const translationData = await this.loadInternal();
 		const newTranslationData = Triggers.get(this).stream()
@@ -67,6 +70,6 @@ export default class Serializable {
 
 		if (Objects.deepEquals(translationData, newTranslationData)) return;
 
-		await FileSystem.writeFile(this.path, JSON.stringify(newTranslationData, undefined, "\t"));
+		await this.filesystem.writeFile(this.path, JSON.stringify(newTranslationData, undefined, "\t"));
 	}
 }

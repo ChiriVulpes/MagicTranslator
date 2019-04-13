@@ -341,6 +341,9 @@ class ImageButton extends Component {
 	}
 
 	private async loadPreview () {
+		this.listeners.waitFor("remove")
+			.then(() => Projects.get(this.root)!.thumbs.cancel(this.imagePath));
+
 		const thumbnail = await Projects.get(this.root)!.thumbs.get(this.imagePath);
 		this.classes.remove("loading");
 		this.style.set("--preview", `url("${thumbnail}")`);

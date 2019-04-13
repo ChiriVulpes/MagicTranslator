@@ -81,14 +81,7 @@ export default class Content extends Component {
 			const volumes = Projects.current!.volumes;
 			if (page > 0) return this.onExtractPage({ data: [volume, chapter, page - 1] });
 			if (chapter > 0) return this.onExtractPage({ data: [volume, chapter - 1, volumes.getByIndex(volume)!.getByIndex(chapter - 1)!.length - 1] });
-			if (volume > 0) return this.onExtractPage({
-				data: [
-					volume - 1,
-					volumes.getByIndex(volume - 1)!.size - 1,
-					volumes.getByIndex(volume - 1)!.getByIndex(volumes.getByIndex(volume - 1)!.size - 1)!.length - 1
-				],
-			});
-			throw new Error("No previous page to extract.");
+			return this.onExtractPage({ data: [volume - 1, volumes.getByIndex(volume - 1)!.size - 1, volumes.getByIndex(volume - 1)!.getByIndex(volumes.getByIndex(volume - 1)!.size - 1)!.length - 1] });
 		};
 	}
 
@@ -97,8 +90,7 @@ export default class Content extends Component {
 			const volumes = Projects.current!.volumes;
 			if (page < volumes.getByIndex(volume)!.getByIndex(chapter)!.length - 1) return this.onExtractPage({ data: [volume, chapter, page + 1] });
 			if (chapter < volumes.getByIndex(volume)!.size - 1) return this.onExtractPage({ data: [volume, chapter + 1, 0] });
-			if (volume < volumes.size - 1) return this.onExtractPage({ data: [volume + 1, 0, 0] });
-			throw new Error("No next page to extract.");
+			return this.onExtractPage({ data: [volume + 1, 0, 0] });
 		};
 	}
 
