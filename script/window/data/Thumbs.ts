@@ -86,7 +86,7 @@ const concurrent = new Concurrency(2);
 // scales the image by (float) scale < 1
 // returns a canvas containing the scaled image.
 function downScaleImage (filename: string, scale: number) {
-	return concurrent.promise<HTMLCanvasElement>(async resolve => {
+	return concurrent.promise<HTMLCanvasElement>(true, async resolve => {
 		const img = new Image();
 		img.src = filename;
 
