@@ -21,7 +21,7 @@ export default class GlobalSettings extends SettingsInterrupt {
 					.setChecked(options.customTitleBar)
 					.setText(button => new Translation(button.isChecked() ? "enabled" : "disabled").get())
 					.listeners.add("toggle", this.toggleCustomTitleBar)))
-			.append(new LabelledRow("button-display-mode")
+			.append(process.platform !== "win32" ? undefined : new LabelledRow("button-display-mode")
 				.append(Dropdown.from(Enums.values(ButtonDisplayMode))
 					.setDropdownDirectionHandler(() => "down")
 					.select(options.buttonDisplayMode)
