@@ -166,12 +166,13 @@ button {
 			margin-right: 9px;
 			position: relative;
 			display: inline-block;
+			vertical-align: bottom;
 		}
 	}
 	
-	[platform="win32"][button-display-mode="normal"] &[icon] {
+	[platform="win32"][button-display-mode="normal"] *:not(.button-bar) > &[icon] {
 		&::before {
-			top: 2px;
+			top: -2px;
 		}
 	}
 	
