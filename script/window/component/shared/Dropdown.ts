@@ -22,6 +22,7 @@ export default class Dropdown<O> extends Component {
 	private dropdownDirectionHandler?: (dropdown: this, wrapper: Component) => "up" | "down";
 	private readonly wrapper = new Component()
 		.classes.add("dropdown-wrapper")
+		.hide(true)
 		.appendTo(Component.body);
 
 	private constructor (private readonly optionsGenerator: () => Iterable<O>) {
@@ -108,6 +109,8 @@ export default class Dropdown<O> extends Component {
 	}
 
 	private close () {
+		if (!this.classes.has("open")) return;
+
 		this.classes.remove("open");
 		this.wrapper
 			.style.set("max-height", "none")
