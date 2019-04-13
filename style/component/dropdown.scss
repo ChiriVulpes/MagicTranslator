@@ -13,7 +13,7 @@
 	
 	&.open {
 		background: var(--color-button-active-background) !important;
-		border: var(--color-button-active-border) !important;
+		border-color: var(--color-button-active-border) !important;
 		color: #fff6;
 	}
 }

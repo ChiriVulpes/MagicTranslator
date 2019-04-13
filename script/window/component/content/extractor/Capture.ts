@@ -62,7 +62,7 @@ export default class Capture extends SortableListItem {
 				.listeners.add("close", () => this.classes.remove("active"))
 				.listeners.add("click", this.onCharacterDropdownClick))
 			.append(new Button()
-				.setIcon("\uE16F")
+				.setIcon("\uE16D")
 				.setText("paste-notes")
 				.listeners.add("click", this.pasteNotes))
 			.append(new Button()

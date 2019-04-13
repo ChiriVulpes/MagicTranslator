@@ -35,7 +35,11 @@ export default class GlobalSettings extends SettingsInterrupt {
 			.append(new LabelledRow("imagemagick-path")
 				.append(new Component("button")
 					.setText(() => options.imageMagickCLIPath || new Translation("unset").get())
-					.listeners.add("click", this.changeImageMagickCLIPath)));
+					.listeners.add("click", this.changeImageMagickCLIPath)))
+			.append(new LabelledRow("external-editor")
+				.append(new Component("button")
+					.setText(() => options.externalEditorPath || new Translation("unset").get())
+					.listeners.add("click", this.changeExternalEditorPath)));
 	}
 
 	@Bound private async changeCapture2TextCLIPath (event: Event) {
@@ -45,6 +49,11 @@ export default class GlobalSettings extends SettingsInterrupt {
 
 	@Bound private async changeImageMagickCLIPath (event: Event) {
 		await Options.chooseImageMagickCLIPath();
+		Component.get(event).refreshText();
+	}
+
+	@Bound private async changeExternalEditorPath (event: Event) {
+		await Options.chooseExternalEditorPath();
 		Component.get(event).refreshText();
 	}
 

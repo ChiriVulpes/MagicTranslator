@@ -13,6 +13,7 @@ import Captures, { CaptureData } from "data/Captures";
 import { BasicCharacter } from "data/Characters";
 import Dialog from "data/Dialog";
 import Projects from "data/Projects";
+import Options from "Options";
 import { tuple } from "util/Arrays";
 import Canvas from "util/Canvas";
 import ChildProcess from "util/ChildProcess";
@@ -94,6 +95,11 @@ export default class Extractor extends Component {
 				.append(this.displayModeDropdown = Dropdown.from(Enums.values(DisplayMode))
 					.classes.add("float-right")
 					.listeners.add("select", this.changeDisplayMode))
+				.append(new Button()
+					.setIcon("\uE70F")
+					.classes.add("float-right")
+					.setText("open")
+					.listeners.add("click", this.openInExternalEditor))
 				.append(new Button()
 					.setIcon("\uE11C")
 					.classes.add("float-right")
@@ -243,8 +249,8 @@ export default class Extractor extends Component {
 
 		if (!options.capture2TextCLIPath) {
 			if (!await Interrupt.confirm(interrupt => interrupt
-				.setTitle("no-capture2text-prompt")
-				.setDescription("no-capture2text-prompt-description")))
+				.setTitle("no-capture2text-confirm")
+				.setDescription("no-capture2text-confirm-description")))
 				return;
 
 			new GlobalSettings();
@@ -398,8 +404,8 @@ export default class Extractor extends Component {
 		if (saveStats && (!translatedStats || translatedStats.mtime.getTime() < saveStats.mtime.getTime())) {
 			if (!options.imageMagickCLIPath) {
 				if (!await Interrupt.confirm(interrupt => interrupt
-					.setTitle("prompt-imagemagick-for-viewing-psd")
-					.setDescription("prompt-imagemagick-for-viewing-psd-description"))) return;
+					.setTitle("confirm-imagemagick-for-viewing-psd")
+					.setDescription("confirm-imagemagick-for-viewing-psd-description"))) return;
 
 				await new GlobalSettings().listeners.waitFor("remove");
 				if (!options.imageMagickCLIPath) return;
@@ -415,6 +421,22 @@ export default class Extractor extends Component {
 
 	@Bound private async export () {
 		await Dialog.export(this.volume, this.chapter, this.page);
+	}
+
+	@Bound private async openInExternalEditor () {
+		if (!options.externalEditorPath) {
+			const confirm = await Interrupt.confirm(interrupt => interrupt
+				.setTitle("confirm-no-external-editor")
+				.setDescription("confirm-no-external-editor-description"));
+			if (!confirm) return;
+
+			await Options.chooseExternalEditorPath();
+		}
+
+		let path = Projects.current!.getPath("save", this.volume, this.chapter, this.page);
+		if (!await FileSystem.exists(path)) path = Projects.current!.getPath("raw", this.volume, this.chapter, this.page);
+
+		ChildProcess.exec(`"${options.externalEditorPath}" "${path}"`);
 	}
 
 	private async saveImage (capturePath: string, canvas: HTMLCanvasElement) {

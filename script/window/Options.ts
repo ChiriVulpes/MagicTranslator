@@ -168,6 +168,11 @@ export default class Options {
 		if (path) options.imageMagickCLIPath = path;
 	}
 
+	public static async chooseExternalEditorPath () {
+		const path = await this.chooseFile("prompt-external-editor");
+		if (path) options.externalEditorPath = path;
+	}
+
 	private static async chooseCLIFolder (prompt: string, ...filenames: string[]) {
 		let file!: string;
 		const folder = await this.chooseFolder(prompt, async result => {
@@ -187,9 +192,15 @@ export default class Options {
 	// Actual Options
 	//
 
-	public customTitleBar = process.platform === "win32";
+	// main
 	public projectFolders: string[] = [];
+
+	// other programs
 	public capture2TextCLIPath: string = "";
 	public imageMagickCLIPath: string = "";
+	public externalEditorPath: string = "";
+
+	// appearance
+	public customTitleBar = process.platform === "win32";
 	public buttonDisplayMode = ButtonDisplayMode.Normal;
 }

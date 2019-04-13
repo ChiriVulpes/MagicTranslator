@@ -15,6 +15,8 @@ character-path: Character Folder
 character-sfx: SFX
 character-unknown: N/A
 choose: Choose
+confirm-imagemagick-for-viewing-psd-description: However, there's a save for this page.\nIf you install ImageMagick, this application will automatically\ncreate the translated version of this page upon viewing.\n\nWould you like to select the install path for ImageMagick?
+confirm-imagemagick-for-viewing-psd: There is no translated version of this page.
 confirm-remove-capture-description: {0?Translation\: "{0}"\n}{1?Text\: "{1}"\n}There is no undo.
 confirm-remove-capture: Are you sure you want\nto remove the capture?
 confirm-remove-character-description: Any capture that has this character will be changed to "N/A".\nThere is no undo.
@@ -31,6 +33,7 @@ dropdown-title-default: Select: {0}
 enabled: Enabled
 example: Example
 export: Export
+external-editor: External Editor
 file-structure: File Structure
 icon-only: Icon Only
 imagemagick-path: ImageMagick Path
@@ -42,12 +45,13 @@ name: Name
 next-chapter: Next Chapter
 next-page: Next Page
 next-volume: Next Volume
-no-capture2text-prompt-description: A capture cannot be created\nwithout Capture2Text being installed.
-no-capture2text-prompt: Would you like to select\nthe path to Capture2Text?
+no-capture2text-confirm-description: A capture cannot be created\nwithout Capture2Text being installed.
+no-capture2text-confirm: Would you like to select\nthe path to Capture2Text?
 no-translated-image: There is no translated\nversion of this page.
 no: No
 normal: Normal
 note-placeholder: Note
+open: Open
 page-path: Page Name
 page: Page {0}
 paste-notes: Paste Notes
@@ -60,9 +64,8 @@ project-settings: Project Settings
 prompt-capture2text-cli: Choose Capture2Text Folder
 prompt-character-headshot: Choose the Headshot Image for {0?{0}:the Character} (Prefer Square Images)
 prompt-dialog-file: Choose dialog.md file. The file must be properly formatted. It must have the ".md" file extension.
+prompt-external-editor: Choose External Editor
 prompt-imagemagick-cli: Choose ImageMagick Folder
-prompt-imagemagick-for-viewing-psd-description: However, there's a save for this page.\nIf you install ImageMagick, this application will automatically\ncreate the translated version of this page upon viewing.\n\nWould you like to select the install path for ImageMagick?
-prompt-imagemagick-for-viewing-psd: There is no translated version of this page.
 prompt-project-folder: Choose Root Folder (Folder Containing vol##/ch### folders)
 raw-path: Raw Pages
 read-mode: Read
@@ -84,3 +87,5 @@ unset: Not Set
 volume-path: Volume Name
 volume: Volume {0}
 yes: Yes
+confirm-no-external-editor: There is currently no external editor set.
+confirm-no-external-editor-description: Would you like to set one?
