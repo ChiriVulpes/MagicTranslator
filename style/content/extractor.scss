@@ -352,7 +352,7 @@
 			box-shadow: 0 1px 2px #0003;
 		}
 		&:active, &.open {
-			background: #5554;
+			background: #5554 !important;
 			border-color: #5554;
 			box-shadow: inset 0 1px 2px #0002;
 		}

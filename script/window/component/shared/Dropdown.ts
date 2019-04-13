@@ -111,10 +111,11 @@ export default class Dropdown<O> extends Component {
 	private close () {
 		if (!this.classes.has("open")) return;
 
-		this.classes.remove("open");
-		this.wrapper
+		this.classes.remove("open")
+			.style.remove("width");
+
+		this.wrapper.hide(true)
 			.style.set("max-height", "none")
-			.hide(true)
 			.children()
 			.forEach(child => child.setDisabled());
 
@@ -129,9 +130,9 @@ export default class Dropdown<O> extends Component {
 			: box.top + box.height / 2 > window.innerHeight / 2;
 		const maxHeight = (goingUp ? box.top : window.innerHeight - box.bottom) - 100;
 
-		this.classes.add("open");
-
 		this.refresh();
+
+		this.classes.add("open");
 
 		this.wrapper
 			.style.set("max-height", maxHeight)
@@ -142,6 +143,15 @@ export default class Dropdown<O> extends Component {
 			.show()
 			.children()
 			.forEach(child => child.setDisabled(false));
+
+		const scrollWidth = this.wrapper.element().scrollWidth;
+		if (scrollWidth > box.width) {
+			this.style.set("width", scrollWidth);
+			this.wrapper.style.set("width", scrollWidth);
+			sleep(0).then(() => {
+				this.wrapper.style.set("left", this.box().left);
+			});
+		}
 
 		Component.window.listeners.until(this.listeners.waitFor("close"))
 			.add(["wheel", "resize", "keyup"], this.onWindowEventForClose);

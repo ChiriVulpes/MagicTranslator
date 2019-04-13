@@ -10,6 +10,12 @@
 		border: 5px solid transparent;
 		border-top-color: currentColor;
 	}
+	
+	&.open {
+		background: var(--color-button-active-background) !important;
+		border: var(--color-button-active-border) !important;
+		color: #fff6;
+	}
 }
 
 .dropdown-wrapper {
