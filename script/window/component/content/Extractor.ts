@@ -40,7 +40,8 @@ export default class Extractor extends Component {
 	private captureEnd: Vector;
 	private waitingForCapture?: [number, (value: [Vector, Vector]) => void];
 
-	public constructor (private readonly volume: number, private readonly chapter: number, private readonly page: number, hasPreviousPage = true, hasNextPage = true) {
+	// tslint:disable-next-line cyclomatic-complexity
+	public constructor (private readonly volume: number, private readonly chapter: number, private readonly page: number) {
 		super();
 		this.setId("extractor");
 
@@ -70,12 +71,20 @@ export default class Extractor extends Component {
 					.setText("back")
 					.listeners.add("click", () => this.emit("quit")))
 				.append(new Component("button")
-					.setText("previous-page")
-					.setDisabled(!hasPreviousPage)
+					.setText(page > 0 ? "prev-page"
+						: chapter > 0 ? "prev-chapter"
+							: volume > 0 ? "prev-volume"
+								: "prev-page")
+					.setDisabled(page <= 0 && chapter <= 0 && volume <= 0)
 					.listeners.add("click", () => this.emit("previous")))
 				.append(new Component("button")
-					.setText("next-page")
-					.setDisabled(!hasNextPage)
+					.setText(page < project.volumes.getByIndex(volume)!.getByIndex(chapter)!.length - 1 ? "next-page"
+						: chapter < project.volumes.getByIndex(volume)!.size - 1 ? "next-chapter"
+							: volume < project.volumes.size - 1 ? "next-volume"
+								: "next-page")
+					.setDisabled(page >= project.volumes.getByIndex(volume)!.getByIndex(chapter)!.length - 1
+						&& chapter >= project.volumes.getByIndex(volume)!.size - 1
+						&& volume >= project.volumes.size - 1)
 					.listeners.add("click", () => this.emit("next")))
 				.append(this.displayModeDropdown = Dropdown.from(Enums.values(DisplayMode))
 					.classes.add("float-right")
@@ -88,8 +97,8 @@ export default class Extractor extends Component {
 			.append(new Component()
 				.classes.add("extraction-captures-wrapper")
 				.append(this.capturesWrapper = new SortableList()
-					.listeners.add(SortableListEvent.SortComplete, this.onSortComplete)
-					.classes.add("extraction-captures")))
+					.classes.add("loading", "extraction-captures")
+					.listeners.add(SortableListEvent.SortComplete, this.onSortComplete)))
 			.appendTo(this);
 
 		Header.setTitle(() => new Translation("title").get({
@@ -141,6 +150,8 @@ export default class Extractor extends Component {
 			.add("keyup", this.keyup, true);
 		Component.window.listeners.until(this.listeners.waitFor("remove"))
 			.add("mousewheel", this.scroll, true);
+
+		this.capturesWrapper.classes.remove("loading");
 
 		return this;
 	}

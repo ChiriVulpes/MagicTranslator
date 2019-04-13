@@ -138,15 +138,17 @@ export default class Explorer extends Component {
 		const chapters = project.volumes.getByIndex(volume)!;
 
 		new Component("button")
-			.setDisabled(chapter === 0)
-			.setText("prev-chapter")
-			.listeners.add("click", () => this.showPages(volume, chapter - 1))
+			.setDisabled(chapter <= 0 && volume <= 0)
+			.setText(chapter <= 0 ? "prev-volume" : "prev-chapter")
+			.listeners.add("click", () => chapter > 0 ? this.showPages(volume, chapter - 1)
+				: this.showPages(volume - 1, project.volumes.getByIndex(volume - 1)!.size - 1))
 			.appendTo(this.actionWrapper);
 
 		new Component("button")
-			.setDisabled(chapter === chapters.size - 1)
-			.setText("next-chapter")
-			.listeners.add("click", () => this.showPages(volume, chapter + 1))
+			.setDisabled(chapter >= chapters.size - 1 && volume >= project.volumes.size - 1)
+			.setText(chapter >= chapters.size - 1 ? "next-volume" : "next-chapter")
+			.listeners.add("click", () => chapter < chapters.size - 1 ? this.showPages(volume, chapter + 1)
+				: this.showPages(volume + 1, 0))
 			.appendTo(this.actionWrapper);
 
 		new Component("button")
@@ -166,8 +168,8 @@ export default class Explorer extends Component {
 		for (let i = 0; i < pages.length; i++) {
 			this.addImageButton(volume, chapter, i)
 				.listeners.add("click", () => this
-					.emit<[number, number, number, boolean, boolean]>("extract", event => event
-						.data = tuple(volume, chapter, i, i > 0, i < pages.length - 1)));
+					.emit<[number, number, number]>("extract", event => event
+						.data = tuple(volume, chapter, i)));
 		}
 
 		const [volumeNumber, chapterNumber] = project.getSegmentNumbers(volume, chapter);

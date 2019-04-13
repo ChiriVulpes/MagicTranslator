@@ -4,8 +4,6 @@ page: Page {0}
 back: Back
 remove: Remove
 paste-notes: Paste Notes
-previous-page: Previous Page
-next-page: Next Page
 title: Magic Translator{root? — {root}{volume? — Volume {volume}{chapter? — Chapter {chapter}{page? — Page {page}}}}}
 source-placeholder: Foreign
 translation-placeholder: Translation
@@ -31,6 +29,8 @@ next-volume: Next Volume
 prev-volume: Previous Volume
 next-chapter: Next Chapter
 prev-chapter: Previous Chapter
+prev-page: Previous Page
+next-page: Next Page
 no: No
 yes: Yes
 dismiss: Dismiss

@@ -50,14 +50,16 @@ export default class Content extends Component {
 		return this.onExtractPage({ data: [volume, chapter, page, page > 0, page < pages.length - 1] } as any);
 	}
 
-	@Bound private async onExtractPage ({ data }: ComponentEvent<[number, number, number, boolean, boolean]>): Promise<Extractor> {
+	private async onExtractPage (data: { data: [number, number, number] }): Promise<Extractor>;
+	private async onExtractPage (event: ComponentEvent<[number, number, number]>): Promise<Extractor>;
+	@Bound private async onExtractPage ({ data }: { data: [number, number, number] }): Promise<Extractor> {
 		this.children().drop(2).collectStream().forEach(child => child.remove());
 
 		const [volume, chapter, page] = data;
 		const pages = Projects.current!.volumes.getByIndex(volume)!.getByIndex(chapter)!;
 
-		const extractPrevious = () => this.onExtractPage({ data: [volume, chapter, page - 1, page > 1, true] } as any);
-		const extractNext = () => this.onExtractPage({ data: [volume, chapter, page + 1, true, page < pages.length - 2] } as any);
+		const extractPrevious = this.onExtractPrevious(volume, chapter, page);
+		const extractNext = this.onExtractNext(volume, chapter, page);
 
 		const extractor = new Extractor(...data)
 			.listeners.add("quit", () => this.showExplorer(tuple(volume, chapter)))
@@ -72,6 +74,32 @@ export default class Content extends Component {
 			});
 
 		return extractor.initialize();
+	}
+
+	private onExtractPrevious (volume: number, chapter: number, page: number) {
+		return () => {
+			const volumes = Projects.current!.volumes;
+			if (page > 0) return this.onExtractPage({ data: [volume, chapter, page - 1] });
+			if (chapter > 0) return this.onExtractPage({ data: [volume, chapter - 1, volumes.getByIndex(volume)!.getByIndex(chapter - 1)!.length - 1] });
+			if (volume > 0) return this.onExtractPage({
+				data: [
+					volume - 1,
+					volumes.getByIndex(volume - 1)!.size - 1,
+					volumes.getByIndex(volume - 1)!.getByIndex(volumes.getByIndex(volume - 1)!.size - 1)!.length - 1
+				],
+			});
+			throw new Error("No previous page to extract.");
+		};
+	}
+
+	private onExtractNext (volume: number, chapter: number, page: number) {
+		return () => {
+			const volumes = Projects.current!.volumes;
+			if (page < volumes.getByIndex(volume)!.getByIndex(chapter)!.length - 1) return this.onExtractPage({ data: [volume, chapter, page + 1] });
+			if (chapter < volumes.getByIndex(volume)!.size - 1) return this.onExtractPage({ data: [volume, chapter + 1, 0] });
+			if (volume < volumes.size - 1) return this.onExtractPage({ data: [volume + 1, 0, 0] });
+			throw new Error("No next page to extract.");
+		};
 	}
 
 	@Bound private keyup (event: KeyboardEvent) {

@@ -14,9 +14,8 @@ export default class Textarea extends Component {
 			if (Textarea.index >= Textarea.list.length || Textarea.index < 0) Textarea.index = 0;
 
 			const textarea = Textarea.list[Textarea.index++];
-			// if (!document.contains(textarea.element())) Textarea.list.splice(--Textarea.index, 1);
-			// else
-			textarea.setHeight();
+			if (!document.contains(textarea.element())) Textarea.list.splice(--Textarea.index, 1);
+			else textarea.setHeight();
 		}
 
 		setTimeout(Textarea.setTextareaHeight, 10);
@@ -38,16 +37,11 @@ export default class Textarea extends Component {
 		super();
 		this.classes.add("textarea");
 
-		const shouldStart = !Textarea.list.length;
-		Textarea.list.push(this);
-		if (shouldStart) Textarea.setTextareaHeight();
-		this.listeners.waitFor("remove")
+		this.listeners.waitFor("append")
 			.then(() => {
-				const index = Textarea.list.indexOf(this);
-				if (index >= 0) {
-					Textarea.list.splice(index, 1);
-					Textarea.index--;
-				}
+				const shouldStart = !Textarea.list.length;
+				Textarea.list.push(this);
+				if (shouldStart) Textarea.setTextareaHeight();
 			});
 	}
 

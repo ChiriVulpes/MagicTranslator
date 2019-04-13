@@ -184,6 +184,7 @@ export default class Component {
 				parentElement.insertBefore(this.element(), (location.after instanceof Component ? location.after.element() : location.after).nextSibling);
 		}
 
+		this.emit("append");
 		this.bindObserverForRemoval();
 		return this;
 	}
