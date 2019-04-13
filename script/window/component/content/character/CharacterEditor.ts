@@ -1,5 +1,6 @@
 import Component from "component/Component";
 import Character from "component/content/character/Character";
+import Button from "component/shared/Button";
 import Interrupt from "component/shared/Interrupt";
 import SortableTiles from "component/shared/SortableTiles";
 import Characters, { BasicCharacter, CharacterData } from "data/Characters";
@@ -86,13 +87,15 @@ export default class CharacterEditor extends Component {
 			.classes.add("character-editor-action-row")
 			.appendTo(content);
 
-		new Component("button")
+		new Button()
+			.setIcon("\uE109")
 			.classes.add("permanent")
 			.setText("character-new")
 			.listeners.add("click", () => CharacterEditor.createCharacter())
 			.appendTo(this.actionRow);
 
-		this.removeSelectedCharacterButton = new Component("button")
+		this.removeSelectedCharacterButton = new Button()
+			.setIcon("\uE107")
 			.classes.add("permanent", "warning")
 			.setText("remove-selected-character")
 			.listeners.add("click", this.removeSelectedCharacter)
@@ -147,11 +150,13 @@ export default class CharacterEditor extends Component {
 
 	private showChoosing () {
 		this.actionRow.dump(child => !child.classes.has("permanent"))
-			.append(new Component("button")
+			.append(new Button()
+				.setIcon("\uE106")
 				.classes.add("float-left")
 				.setText("cancel")
 				.listeners.add("click", this.cancel))
-			.append(new Component("button")
+			.append(new Button()
+				.setIcon("\uE10B")
 				.classes.add("float-right")
 				.setText("choose")
 				.listeners.add("click", this.choose));
@@ -161,7 +166,8 @@ export default class CharacterEditor extends Component {
 
 	private showViewing (characterId?: number) {
 		this.actionRow.dump(child => !child.classes.has("permanent"))
-			.append(new Component("button")
+			.append(new Button()
+				.setIcon("\uE10B")
 				.classes.add("float-right")
 				.setText("done")
 				.listeners.add("click", () => this.hide()));
@@ -201,7 +207,7 @@ export default class CharacterEditor extends Component {
 		const selected = this.getSelected();
 		if (typeof selected.character !== "object") return;
 
-		const confirm = await Interrupt.confirm(interrupt => interrupt
+		const confirm = await Interrupt.remove(interrupt => interrupt
 			.setTitle(() => new Translation("confirm-remove-character").get(selected.getName()))
 			.setDescription("confirm-remove-character-description"));
 

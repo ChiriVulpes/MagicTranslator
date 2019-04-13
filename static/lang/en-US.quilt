@@ -1,80 +1,86 @@
-volume: Volume {0}
-chapter: Chapter {0}
-page: Page {0}
+add-project: Add Project
+app-settings: App Settings
+appearance: Appearance
 back: Back
-remove: Remove
-paste-notes: Paste Notes
-title: Magic Translator{root? — {root}{volume? — Volume {volume}{chapter? — Chapter {chapter}{page? — Page {page}}}}}
-source-placeholder: Foreign
-translation-placeholder: Translation
-note-placeholder: Note
-character-unknown: N/A
-character-narrator: Narrator
-character-chapter-title: Chapter Title
-character-sfx: SFX
+button-display-mode: Button Appearance
 cancel: Cancel
-choose: Choose
-name: Name
+capture-path: Page Captures
+capture2text-path: Capture2Text Path
+chapter-path: Chapter Name
+chapter: Chapter {0}
+character-chapter-title: Chapter Title
+character-narrator: Narrator
 character-new: Add New Character
-prompt-capture2text-cli: Choose Capture2Text Folder
-prompt-imagemagick-cli: Choose ImageMagick Folder
-prompt-project-folder: Choose Root Folder (Folder Containing vol##/ch### folders)
-prompt-character-headshot: Choose the Headshot Image for {0?{0}:the Character} (Prefer Square Images)
-display-mode: Display Mode: {0}
-read-mode: Read
-translation-mode: Translate
-translated-mode: Translated
+character-path: Character Folder
+character-sfx: SFX
+character-unknown: N/A
+choose: Choose
+confirm-remove-capture-description: {0?Translation\: "{0}"\n}{1?Text\: "{1}"\n}There is no undo.
+confirm-remove-capture: Are you sure you want\nto remove the capture?
+confirm-remove-character-description: Any capture that has this character will be changed to "N/A".\nThere is no undo.
+confirm-remove-character: Are you sure you want to remove\n"{0}"?
+confirm-remove-project-description: No metadata will be deleted, so you can add this project again at a later date.
+confirm-remove-project: Are you sure you want to remove\n"{0}"?
+custom-title-bar: Custom Title Bar
+dependencies: Dependencies
+directory: Directory
+disabled: Disabled
+dismiss: Dismiss
+done: Done
+dropdown-title-default: Select: {0}
+enabled: Enabled
+example: Example
 export: Export
-next-volume: Next Volume
-prev-volume: Previous Volume
+file-structure: File Structure
+icon-only: Icon Only
+imagemagick-path: ImageMagick Path
+imagemagick-unsupported: ImageMagick can't convert the save file. Error:
+import: Import
+main: Main
+missing-translations: Missing Translations
+name: Name
 next-chapter: Next Chapter
+next-page: Next Page
+next-volume: Next Volume
+no-capture2text-prompt-description: A capture cannot be created\nwithout Capture2Text being installed.
+no-capture2text-prompt: Would you like to select\nthe path to Capture2Text?
+no-translated-image: There is no translated\nversion of this page.
+no: No
+normal: Normal
+note-placeholder: Note
+page-path: Page Name
+page: Page {0}
+paste-notes: Paste Notes
+path-full-input-error: {0} path must use \{volume\}, \{chapter\}, and \{page\}, in this order, each a different folder, or subfolder.
+path-segment-input-error: {0} path cannot have separated digits or slashes /.
 prev-chapter: Previous Chapter
 prev-page: Previous Page
-next-page: Next Page
-no: No
-yes: Yes
-dismiss: Dismiss
-confirm-remove-character: Are you sure you want to remove\n"{0}"?
-confirm-remove-character-description: Any capture that has this character will be changed to "N/A".\nThere is no undo.
-confirm-remove-capture: Are you sure you want\nto remove the capture?
-confirm-remove-capture-description: {0?Translation\: "{0}"\n}{1?Text\: "{1}"\n}There is no undo.
-done: Done
-prompt-dialog-file: Choose dialog.md file. The file must be properly formatted. It must have the ".md" file extension.
-import: Import
-add-project: Add Project
-confirm-remove-project: Are you sure you want to remove\n"{0}"?
-confirm-remove-project-description: No metadata will be deleted, so you can add this project again at a later date.
-app-settings: App Settings
-file-structure: File Structure
-volume-path: Volume Name
-chapter-path: Chapter Name
-page-path: Page Name
-character-path: Character Folder
-thumb-path: Thumbnail Folder
-example: Example
-main: Main
-directory: Directory
-restore: Restore
-path-segment-input-error: {0} path cannot have separated digits or slashes /.
-path-full-input-error: {0} path must use \{volume\}, \{chapter\}, and \{page\}, in this order, each a different folder, or subfolder.
-raw-path: Raw Pages
-translated-path: Translated Pages
-save-path: Page Saves
-capture-path: Page Captures
-dropdown-title-default: Select: {0}
-capture2text-path: Capture2Text Path
-imagemagick-path: ImageMagick Path
-unset: Not Set
-no-capture2text-prompt: Would you like to select\nthe path to Capture2Text?
-no-capture2text-prompt-description: A capture cannot be created\nwithout Capture2Text being installed.
-prompt-imagemagick-for-viewing-psd: There is no translated version of this page.
-prompt-imagemagick-for-viewing-psd-description: However, there's a save for this page.\nIf you install ImageMagick, this application will automatically\ncreate the translated version of this page upon viewing.\n\nWould you like to select the install path for ImageMagick?
-custom-title-bar: Custom Title Bar
-requires-restart: Changing this option requires a restart.
-requires-restart-description: Would you like to restart?
-missing-translations: Missing Translations
-character-dropdown: {0}
+prev-volume: Previous Volume
 project-settings: Project Settings
+prompt-capture2text-cli: Choose Capture2Text Folder
+prompt-character-headshot: Choose the Headshot Image for {0?{0}:the Character} (Prefer Square Images)
+prompt-dialog-file: Choose dialog.md file. The file must be properly formatted. It must have the ".md" file extension.
+prompt-imagemagick-cli: Choose ImageMagick Folder
+prompt-imagemagick-for-viewing-psd-description: However, there's a save for this page.\nIf you install ImageMagick, this application will automatically\ncreate the translated version of this page upon viewing.\n\nWould you like to select the install path for ImageMagick?
+prompt-imagemagick-for-viewing-psd: There is no translated version of this page.
+prompt-project-folder: Choose Root Folder (Folder Containing vol##/ch### folders)
+raw-path: Raw Pages
+read-mode: Read
 remove-selected-character: Remove Selected Character
-imagemagick-unsupported: ImageMagick can't convert the save file. Error:
-no-translated-image: There is no translated\nversion of this page.
+remove: Remove
+requires-restart-description: Would you like to restart?
+requires-restart: Changing this option requires a restart.
+restore: Restore
+save-path: Page Saves
+source-placeholder: Foreign
+text-only: Text Only
+thumb-path: Thumbnail Folder
+title: Magic Translator{root? — {root}{volume? — Volume {volume}{chapter? — Chapter {chapter}{page? — Page {page}}}}}
+translated-mode: Translated
+translated-path: Translated Pages
+translation-mode: Translate
+translation-placeholder: Translation
+unset: Not Set
+volume-path: Volume Name
+volume: Volume {0}
+yes: Yes

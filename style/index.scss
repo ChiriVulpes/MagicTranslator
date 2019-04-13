@@ -158,6 +158,56 @@ button {
 		opacity: .3;
 		pointer-events: none;
 	}
+	
+	[platform="win32"]:not([button-display-mode="text-only"]) &[icon] {
+		&::before {
+			content: attr(icon);
+			font-family: "Segoe MDL2 Assets";
+			margin-right: 9px;
+			position: relative;
+			display: inline-block;
+		}
+	}
+	
+	[platform="win32"][button-display-mode="normal"] &[icon] {
+		&::before {
+			top: 2px;
+		}
+	}
+	
+	[platform="win32"][button-display-mode="icon-only"] &[icon] {
+		padding: 21px 15px;
+	}
+	
+	[platform="win32"][button-display-mode="icon-only"] &[icon],
+	.button-bar > & {
+		line-height: 0px;
+		border: none !important;
+		margin: 0;
+		
+		&:not(:hover):not(:focus):not(:active) {
+			background: none;
+			box-shadow: none;
+		}
+	}
+	
+	.button-bar > & {
+		padding-top: 0 !important;
+		padding-bottom: 0 !important;
+		height: var(--button-bar-height);
+	}
+	
+	[platform="win32"][button-display-mode="icon-only"] &[icon] {
+		&::before {
+			margin: 0;
+		}
+	}
+}
+
+.button-bar {
+	position: relative;
+	--button-bar-height: 40px;
+	height: var(--button-bar-height);
 }
 
 textarea, input {

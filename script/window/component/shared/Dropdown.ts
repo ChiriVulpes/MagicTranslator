@@ -15,10 +15,11 @@ export default class Dropdown<O> extends Component {
 	}
 
 	private selected: O;
-	private title: (...args: any[]) => string;
+	private title?: (...args: any[]) => string;
 	private options: Map<O, Component>;
 	private translationHandler?: (option: O) => string;
 	private optionInitializer?: (option: Component, id: O) => any;
+	private dropdownDirectionHandler?: (dropdown: this, wrapper: Component) => "up" | "down";
 	private readonly wrapper = new Component()
 		.classes.add("dropdown-wrapper")
 		.appendTo(Component.body);
@@ -29,8 +30,6 @@ export default class Dropdown<O> extends Component {
 
 		this.refresh();
 
-		this.setTitle("dropdown-title-default");
-
 		this.listeners.add("remove", this.wrapper.remove);
 		this.listeners.add("click", this.onClick);
 		this.listeners.add("contextmenu", this.onContextMenu);
@@ -40,12 +39,16 @@ export default class Dropdown<O> extends Component {
 		return this.selected;
 	}
 
+	/**
+	 * @deprecated Use `setTitle`
+	 */
 	@Override public setText (): this {
 		throw new Error("Cannot use 'setText' on a Dropdown, see 'setTitle'");
 	}
 
-	public setTitle (translation: string) {
-		this.title = new Translation(translation).get;
+	public setTitle (translation: string | true) {
+		if (translation === true) translation = "dropdown-title-default";
+		this.title = translation === undefined ? undefined : new Translation(translation).get;
 		this.refreshText();
 		return this;
 	}
@@ -77,6 +80,11 @@ export default class Dropdown<O> extends Component {
 	public setOptionInitializer (initializer: (option: Component, id: O) => any) {
 		this.optionInitializer = initializer;
 		this.options.entries().forEach(([id, option]) => initializer(option, id));
+		return this;
+	}
+
+	public setDropdownDirectionHandler (handler: (dropdown: this, wrapper: Component) => "up" | "down") {
+		this.dropdownDirectionHandler = handler;
 		return this;
 	}
 
@@ -114,7 +122,8 @@ export default class Dropdown<O> extends Component {
 	@Bound private onClick () {
 		const box = this.box();
 
-		const goingUp = box.top + box.height / 2 > window.innerHeight / 2;
+		const goingUp = this.dropdownDirectionHandler ? this.dropdownDirectionHandler(this, this.wrapper) === "up"
+			: box.top + box.height / 2 > window.innerHeight / 2;
 		const maxHeight = (goingUp ? box.top : window.innerHeight - box.bottom) - 100;
 
 		this.classes.add("open");

@@ -1,5 +1,6 @@
 import Component from "component/Component";
 import SettingsInterrupt from "component/content/settings/SettingsInterrupt";
+import Button from "component/shared/Button";
 import Input from "component/shared/Input";
 import Interrupt from "component/shared/Interrupt";
 import LabelledRow from "component/shared/LabelledRow";
@@ -33,8 +34,9 @@ export default class ProjectSettings extends SettingsInterrupt {
 				.append(new Input()
 					.setText(() => project.name || "")
 					.listeners.add("change", event => project.name = Component.get<Input>(event).getText())))
-			.append(new Component("button")
-				.classes.add("float-right")
+			.append(new Button()
+				.setIcon("\uE107")
+				.classes.add("warning", "float-right")
 				.setText("remove")
 				.listeners.add("click", this.onRemoveProject));
 
@@ -92,7 +94,7 @@ export default class ProjectSettings extends SettingsInterrupt {
 	}
 
 	@Bound private async onRemoveProject () {
-		const confirm = await Interrupt.confirm(interrupt => interrupt
+		const confirm = await Interrupt.remove(interrupt => interrupt
 			.setTitle(() => new Translation("confirm-remove-project").get(Path.basename(this.root)))
 			.setDescription("confirm-remove-project-description"));
 		if (!confirm) return;
@@ -102,7 +104,8 @@ export default class ProjectSettings extends SettingsInterrupt {
 		Projects.delete(this.root);
 		options.projectFolders.splice(options.projectFolders.indexOf(this.root), 1);
 
-		this.restoreButton = new Component("button")
+		this.restoreButton = new Button()
+			.setIcon("\uE109")
 			.classes.add("float-right")
 			.setText("restore")
 			.listeners.add("click", this.onRestore)

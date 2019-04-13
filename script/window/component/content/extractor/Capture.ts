@@ -1,6 +1,8 @@
 import Component from "component/Component";
 import CharacterEditor from "component/content/character/CharacterEditor";
 import Note from "component/content/extractor/Note";
+import Button from "component/shared/Button";
+import ButtonBar from "component/shared/ButtonBar";
 import Dropdown from "component/shared/Dropdown";
 import Img from "component/shared/Img";
 import SortableList, { SortableListEvent, SortableListItem } from "component/shared/SortableList";
@@ -45,13 +47,12 @@ export default class Capture extends SortableListItem {
 
 		const characters = Projects.current!.characters;
 
-		new Component()
+		new ButtonBar()
 			.classes.add("capture-action-row")
 			.append(Dropdown.from(() => [...characters.characters.map(c => c.id), ...Enums.values(BasicCharacter)])
 				.classes.add("character-preview-button")
 				.style.set("--headshot", typeof capture.character !== "number" ? "" : `url("${Projects.current!.getPath("character", capture.character)}")`)
 				.setTranslationHandler(characters.getName)
-				.setTitle("character-dropdown")
 				.select(characters.getId(capture.character || BasicCharacter.Unknown)!)
 				.setOptionInitializer((option, character) => option
 					.classes.add("character-preview-button")
@@ -60,10 +61,13 @@ export default class Capture extends SortableListItem {
 				.listeners.add("open", () => this.classes.add("active"))
 				.listeners.add("close", () => this.classes.remove("active"))
 				.listeners.add("click", this.onCharacterDropdownClick))
-			.append(new Component("button")
+			.append(new Button()
+				.setIcon("\uE16F")
 				.setText("paste-notes")
 				.listeners.add("click", this.pasteNotes))
-			.append(new Component("button")
+			.append(new Button()
+				.setIcon("\uE107")
+				.classes.add("warning")
 				.setText("remove")
 				.listeners.add("click", () => this.emit("remove-capture")))
 			.appendTo(this);

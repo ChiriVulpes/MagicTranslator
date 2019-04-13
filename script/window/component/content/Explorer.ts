@@ -2,6 +2,8 @@ import Component, { TextGenerator } from "component/Component";
 import GlobalSettings from "component/content/GlobalSettings";
 import ProjectSettings from "component/content/ProjectSettings";
 import Header from "component/header/Header";
+import Button from "component/shared/Button";
+import ButtonBar from "component/shared/ButtonBar";
 import SortableTiles from "component/shared/SortableTiles";
 import Tooltip from "component/shared/Tooltip";
 import { CaptureData } from "data/Captures";
@@ -15,16 +17,12 @@ import Translation from "util/string/Translation";
 
 export default class Explorer extends Component {
 	private readonly explorerWrapper: Component;
-	private readonly actionWrapper: Component;
+	private readonly actionWrapper = new ButtonBar().appendTo(this);
 	private projects: SortableTiles<ImageButton>;
 
 	public constructor (private readonly startLocation?: [number, number]) {
 		super();
 		this.setId("explorer");
-
-		this.actionWrapper = new Component()
-			.classes.add("action-wrapper")
-			.appendTo(this);
 
 		new Component()
 			.classes.add("explorer-wrapper")
@@ -54,12 +52,14 @@ export default class Explorer extends Component {
 
 		Projects.keys().forEach(this.addProjectButton);
 
-		new Component("button")
+		new Button()
+			.setIcon("\uE109")
 			.setText("add-project")
 			.listeners.add("click", this.addProject)
 			.appendTo(this.actionWrapper);
 
-		new Component("button")
+		new Button()
+			.setIcon("\uE115")
 			.classes.add("float-right")
 			.setText("app-settings")
 			.listeners.add("click", this.onSettings)
@@ -74,7 +74,8 @@ export default class Explorer extends Component {
 
 		this.addBackButton(this.showProjects);
 
-		new Component("button")
+		new Button()
+			.setIcon("\uE115")
 			.classes.add("float-right")
 			.setText("project-settings")
 			.listeners.add("click", this.onProjectSettings(root))
@@ -102,13 +103,15 @@ export default class Explorer extends Component {
 
 		this.addBackButton(() => this.showVolumes(project.root));
 
-		new Component("button")
+		new Button()
+			.setIcon("\uE100")
 			.setDisabled(volume === 0)
 			.setText("prev-volume")
 			.listeners.add("click", () => this.showChapters(volume - 1))
 			.appendTo(this.actionWrapper);
 
-		new Component("button")
+		new Button()
+			.setIcon("\uE101")
 			.setDisabled(volume === project.volumes.size - 1)
 			.setText("next-volume")
 			.listeners.add("click", () => this.showChapters(volume + 1))
@@ -137,27 +140,31 @@ export default class Explorer extends Component {
 		const project = Projects.current!;
 		const chapters = project.volumes.getByIndex(volume)!;
 
-		new Component("button")
+		new Button()
+			.setIcon("\uE100")
 			.setDisabled(chapter <= 0 && volume <= 0)
 			.setText(chapter <= 0 ? "prev-volume" : "prev-chapter")
 			.listeners.add("click", () => chapter > 0 ? this.showPages(volume, chapter - 1)
 				: this.showPages(volume - 1, project.volumes.getByIndex(volume - 1)!.size - 1))
 			.appendTo(this.actionWrapper);
 
-		new Component("button")
+		new Button()
+			.setIcon("\uE101")
 			.setDisabled(chapter >= chapters.size - 1 && volume >= project.volumes.size - 1)
 			.setText(chapter >= chapters.size - 1 ? "next-volume" : "next-chapter")
 			.listeners.add("click", () => chapter < chapters.size - 1 ? this.showPages(volume, chapter + 1)
 				: this.showPages(volume + 1, 0))
 			.appendTo(this.actionWrapper);
 
-		new Component("button")
+		new Button()
+			.setIcon("\uE11C")
 			.classes.add("float-right")
 			.setText("export")
 			.listeners.add("click", () => this.export(volume, chapter))
 			.appendTo(this.actionWrapper);
 
-		new Component("button")
+		new Button()
+			.setIcon("\uE118")
 			.classes.add("float-right")
 			.setText("import")
 			.listeners.add("click", () => this.import(volume, chapter))
@@ -254,7 +261,8 @@ export default class Explorer extends Component {
 	}
 
 	private addBackButton (handler: () => void) {
-		new Component("button")
+		new Button()
+			.setIcon("\uE096")
 			.setText("back")
 			.listeners.add("click", handler)
 			.appendTo(this.actionWrapper);
@@ -329,7 +337,7 @@ class ImageButton extends Component {
 		this.loadPreview();
 	}
 
-	@Override public setText (text: TextGenerator) {
+	@Override public setText (text?: TextGenerator<Component>) {
 		super.setText(text);
 		this.title.setText(text);
 		return this;

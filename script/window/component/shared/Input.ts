@@ -2,7 +2,7 @@ import Component, { TextGenerator } from "component/Component";
 import Translation from "util/string/Translation";
 
 export default class Input extends Component {
-	private placeholderTextGenerator?: () => string | number;
+	private placeholderTextGenerator?: (component: any) => string | number;
 
 	public constructor () {
 		super("input");
@@ -14,7 +14,7 @@ export default class Input extends Component {
 		return this.element<HTMLInputElement>().value;
 	}
 
-	public setPlaceholder (translation: TextGenerator) {
+	public setPlaceholder (translation: TextGenerator<this>) {
 		if (typeof translation === "string") translation = new Translation(translation);
 		this.placeholderTextGenerator = translation instanceof Translation ? translation.get : translation;
 		this.refreshText();
@@ -22,8 +22,8 @@ export default class Input extends Component {
 	}
 
 	@Override @Bound public refreshText () {
-		this.element<HTMLInputElement>().value = this.textGenerator ? `${this.textGenerator()}` : "";
-		this.attributes.set("placeholder", this.placeholderTextGenerator ? `${this.placeholderTextGenerator()}` : "");
+		this.element<HTMLInputElement>().value = this.textGenerator ? `${this.textGenerator(this)}` : "";
+		this.attributes.set("placeholder", this.placeholderTextGenerator ? `${this.placeholderTextGenerator(this)}` : "");
 		this.emit("change");
 		return this;
 	}

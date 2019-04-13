@@ -1,9 +1,12 @@
 import Component from "component/Component";
 import SettingsInterrupt from "component/content/settings/SettingsInterrupt";
+import Button, { ButtonDisplayMode } from "component/shared/Button";
 import CheckButton from "component/shared/CheckButton";
+import Dropdown from "component/shared/Dropdown";
 import Interrupt from "component/shared/Interrupt";
 import LabelledRow from "component/shared/LabelledRow";
 import Options from "Options";
+import Enums from "util/Enums";
 import Translation from "util/string/Translation";
 
 export default class GlobalSettings extends SettingsInterrupt {
@@ -12,11 +15,19 @@ export default class GlobalSettings extends SettingsInterrupt {
 		super();
 		this.setId("global-settings");
 
-		this.addSection("main")
-			.append(new CheckButton()
-				.setText("custom-title-bar")
-				.setChecked(options.customTitleBar)
-				.listeners.add("toggle", this.toggleCustomTitleBar))
+		this.addSection("appearance")
+			.append(new LabelledRow("custom-title-bar")
+				.append(new CheckButton()
+					.setChecked(options.customTitleBar)
+					.setText(button => new Translation(button.isChecked() ? "enabled" : "disabled").get())
+					.listeners.add("toggle", this.toggleCustomTitleBar)))
+			.append(new LabelledRow("button-display-mode")
+				.append(Dropdown.from(Enums.values(ButtonDisplayMode))
+					.setDropdownDirectionHandler(() => "down")
+					.select(options.buttonDisplayMode)
+					.listeners.add("select", event => Button.setDisplayMode(Component.get<Dropdown<ButtonDisplayMode>>(event).getSelected()))));
+
+		this.addSection("dependencies")
 			.append(new LabelledRow("capture2text-path")
 				.append(new Component("button")
 					.setText(() => options.capture2TextCLIPath || new Translation("unset").get())
@@ -38,7 +49,9 @@ export default class GlobalSettings extends SettingsInterrupt {
 	}
 
 	@Bound private async toggleCustomTitleBar (event: Event) {
-		options.customTitleBar = Component.get<CheckButton>(event).isChecked();
+		const checkButton = Component.get<CheckButton>(event);
+		checkButton.refreshText();
+		options.customTitleBar = checkButton.isChecked();
 		if (!await Interrupt.confirm(interrupt => interrupt
 			.setTitle("requires-restart")
 			.setDescription("requires-restart-description"))) return;

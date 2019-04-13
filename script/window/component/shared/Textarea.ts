@@ -31,7 +31,7 @@ export default class Textarea extends Component {
 		.classes.add("textarea-hidden")
 		.appendTo(this);
 
-	private placeholderTextGenerator: () => string | number;
+	private placeholderTextGenerator?: (component: any) => string | number;
 
 	public constructor () {
 		super();
@@ -53,7 +53,7 @@ export default class Textarea extends Component {
 		return this.hiddenTextarea.box().height;
 	}
 
-	public setPlaceholder (translation: TextGenerator) {
+	public setPlaceholder (translation: TextGenerator<this>) {
 		if (typeof translation === "string") translation = new Translation(translation);
 		this.placeholderTextGenerator = translation instanceof Translation ? translation.get : translation;
 		this.refreshText();
@@ -61,9 +61,9 @@ export default class Textarea extends Component {
 	}
 
 	@Override @Bound public refreshText () {
-		this.textarea.element<HTMLTextAreaElement>().value = this.textGenerator ? `${this.textGenerator()}` : "";
+		this.textarea.element<HTMLTextAreaElement>().value = this.textGenerator ? `${this.textGenerator(this)}` : "";
 		this.setHiddenTextareaText();
-		this.attributes.set("placeholder", this.placeholderTextGenerator ? `${this.placeholderTextGenerator()}` : "");
+		this.attributes.set("placeholder", this.placeholderTextGenerator ? `${this.placeholderTextGenerator(this)}` : "");
 		this.setHeight();
 		this.emit("change");
 		return this;

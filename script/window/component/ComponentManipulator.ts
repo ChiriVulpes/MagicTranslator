@@ -121,8 +121,9 @@ export class AttributeManipulator<T> extends Manipulator<T, AttributeUntil<T>> {
 		},
 	};
 
-	public set (attribute: string, value = "") {
-		this.element().setAttribute(attribute, value);
+	public set (attribute: string, value: string | null = "") {
+		if (value === null) this.element().removeAttribute(attribute);
+		else this.element().setAttribute(attribute, value);
 		return this.host;
 	}
 

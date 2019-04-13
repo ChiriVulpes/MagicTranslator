@@ -1,3 +1,4 @@
+import Button, { ButtonDisplayMode } from "component/shared/Button";
 import FileSystem from "util/FileSystem";
 import Language from "util/string/Language";
 import Translation from "util/string/Translation";
@@ -100,6 +101,7 @@ export default class Options {
 		await Language.waitForLanguage();
 		if (!await FileSystem.exists(options.capture2TextCLIPath)) options.capture2TextCLIPath = "";
 		if (!await FileSystem.exists(options.imageMagickCLIPath)) options.imageMagickCLIPath = "";
+		Button.setDisplayMode(options.buttonDisplayMode);
 	}
 
 	public static async waitForOptions () {
@@ -189,4 +191,5 @@ export default class Options {
 	public projectFolders: string[] = [];
 	public capture2TextCLIPath: string = "";
 	public imageMagickCLIPath: string = "";
+	public buttonDisplayMode = ButtonDisplayMode.Normal;
 }

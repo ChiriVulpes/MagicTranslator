@@ -8,11 +8,11 @@ import Translation from "util/string/Translation";
  * If string, used as a translation key.
  * If a function, not used as a key.
  */
-export type TextGenerator = string | Translation<string> | (() => string | number);
+export type TextGenerator<C> = string | Translation<string> | ((component: C) => string | number);
 export module TextGenerator {
-	export function resolve (textGenerator: TextGenerator) {
+	export function resolve<C> (textGenerator: TextGenerator<C>, component: C | null = null) {
 		if (textGenerator instanceof Translation) textGenerator = textGenerator.get;
-		const text = typeof textGenerator === "function" ? textGenerator() : "";
+		const text = typeof textGenerator === "function" ? textGenerator(component!) : "";
 		return text === null || text === undefined ? "" : `${text}`;
 	}
 }
@@ -65,7 +65,7 @@ export default class Component {
 
 	public get isRemoved () { return !this.internalElement; }
 
-	protected textGenerator: () => string | number;
+	protected textGenerator?: (component: any) => string | number;
 
 	private readonly internalElement: HTMLElement | undefined;
 
@@ -114,7 +114,7 @@ export default class Component {
 		return this;
 	}
 
-	public setText (translation: TextGenerator) {
+	public setText (translation?: TextGenerator<this>) {
 		if (typeof translation === "string") translation = new Translation(translation);
 		this.textGenerator = translation instanceof Translation ? translation.get : translation;
 		this.refreshText();
@@ -122,13 +122,20 @@ export default class Component {
 	}
 
 	public inheritText (component: Component, processor?: (text: string | number) => string | number) {
-		this.textGenerator = processor ? () => processor(component.textGenerator()) : component.textGenerator;
+		const textGenerator = component.textGenerator;
+		this.textGenerator = textGenerator && (processor ? () => processor(textGenerator(this)) : textGenerator);
+		this.refreshText();
+		return this;
+	}
+
+	public removeText () {
+		this.textGenerator = undefined;
 		this.refreshText();
 		return this;
 	}
 
 	@Bound public refreshText () {
-		const text = this.textGenerator ? this.textGenerator() as any : "";
+		const text = this.textGenerator ? this.textGenerator(this) as any : "";
 		this.element().textContent = text === null || text === undefined ? "" : `${text}`;
 		return this;
 	}

@@ -2,7 +2,7 @@ import Component, { TextGenerator } from "component/Component";
 import Translation from "util/string/Translation";
 
 export default class Img extends Component {
-	private altGenerator: () => string | number;
+	private altGenerator?: (component: any) => string | number;
 
 	public constructor () {
 		super("img");
@@ -13,7 +13,7 @@ export default class Img extends Component {
 		return this;
 	}
 
-	public setAlt (translation: TextGenerator) {
+	public setAlt (translation: TextGenerator<this>) {
 		if (typeof translation === "string") translation = new Translation(translation);
 		this.altGenerator = translation instanceof Translation ? translation.get : translation;
 		this.refreshText();
@@ -22,7 +22,7 @@ export default class Img extends Component {
 
 	@Bound @Override public refreshText () {
 		super.refreshText();
-		const text = this.altGenerator ? this.altGenerator() as any : "";
+		const text = this.altGenerator ? this.altGenerator(this) as any : "";
 		this.attributes.set("alt", text === null || text === undefined ? "" : `${text}`);
 		return this;
 	}

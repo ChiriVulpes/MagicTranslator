@@ -3,6 +3,8 @@ import CharacterEditor from "component/content/character/CharacterEditor";
 import Capture from "component/content/extractor/Capture";
 import GlobalSettings from "component/content/GlobalSettings";
 import Header from "component/header/Header";
+import Button from "component/shared/Button";
+import ButtonBar from "component/shared/ButtonBar";
 import Dropdown from "component/shared/Dropdown";
 import Img from "component/shared/Img";
 import Interrupt from "component/shared/Interrupt";
@@ -65,19 +67,22 @@ export default class Extractor extends Component {
 
 		new Component()
 			.classes.add("extraction-drawer")
-			.append(new Component()
+			.append(new ButtonBar()
 				.classes.add("extraction-actions")
-				.append(new Component("button")
+				.append(new Button()
+					.setIcon("\uE012")
 					.setText("back")
 					.listeners.add("click", () => this.emit("quit")))
-				.append(new Component("button")
+				.append(new Button()
+					.setIcon("\uE100")
 					.setText(page > 0 ? "prev-page"
 						: chapter > 0 ? "prev-chapter"
 							: volume > 0 ? "prev-volume"
 								: "prev-page")
 					.setDisabled(page <= 0 && chapter <= 0 && volume <= 0)
 					.listeners.add("click", () => this.emit("previous")))
-				.append(new Component("button")
+				.append(new Button()
+					.setIcon("\uE101")
 					.setText(page < project.volumes.getByIndex(volume)!.getByIndex(chapter)!.length - 1 ? "next-page"
 						: chapter < project.volumes.getByIndex(volume)!.size - 1 ? "next-chapter"
 							: volume < project.volumes.size - 1 ? "next-volume"
@@ -88,9 +93,9 @@ export default class Extractor extends Component {
 					.listeners.add("click", () => this.emit("next")))
 				.append(this.displayModeDropdown = Dropdown.from(Enums.values(DisplayMode))
 					.classes.add("float-right")
-					.setTitle("display-mode")
 					.listeners.add("select", this.changeDisplayMode))
-				.append(new Component("button")
+				.append(new Button()
+					.setIcon("\uE11C")
 					.classes.add("float-right")
 					.setText("export")
 					.listeners.add("click", this.export)))
@@ -165,7 +170,7 @@ export default class Extractor extends Component {
 		const component = Component.get<Capture>(event);
 		const capture = component.getData();
 
-		const confirm = await Interrupt.confirm(interrupt => interrupt
+		const confirm = await Interrupt.remove(interrupt => interrupt
 			.setTitle("confirm-remove-capture")
 			.setDescription(() => new Translation("confirm-remove-capture-description").get(capture.translation.replace(/\n/g, ""), capture.text.replace(/\n/g, ""))));
 
