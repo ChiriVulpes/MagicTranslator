@@ -53,7 +53,7 @@ export default class Capture extends SortableListItem {
 				.classes.add("character-preview-button")
 				.style.set("--headshot", typeof capture.character !== "number" ? "" : `url("${Projects.current!.getPath("character", capture.character)}")`)
 				.setTranslationHandler(characters.getName)
-				.select(characters.getId(capture.character || BasicCharacter.Unknown)!)
+				.select(characters.getId(capture.character !== undefined ? capture.character : BasicCharacter.Unknown))
 				.setOptionInitializer((option, character) => option
 					.classes.add("character-preview-button")
 					.style.set("--headshot", typeof character !== "number" ? "" : `url("${Projects.current!.getPath("character", character)}")`))

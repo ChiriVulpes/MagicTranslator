@@ -50,8 +50,11 @@ export default class Characters extends Serializable {
 		return !character ? "" : typeof character === "object" ? character.name : new Translation(`character-${character.toLowerCase()}`).get();
 	}
 
-	public getId (character: number | BasicCharacter | CharacterData) {
-		if (typeof character !== "object") return character;
+	public getId (character?: number | BasicCharacter | CharacterData): number | BasicCharacter;
+	public getId (character?: number | BasicCharacter | CharacterData) {
+		if (typeof character === "string") return character;
+		if (typeof character === "number") character = this.get(character);
+		if (!character) return BasicCharacter.Unknown;
 		return character.id;
 	}
 }
