@@ -61,6 +61,7 @@ prev-chapter: Previous Chapter
 prev-page: Previous Page
 prev-volume: Previous Volume
 project-settings: Project Settings
+project: {0}
 prompt-capture2text-cli: Choose Capture2Text Folder
 prompt-character-headshot: Choose the Headshot Image for {0?{0}:the Character} (Prefer Square Images)
 prompt-dialog-file: Choose dialog.md file. The file must be properly formatted. It must have the ".md" file extension.
@@ -89,3 +90,4 @@ volume: Volume {0}
 yes: Yes
 confirm-no-external-editor: There is currently no external editor set.
 confirm-no-external-editor-description: Would you like to set one?
+breadcrumb-separator:  — 

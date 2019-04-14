@@ -21,6 +21,13 @@
 		padding: calc(var(--header) * .15) 10px;
 		color: #fff9;
 	}
+	
+	.breadcrumb {
+		-webkit-app-region: no-drag;
+		&:hover {
+			color: #fff;
+		}
+	}
 }
 
 @import "window-controls";

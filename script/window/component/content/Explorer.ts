@@ -20,7 +20,7 @@ export default class Explorer extends Component {
 	private readonly actionWrapper = new ButtonBar().appendTo(this);
 	private projects: SortableTiles<ImageButton>;
 
-	public constructor (private readonly startLocation?: [number, number]) {
+	public constructor (private readonly startLocation?: [string, number?, number?]) {
 		super();
 		this.setId("explorer");
 
@@ -36,11 +36,19 @@ export default class Explorer extends Component {
 	private async initialize () {
 
 		if (!this.startLocation) {
+			Projects.current = undefined;
 			this.showProjects();
 			return;
 		}
 
-		await this.showPages(...this.startLocation);
+		const [root, volume, chapter] = this.startLocation;
+
+		if (volume === undefined) return this.showVolumes(root);
+		Projects.current = Projects.get(root);
+
+		if (chapter === undefined) return this.showChapters(volume);
+
+		return this.showPages(volume, chapter);
 	}
 
 	@Bound private showProjects () {
@@ -65,7 +73,7 @@ export default class Explorer extends Component {
 			.listeners.add("click", this.onSettings)
 			.appendTo(this.actionWrapper);
 
-		Header.setTitle(() => new Translation("title").get());
+		Header.setBreadcrumbs(["title"]);
 	}
 
 	private async showVolumes (root: string) {
@@ -92,7 +100,10 @@ export default class Explorer extends Component {
 				.listeners.add("click", () => this.showChapters(volumeIndex));
 		}
 
-		Header.setTitle(() => new Translation("title").get({ root: project.getDisplayName() }));
+		Header.setBreadcrumbs(
+			["title", this.showProjects],
+			[() => new Translation("project").get(project.getDisplayName())],
+		);
 	}
 
 	private showChapters (volume: number) {
@@ -125,10 +136,11 @@ export default class Explorer extends Component {
 		}
 
 		const [volumeNumber] = project.getSegmentNumbers(volume);
-		Header.setTitle(() => new Translation("title").get({
-			root: project.getDisplayName(),
-			volume: `${volumeNumber}`,
-		}));
+		Header.setBreadcrumbs(
+			["title", this.showProjects],
+			[() => new Translation("project").get(project.getDisplayName()), () => this.showVolumes(project.root)],
+			[() => new Translation("volume").get(volumeNumber)],
+		);
 	}
 
 	private async showPages (volume: number, chapter: number) {
@@ -180,11 +192,12 @@ export default class Explorer extends Component {
 		}
 
 		const [volumeNumber, chapterNumber] = project.getSegmentNumbers(volume, chapter);
-		Header.setTitle(() => new Translation("title").get({
-			root: project.getDisplayName(),
-			volume: `${volumeNumber}`,
-			chapter: `${chapterNumber}`,
-		}));
+		Header.setBreadcrumbs(
+			["title", this.showProjects],
+			[() => new Translation("project").get(project.getDisplayName()), () => this.showVolumes(project.root)],
+			[() => new Translation("volume").get(volumeNumber), () => this.showChapters(volume)],
+			[() => new Translation("chapter").get(chapterNumber)],
+		);
 	}
 
 	@Bound private addProjectButton (root: string) {
@@ -300,7 +313,10 @@ export default class Explorer extends Component {
 				return;
 			}
 
-			if (project) Header.setTitle(() => new Translation("title").get({ root: project.getDisplayName() }));
+			if (project) Header.setBreadcrumbs(
+				["title", this.showProjects],
+				[() => new Translation("project").get(project.getDisplayName())],
+			);
 		};
 	}
 

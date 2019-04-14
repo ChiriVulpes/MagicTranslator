@@ -2,7 +2,6 @@ import Component from "component/Component";
 import CharacterEditor from "component/content/character/CharacterEditor";
 import Capture from "component/content/extractor/Capture";
 import GlobalSettings from "component/content/GlobalSettings";
-import Header from "component/header/Header";
 import Button from "component/shared/Button";
 import ButtonBar from "component/shared/ButtonBar";
 import Dropdown from "component/shared/Dropdown";
@@ -49,8 +48,6 @@ export default class Extractor extends Component {
 		this.setId("extractor");
 
 		const project = Projects.current!;
-
-		const [volumeNumber, chapterNumber, pageNumber] = project.getSegmentNumbers(volume, chapter, page);
 
 		new Component()
 			.classes.add("page-wrapper")
@@ -111,13 +108,6 @@ export default class Extractor extends Component {
 					.classes.add("loading", "extraction-captures")
 					.listeners.add(SortableListEvent.SortComplete, this.onSortComplete)))
 			.appendTo(this);
-
-		Header.setTitle(() => new Translation("title").get({
-			root: project.getDisplayName(),
-			volume: `${volumeNumber}`,
-			chapter: `${chapterNumber}`,
-			page: `${pageNumber}`,
-		}));
 	}
 
 	public async addCapture (capture: CaptureData) {

@@ -64,6 +64,11 @@ export default class Dropdown<O> extends Component {
 	public select (option: O) {
 		this.close();
 
+		if (!this.options.has(option)) {
+			console.warn("Unknown option", option, "for dropdown", this);
+			return this;
+		}
+
 		if (this.selected !== option) {
 			this.selected = option;
 			this.emit<O>("select", event => event.data = option);

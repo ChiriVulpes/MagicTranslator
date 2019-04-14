@@ -331,23 +331,23 @@ export default class Component {
 		return this;
 	}
 
-	public schedule (handler: (component: this) => any): this;
+	public schedule (handler?: (component: this) => any): this;
 	public schedule<_A> (handler: (component: this, _1: _A) => any, _1: _A): this;
 	public schedule<_A, _B> (handler: (component: this, _1: _A, _2: _B) => any, _1: _A, _2: _B): this;
 	public schedule<_A, _B, _C> (handler: (component: this, _1: _A, _2: _B, _3: _C) => any, _1: _A, _2: _B, _3: _C): this;
 	public schedule<_A, _B, _C, _D> (handler: (component: this, _1: _A, _2: _B, _3: _C, _4: _D) => any, _1: _A, _2: _B, _3: _C, _4: _D): this;
 	public schedule<_A, _B, _C, _D, _E> (handler: (component: this, _1: _A, _2: _B, _3: _C, _4: _D, _5: _E) => any, _1: _A, _2: _B, _3: _C, _4: _D, _5: _E): this;
 	// public schedule (handler: (component: this, ...args: any[]) => any, ...args: any[]): this;
-	public schedule (s: number, handler: (component: this) => any): this;
+	public schedule (s: number, handler?: (component: this) => any): this;
 	public schedule<_A> (s: number, handler: (component: this, _1: _A) => any, _1: _A): this;
 	public schedule<_A, _B> (s: number, handler: (component: this, _1: _A, _2: _B) => any, _1: _A, _2: _B): this;
 	public schedule<_A, _B, _C> (s: number, handler: (component: this, _1: _A, _2: _B, _3: _C) => any, _1: _A, _2: _B, _3: _C): this;
 	public schedule<_A, _B, _C, _D> (s: number, handler: (component: this, _1: _A, _2: _B, _3: _C, _4: _D) => any, _1: _A, _2: _B, _3: _C, _4: _D): this;
 	public schedule<_A, _B, _C, _D, _E> (s: number, handler: (component: this, _1: _A, _2: _B, _3: _C, _4: _D, _5: _E) => any, _1: _A, _2: _B, _3: _C, _4: _D, _5: _E): this;
 	// public schedule (s: number, handler: (component: this, ...args: any[]) => any, ...args: any[]): this;
-	public schedule (s: ((component: this, ...args: any[]) => any) | number, handler?: any, ...args: any[]) {
-		if (typeof s !== "number") args.unshift(handler), s(this, ...args);
-		else sleep(s).then(() => handler(this, ...args));
+	public schedule (s?: ((component: this, ...args: any[]) => any) | number, handler?: any, ...args: any[]) {
+		if (typeof s !== "number") args.unshift(handler), s && s(this, ...args);
+		else sleep(s).then(() => handler && handler(this, ...args));
 		return this;
 	}
 
