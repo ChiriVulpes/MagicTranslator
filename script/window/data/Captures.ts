@@ -7,6 +7,7 @@ export interface CaptureData {
 	size?: { x: number; y: number };
 	text: string;
 	translation: string;
+	glossNotes?: [string, string][];
 	notes: [string, string][];
 	character?: number | BasicCharacter;
 }

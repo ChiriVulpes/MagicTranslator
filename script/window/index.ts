@@ -47,6 +47,7 @@ declare global {
 const fs = req<typeof import("fs")>("fs");
 const path = req<typeof import("path")>("path");
 const childProcess = req<typeof import("child_process")>("child_process");
+const jishoApi = req<typeof import("unofficial-jisho-api").default>("unofficial-jisho-api");
 
 import FileSystem from "util/FileSystem";
 FileSystem.initialize(fs, path);
@@ -56,6 +57,10 @@ ChildProcess.initialize(childProcess);
 
 import Path from "util/string/Path";
 Path.initialize(path);
+
+import Gloss from "util/api/Gloss";
+Gloss.initialize(jishoApi);
+(window as any).Gloss = Gloss;
 
 
 ////////////////////////////////////

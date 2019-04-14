@@ -168,9 +168,14 @@ export default class Options {
 		if (path) options.imageMagickCLIPath = path;
 	}
 
-	public static async chooseExternalEditorPath () {
+	public static async chooseExternalEditorCLIPath () {
 		const path = await this.chooseFile("prompt-external-editor");
-		if (path) options.externalEditorPath = path;
+		if (path) options.externalEditorCLIPath = path;
+	}
+
+	public static async chooseGlosserCLIPath () {
+		const path = await this.chooseFile("prompt-glosser");
+		if (path) options.glosserCLIPath = path;
 	}
 
 	private static async chooseCLIFolder (prompt: string, ...filenames: string[]) {
@@ -198,7 +203,8 @@ export default class Options {
 	// other programs
 	public capture2TextCLIPath: string = "";
 	public imageMagickCLIPath: string = "";
-	public externalEditorPath: string = "";
+	public externalEditorCLIPath: string = "";
+	public glosserCLIPath: string = "";
 
 	// appearance
 	public customTitleBar = process.platform === "win32";

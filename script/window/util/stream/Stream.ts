@@ -57,8 +57,8 @@ export interface IPartitions<K, V> extends Streamable<[K, Stream<V>]> {
  */
 export default abstract class Stream<T> implements Streamable<T>, Iterable<T> {
 
-	public static get empty () {
-		return Stream.of<any>();
+	public static empty<T = any> () {
+		return Stream.of<T[]>();
 	}
 
 	public static from<T> (iterable: Iterable<T> | Streamable<T> | (() => IterableIterator<T>)): Stream<T> {

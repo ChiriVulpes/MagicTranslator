@@ -187,25 +187,63 @@
 		}
 	}
 	
+	.japanese-wrapper {
+		display: grid;
+		grid-template-columns: 1fr auto;
+	}
+	
 	.japanese {
 		font-family: var(--font-ja);
 	}
 	
-	.notes {
-		pointer-events: none;
-		padding: 5px 0;
-		box-sizing: border-box;
-		position: relative;
-		height: auto;
-		
-		&.sorting {
-			height: var(--sorting-wrapper-height);
+	> * > .notes-wrapper {
+		> h3 {
+			transition: all .1s ease-in-out .2s;
+			transition-property: opacity, line-height, margin-top;
+			line-height: 1em;
+			margin-top: 4px;
+			margin-bottom: 0;
+			font-size: 16pt;
+			opacity: 0.6;
+		}
+		> .notes {
+			transition: all .1s ease-in-out .2s;
+			transition-property: padding;
+			pointer-events: none;
+			padding: 5px 0;
+			box-sizing: border-box;
+			position: relative;
+			height: auto;
+			
+			&.sorting {
+				height: var(--sorting-wrapper-height);
+			}
 		}
 	}
 	
-	// warn on missing translations
-	> * > .translation > textarea:not(:focus) + .textarea-hidden:empty {
-		border-left: 3px solid #f00;
+	&:not(:focus-within) > * > .notes-wrapper.empty {
+		> h3 {
+			transition-delay: 0s;
+			opacity: 0;
+			line-height: 0em;
+			margin-top: -2px;
+		}
+		> .notes {
+			transition-delay: 0s;
+			padding: 0;
+		}
+	} 
+	
+	> * {
+		
+		> .translation {
+			margin-bottom: 8px;
+			
+			// warn on missing translations
+			> textarea:not(:focus) + .textarea-hidden:empty {
+				border-left: 3px solid #f00;
+			}
+		}
 	}
 }
 
@@ -293,14 +331,16 @@
     display: grid;
 	grid-template-columns: auto 1fr;
 	gap: 10px;
-	cursor: -webkit-grab;
 	
-	&.sorting {
-		cursor: -webkit-grabbing;
-	}
-	
-	&.sorting, &:hover, &:focus-within {
-		background: #0003;
+	&.sortable-list-item {
+		cursor: -webkit-grab;
+		
+		&.sorting {
+			cursor: -webkit-grabbing;
+		}
+		&.sorting, &:hover, &:focus-within {
+			background: #0003;
+		}
 	}
 	
 	> * {

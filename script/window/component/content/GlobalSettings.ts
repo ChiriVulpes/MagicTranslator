@@ -38,8 +38,12 @@ export default class GlobalSettings extends SettingsInterrupt {
 					.listeners.add("click", this.changeImageMagickCLIPath)))
 			.append(new LabelledRow("external-editor")
 				.append(new Component("button")
-					.setText(() => options.externalEditorPath || new Translation("unset").get())
-					.listeners.add("click", this.changeExternalEditorPath)));
+					.setText(() => options.externalEditorCLIPath || new Translation("unset").get())
+					.listeners.add("click", this.changeExternalEditorCLIPath)))
+			.append(new LabelledRow("glosser")
+				.append(new Component("button")
+					.setText(() => options.glosserCLIPath || new Translation("jisho").get())
+					.listeners.add("click", this.changeGlosserCLIPath)));
 	}
 
 	@Bound private async changeCapture2TextCLIPath (event: Event) {
@@ -52,8 +56,19 @@ export default class GlobalSettings extends SettingsInterrupt {
 		Component.get(event).refreshText();
 	}
 
-	@Bound private async changeExternalEditorPath (event: Event) {
-		await Options.chooseExternalEditorPath();
+	@Bound private async changeExternalEditorCLIPath (event: Event) {
+		await Options.chooseExternalEditorCLIPath();
+		Component.get(event).refreshText();
+	}
+
+	@Bound private async changeGlosserCLIPath (event: Event) {
+		const useCustomGlosser = await Interrupt.confirm(interrupt => interrupt
+			.setTitle("confirm-use-custom-glosser")
+			.setDescription("confirm-use-custom-glosser-description"));
+
+		if (!useCustomGlosser) options.glosserCLIPath = "";
+		else await Options.chooseGlosserCLIPath();
+
 		Component.get(event).refreshText();
 	}
 

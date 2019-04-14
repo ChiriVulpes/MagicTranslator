@@ -264,7 +264,7 @@ export default class Component {
 	}
 
 	public siblings<C extends Component = Component> () {
-		if (!this.parent) return Stream.empty;
+		if (!this.parent) return Stream.empty<C>();
 		return this.parent.children<C>()
 			.filter(c => c !== this as any);
 	}

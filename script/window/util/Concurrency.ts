@@ -1,9 +1,11 @@
+import { sleep } from "util/Async";
+
 export default class Concurrency {
 
 	private concurrentCount = 0;
 	private readonly waiting: (() => void)[] = [];
 
-	public constructor (private readonly maxConcurrent = 1) { }
+	public constructor (private readonly maxConcurrent = 1, private readonly timeoutSeconds = 0) { }
 
 	public promise<T> (initializer: (resolve: (value: T) => any, reject: (error: any) => any) => any): Promise<T>;
 	public promise<T> (cancellable: true, initializer: (resolve: (value: T) => any, reject: (error: any) => any) => any): CancellablePromise<T>;
@@ -20,6 +22,8 @@ export default class Concurrency {
 				result = await new Promise(initializer!).catch(e => err = e);
 				this.concurrentCount--;
 			}
+
+			if (this.timeoutSeconds) await sleep(this.timeoutSeconds);
 
 			if (this.waiting.length) this.waiting.shift()!();
 

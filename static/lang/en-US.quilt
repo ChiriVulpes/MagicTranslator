@@ -2,6 +2,7 @@ add-project: Add Project
 app-settings: App Settings
 appearance: Appearance
 back: Back
+breadcrumb-separator:  — 
 button-display-mode: Button Appearance
 cancel: Cancel
 capture-path: Page Captures
@@ -17,12 +18,16 @@ character-unknown: N/A
 choose: Choose
 confirm-imagemagick-for-viewing-psd-description: However, there's a save for this page.\nIf you install ImageMagick, this application will automatically\ncreate the translated version of this page upon viewing.\n\nWould you like to select the install path for ImageMagick?
 confirm-imagemagick-for-viewing-psd: There is no translated version of this page.
+confirm-no-external-editor-description: Would you like to set one?
+confirm-no-external-editor: There is currently no external editor set.
 confirm-remove-capture-description: {0?Translation\: "{0}"\n}{1?Text\: "{1}"\n}There is no undo.
 confirm-remove-capture: Are you sure you want\nto remove the capture?
 confirm-remove-character-description: Any capture that has this character will be changed to "N/A".\nThere is no undo.
 confirm-remove-character: Are you sure you want to remove\n"{0}"?
 confirm-remove-project-description: No metadata will be deleted, so you can add this project again at a later date.
 confirm-remove-project: Are you sure you want to remove\n"{0}"?
+confirm-use-custom-glosser-description: By default, Magic Translator uses Jisho.org for glossing.\nIf you set a custom glosser, the glosser must be an executable file which\ntakes a phrase as an argument and returns a JSON array of text & definitions.
+confirm-use-custom-glosser: Do you want to set a custom glosser?
 custom-title-bar: Custom Title Bar
 dependencies: Dependencies
 directory: Directory
@@ -35,10 +40,14 @@ example: Example
 export: Export
 external-editor: External Editor
 file-structure: File Structure
+gloss: Gloss
+glosser: Glosser
 icon-only: Icon Only
 imagemagick-path: ImageMagick Path
 imagemagick-unsupported: ImageMagick can't convert the save file. Error:
 import: Import
+info-error-on-gloss: There was an error glossing\nthis phrase with the custom glosser.
+jisho: Jisho.org
 main: Main
 missing-translations: Missing Translations
 name: Name
@@ -51,6 +60,7 @@ no-translated-image: There is no translated\nversion of this page.
 no: No
 normal: Normal
 note-placeholder: Note
+notes: Notes
 open: Open
 page-path: Page Name
 page: Page {0}
@@ -66,6 +76,7 @@ prompt-capture2text-cli: Choose Capture2Text Folder
 prompt-character-headshot: Choose the Headshot Image for {0?{0}:the Character} (Prefer Square Images)
 prompt-dialog-file: Choose dialog.md file. The file must be properly formatted. It must have the ".md" file extension.
 prompt-external-editor: Choose External Editor
+prompt-glosser: Choose Glosser
 prompt-imagemagick-cli: Choose ImageMagick Folder
 prompt-project-folder: Choose Root Folder (Folder Containing vol##/ch### folders)
 raw-path: Raw Pages
@@ -88,6 +99,3 @@ unset: Not Set
 volume-path: Volume Name
 volume: Volume {0}
 yes: Yes
-confirm-no-external-editor: There is currently no external editor set.
-confirm-no-external-editor-description: Would you like to set one?
-breadcrumb-separator:  — 
