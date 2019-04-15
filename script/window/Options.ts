@@ -168,9 +168,10 @@ export default class Options {
 		if (path) options.imageMagickCLIPath = path;
 	}
 
-	public static async chooseExternalEditorCLIPath () {
+	public static async chooseExternalEditorCLIPath (assign = true) {
 		const path = await this.chooseFile("prompt-external-editor");
-		if (path) options.externalEditorCLIPath = path;
+		if (assign && path) options.externalEditorCLIPath = path;
+		return path;
 	}
 
 	public static async chooseGlosserCLIPath () {

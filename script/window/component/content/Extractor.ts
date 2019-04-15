@@ -414,7 +414,8 @@ export default class Extractor extends Component {
 	}
 
 	@Bound private async openInExternalEditor () {
-		if (!options.externalEditorCLIPath) {
+		const project = Projects.current!;
+		if (!project.externalEditorCLIPath && !options.externalEditorCLIPath) {
 			const confirm = await Interrupt.confirm(interrupt => interrupt
 				.setTitle("confirm-no-external-editor")
 				.setDescription("confirm-no-external-editor-description"));
@@ -423,10 +424,10 @@ export default class Extractor extends Component {
 			await Options.chooseExternalEditorCLIPath();
 		}
 
-		let path = Projects.current!.getPath("save", this.volume, this.chapter, this.page);
-		if (!await FileSystem.exists(path)) path = Projects.current!.getPath("raw", this.volume, this.chapter, this.page);
+		let path = project.getPath("save", this.volume, this.chapter, this.page);
+		if (!await FileSystem.exists(path)) path = project.getPath("raw", this.volume, this.chapter, this.page);
 
-		ChildProcess.exec(`"${options.externalEditorCLIPath}" "${path}"`);
+		ChildProcess.exec(`"${project.externalEditorCLIPath || options.externalEditorCLIPath}" "${path}"`);
 	}
 
 	private async saveImage (capturePath: string, canvas: HTMLCanvasElement) {

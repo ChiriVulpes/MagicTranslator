@@ -96,6 +96,7 @@ translated-path: Translated Pages
 translation-mode: Translate
 translation-placeholder: Translation
 unset: Not Set
+use-global-setting: Use Global Setting
 volume-path: Volume Name
 volume: Volume {0}
 yes: Yes

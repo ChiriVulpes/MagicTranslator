@@ -72,7 +72,8 @@ export class Project extends Serializable {
 	public characters: Characters;
 	public thumbs: Thumbs;
 
-	@Serialized public name: string | undefined;
+	@Serialized public name?: string;
+	@Serialized public externalEditorCLIPath?: string;
 	@Serialized public structure: ProjectStructure = { ...defaultProjectStructure };
 
 	public volumes: IndexedMap<string, IndexedMap<string, Page[]>>;
