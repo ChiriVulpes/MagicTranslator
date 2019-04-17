@@ -50,6 +50,7 @@ class SortableTile<T extends Component> extends Component {
 		await sleep(0.12);
 		if (!this.classes.has("will-move")) return;
 		this.classes.remove("will-move").classes.add("moving");
+		this.parent!.classes.add("sorting");
 
 		this.style.set("width", box.width);
 		this.style.set("height", box.height);
@@ -83,5 +84,6 @@ class SortableTile<T extends Component> extends Component {
 		if (this.classes.has("moving")) this.emit("moved");
 
 		this.classes.remove("will-move", "moving");
+		this.parent!.classes.remove("sorting");
 	}
 }
