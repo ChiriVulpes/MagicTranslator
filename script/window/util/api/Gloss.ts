@@ -1,12 +1,10 @@
 import Interrupt from "component/shared/Interrupt";
-import JishoApi, { Result, Sense } from "unofficial-jisho-api";
 import { tuple } from "util/Arrays";
 import ChildProcess from "util/ChildProcess";
 import Concurrency from "util/Concurrency";
 import Stream from "util/stream/Stream";
 
-let jishoApi: JishoApi;
-
+const API_BASE_URI = "http://jisho.org/api/v1/search/words/";
 const SCRAPE_BASE_URI = "http://jisho.org/search/";
 
 const katakanaToHiraganaMap = {
@@ -111,9 +109,6 @@ function toHiragana (mixedSyllabaryText?: string) {
 }
 
 module Gloss {
-	export function initialize (_jishoApi: typeof JishoApi) {
-		jishoApi = new _jishoApi();
-	}
 
 	export interface Word extends MorphologicalWord {
 		results: Result[];
@@ -193,7 +188,9 @@ module Gloss {
 		let results!: Result[];
 
 		for (const wordText of word.furigana ? [word.word, word.furigana] : [word.word]) {
-			results = (await jishoApi.searchForPhrase(`"${wordText}"`)).data;
+			const response = await fetch(`${API_BASE_URI}?keyword="${wordText}"`);
+			const data: PhraseSearchResult = await response.json();
+			results = data.data;
 
 			results.forEach(result => result.senses = repairAndFilterSenses(wordText, word.part_of_speech!, result.senses));
 			results = results.filter(result => result.senses.length);
@@ -301,4 +298,39 @@ enum PartOfSpeech {
 	Prefix,
 	Suffix,
 	"Proper noun",
+}
+
+interface PhraseSearchResult {
+	meta: { status: number };
+	data: Result[];
+}
+
+interface Result {
+	slug: string;
+	is_common: boolean;
+	tags: string[];
+	jlpt: string[];
+	japanese: Japanese[];
+	senses: Sense[];
+	attribution: {
+		jmdict: boolean;
+		jmnedict: boolean;
+		dbpedia: boolean;
+	};
+}
+
+interface Japanese {
+	word: string;
+	reading: string;
+}
+
+interface Sense {
+	english_definitions: string[];
+	parts_of_speech: string[];
+	links: string[];
+	restrictions: string[];
+	see_also: string[];
+	antonyms: string[];
+	source: string[];
+	info: string[];
 }
