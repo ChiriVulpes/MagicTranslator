@@ -409,8 +409,8 @@
 		min-height: auto;
 		
 		> :first-child > img, 
-		.japanese, 
-		.notes {
+		.japanese-wrapper, 
+		.notes-wrapper {
 			display: none;
 		}
 	}
@@ -430,12 +430,11 @@
 		margin-top: -10px;
 		margin-bottom: -2px;
 		left: -60px;
-		--height: 50px;
-		padding-left: 55px;
+		--button-bar-height: 50px;
+		padding-left: calc(10px + var(--button-bar-height));
 		
 		&::before {
-			top: 16px;
-			left: -8px;
+			top: 12px;
 		}
 		
 		&::after {
