@@ -83,6 +83,8 @@ const katakanaToHiraganaMap = {
 	ン: "ん",
 };
 
+const nonKanjiSyllabaries = [...Object.keys(katakanaToHiraganaMap), ...Object.values(katakanaToHiraganaMap)];
+
 const fullWidthToHalfWidthNumber = {
 	"０": "0",
 	"１": "1",
@@ -96,9 +98,184 @@ const fullWidthToHalfWidthNumber = {
 	"９": "9",
 };
 
+module Gloss {
+
+	export async function gloss (phrase: string) {
+		return (await getWords(phrase))
+			.map(({ word, definitions }) => ({
+				text: word,
+				gloss: definitions.map(definition => "- " + definition).join("\n"),
+			}));
+	}
+}
+
+export default Gloss;
+
+/**
+ * Takes a phrase (in Japanese) and uses the glosser chosen by the user to gloss it.
+ * (Gets a list of words in the phrase and lists their possible definitions)
+ */
+async function getWords (phrase: string) {
+	if (!options.glosserCLIPath) return getWordsJisho(phrase);
+
+	try {
+		const [stdout] = await ChildProcess.exec(`"${options.glosserCLIPath}" "${phrase}"`);
+		const results = JSON.parse(stdout.toString("utf8")) as ExpectedGloss[];
+
+		const isValid = Array.isArray(results)
+			&& results.every(result => typeof result === "object"
+				&& typeof result.word === "string"
+				&& Array.isArray(result.definitions)
+				&& result.definitions.every(definition => typeof definition === "string"));
+		if (!isValid) throw new Error("Gloss result JSON is invalid. Expected an array of objects containing a word and its definitions.");
+
+		return results.stream();
+
+	} catch (err) {
+		console.error(err);
+
+		await Interrupt.info(interrupt => interrupt
+			.setTitle("info-error-on-gloss")
+			.setDescription(() => err.message));
+
+		return Stream.empty<ExpectedGloss>();
+	}
+}
+
+interface ExpectedGloss {
+	word: string;
+	definitions: string[];
+}
+
+/**
+ * Glosses a phrase via Jisho.org.
+ */
+async function getWordsJisho (phrase: string): Promise<Stream<ExpectedGloss>> {
+	return (await (await getMorphologicalWords(phrase))
+		.flatMap(extractNumbers)
+		.map(defineWord)
+		.rest())
+		.map(word => ({
+			word: word.word,
+			definitions: word.definitions.stream()
+				.map(result => tuple(result, result.senses
+					.map(sense => sense.english_definitions.join("/"))))
+				.filter(([, definitions]) => definitions && definitions.length)
+				.flatMap(([, definitions]) => definitions)
+				.toArray(),
+		}));
+}
+
+
+////////////////////////////////////
+// Number & Counter Extraction
+//
+
 const numberRegex = RegExp(`^([${Object.keys(fullWidthToHalfWidthNumber).join("")}]+)(.*)`);
 
-const nonKanjiSyllabaries = [...Object.keys(katakanaToHiraganaMap), ...Object.values(katakanaToHiraganaMap)];
+/**
+ * Takes a morphological word (Jisho's gloss) and separates numbers from its counter
+ * For example, given `１８歳`, which Jisho is unable to define, it returns `１８` and `歳`. Jisho can then define the `歳`
+ */
+function extractNumbers (word: Word): Word[] {
+	const numberMatch = word.word.match(numberRegex);
+	if (!numberMatch) return [word];
+	return [
+		{ word: numberMatch[1] },
+		{ ...word, part_of_speech: "Suffix" as const, word: numberMatch[2] },
+	];
+}
+
+/**
+ * Takes a morphological word (Jisho's gloss), and adds a list of possible definitions.
+ */
+async function defineWord (word: Word) {
+	return {
+		...word,
+		// don't attempt to gloss words that aren't morphologically analyzed
+		definitions: !word.part_of_speech ? [] : await getDefinitions(word),
+	};
+}
+
+/**
+ * Returns the definitions for a word. If there are no definitions found, returns definitions for the furigana of the word.
+ */
+// tslint:disable-next-line cyclomatic-complexity
+async function getDefinitions (word: Word) {
+	let definitions: Definition[] | undefined;
+
+	for (const wordText of word.furigana ? [word.word, word.furigana] : [word.word]) {
+		const data = await concurrentFetchJson<PhraseSearchResult>(`${API_BASE_URI}?keyword="${wordText}"`, {});
+		if (!data.data) continue;
+
+		definitions = data.data;
+
+		definitions.forEach(result => result.senses = repairAndFilterSenses(wordText, word.part_of_speech!, result.senses));
+		definitions = definitions.filter(result => result.senses.length);
+
+		if (definitions.some(result => result.is_common))
+			definitions = definitions.filter(result => result.is_common);
+
+		if (definitions.some(result => result.japanese.some(japanese => japanese.reading === wordText && !("word" in japanese))))
+			definitions = definitions.filter(result => result.japanese.some(japanese => japanese.reading === wordText && !("word" in japanese)));
+
+		if (definitions.some(result => isExactMatch(result, wordText)))
+			definitions = definitions.filter(result => isExactMatch(result, wordText));
+
+		if (wordText === word.furigana) {
+			const baseWordKanji = Array.from(word.word).filter(char => !nonKanjiSyllabaries.includes(char));
+			if (definitions.some(result => result.japanese.some(japanese => baseWordKanji.some(kanji => japanese.word.includes(kanji))))) {
+				definitions = definitions.filter(result => !result.japanese.some(japanese => baseWordKanji.some(kanji => japanese.word.includes(kanji))));
+			}
+		}
+
+		if (definitions.length) break;
+	}
+
+	return definitions || [];
+}
+
+/**
+ * Returns whether the definition's word or reading matches the searched word exactly.
+ */
+function isExactMatch (definition: Definition, word: string) {
+	const hiraganaWord = toHiragana(word);
+	return definition.japanese.some(japanese => hiraganaWord.includes(toHiragana(japanese.word))
+		|| hiraganaWord.includes(toHiragana(japanese.reading)));
+}
+
+/**
+ * Jisho.org doesn't list all parts of speech for every "sense". Instead, when there are no parts of speech listed for a "sense",
+ * they inherit the parts of speech of the previous sense. IE, the parts of speech cascade down.
+ *
+ * This function:
+ * 1. "repairs" the senses so that they all have the correct parts of speech, following the cascade.
+ * 2. Filters the senses by senses that match, if *any* of them match.
+ */
+function repairAndFilterSenses (word: string, partOfSpeech: keyof typeof PartOfSpeech, senses: Sense[]) {
+	let lastPartsOfSpeech: string[] = [];
+	for (const sense of senses) {
+		if (!sense.parts_of_speech.length) sense.parts_of_speech = [...lastPartsOfSpeech];
+		else lastPartsOfSpeech = sense.parts_of_speech;
+	}
+
+	if (senses.some(senseMatches.bind(null, word, partOfSpeech)))
+		return senses.filter(senseMatches.bind(null, word, partOfSpeech));
+
+	return senses;
+}
+
+/**
+ * Returns whether a "sense" matches the searched word and its part of speech.
+ *
+ * This is only true if the part of speech matches, and the sense doesn't have a "restriction", or its "restriction" is to
+ * the search's exact match.
+ */
+function senseMatches (word: string, partOfSpeech: keyof typeof PartOfSpeech, sense: Sense) {
+	const hiraganaWord = toHiragana(word);
+	return partsOfSpeechMatches(partOfSpeech, sense)
+		&& (!sense.restrictions.length || sense.restrictions.some(restriction => toHiragana(restriction) === hiraganaWord));
+}
 
 function toHiragana (mixedSyllabaryText: string): string;
 function toHiragana (mixedSyllabaryText?: string): string | undefined;
@@ -108,173 +285,50 @@ function toHiragana (mixedSyllabaryText?: string) {
 		.join("");
 }
 
-module Gloss {
+/**
+ * Returns whether the parts of speech of a given "sense" match a given part of speech.
+ * 1. If given the part of speech "any", all senses match.
+ * 2. If given the part of speech "Interjection", there are no parts of speech in the sense, and none of the definitions
+ * look like suffixes, we accept the sense, assuming that it's an interjection.
+ * TODO — figure out if this is still necessary. This was done before I realised that parts of speech needed to be cascaded down.
+ * 3. If the sense is an "Expression", accept it. (Expressions are more likely than any other possible definition)
+ * 4. If none of the above are true, return whether the parts of speech of the sense include the part of speech we're looking for.
+ * (Keyword here is *include*. We could be looking for a verb, but the part of speech listed could be "transitive verb" or something)
+ */
+function partsOfSpeechMatches (lookingFor: string, sense: Sense) {
+	if (lookingFor === "any") return true;
 
-	export interface Word extends MorphologicalWord {
-		results: Result[];
+	if (!sense.parts_of_speech.length && lookingFor === "Interjection") {
+		if (sense.english_definitions.some(def => def.startsWith("-"))) {
+			sense.parts_of_speech.push("Suffix");
+		} else return true;
 	}
 
-	const concurrent = new Concurrency(1, 0.1);
+	if (sense.parts_of_speech.includes("Expression")) return true;
 
-	export async function gloss (phrase: string) {
-		return (await getWords(phrase))
-			.map(({ word, definitions }) => ({
-				text: word,
-				gloss: definitions.map(definition => "- " + definition).join("\n"),
-			}));
-	}
-
-	async function getWords (phrase: string) {
-		if (!options.glosserCLIPath) return getWordsJisho(phrase);
-
-		try {
-			const [stdout] = await ChildProcess.exec(`"${options.glosserCLIPath}" "${phrase}"`);
-			const results = JSON.parse(stdout.toString("utf8")) as ExpectedGloss[];
-
-			const isValid = Array.isArray(results)
-				&& results.every(result => typeof result === "object"
-					&& typeof result.word === "string"
-					&& Array.isArray(result.definitions)
-					&& result.definitions.every(definition => typeof definition === "string"));
-			if (!isValid) throw new Error("Gloss result JSON is invalid. Expected an array of objects containing a word and its definitions.");
-
-			return results.stream();
-
-		} catch (err) {
-			console.error(err);
-
-			await Interrupt.info(interrupt => interrupt
-				.setTitle("info-error-on-gloss")
-				.setDescription(() => err.message));
-
-			return Stream.empty<ExpectedGloss>();
-		}
-	}
-
-	interface ExpectedGloss {
-		word: string;
-		definitions: string[];
-	}
-
-	async function getWordsJisho (phrase: string): Promise<Stream<ExpectedGloss>> {
-		return (await (await getMorphologicalWords(phrase))
-			.flatMap(word => {
-				const numberMatch = word.word.match(numberRegex);
-				if (!numberMatch) return [word];
-				return [
-					{ word: numberMatch[1] },
-					{ ...word, part_of_speech: "Suffix" as const, word: numberMatch[2] },
-				];
-			})
-			.map(word => concurrent.promise<Word>(async resolve => resolve({
-				...word,
-				results: !word.part_of_speech ? [] // don't attempt to gloss words that aren't morphologically analyzed
-					: await getResults(word),
-			})))
-			.rest())
-			.map(word => ({
-				word: word.word,
-				definitions: word.results.stream()
-					.map(result => tuple(result, result.senses
-						.map(sense => sense.english_definitions.join("/"))))
-					.filter(([, definitions]) => definitions && definitions.length)
-					.flatMap(([, definitions]) => definitions)
-					.toArray(),
-			}));
-	}
-
-	// tslint:disable-next-line cyclomatic-complexity
-	async function getResults (word: MorphologicalWord) {
-		let results!: Result[];
-
-		for (const wordText of word.furigana ? [word.word, word.furigana] : [word.word]) {
-			const response = await fetch(`${API_BASE_URI}?keyword="${wordText}"`);
-			const data: PhraseSearchResult = await response.json();
-			results = data.data;
-
-			results.forEach(result => result.senses = repairAndFilterSenses(wordText, word.part_of_speech!, result.senses));
-			results = results.filter(result => result.senses.length);
-
-			if (results.some(result => result.is_common))
-				results = results.filter(result => result.is_common);
-
-			if (results.some(result => result.japanese.some(japanese => japanese.reading === wordText && !("word" in japanese))))
-				results = results.filter(result => result.japanese.some(japanese => japanese.reading === wordText && !("word" in japanese)));
-
-			if (results.some(result => isExactMatch(result, wordText)))
-				results = results.filter(result => isExactMatch(result, wordText));
-
-			if (wordText === word.furigana) {
-				const baseWordKanji = Array.from(word.word).filter(char => !nonKanjiSyllabaries.includes(char));
-				if (results.some(result => result.japanese.some(japanese => baseWordKanji.some(kanji => japanese.word.includes(kanji))))) {
-					results = results.filter(result => !result.japanese.some(japanese => baseWordKanji.some(kanji => japanese.word.includes(kanji))));
-				}
-			}
-
-			if (results.length) break;
-		}
-
-		return results;
-	}
-
-	function isExactMatch (result: Result, word: string) {
-		const hiraganaWord = toHiragana(word);
-		return result.japanese.some(japanese => hiraganaWord.includes(toHiragana(japanese.word))
-			|| hiraganaWord.includes(toHiragana(japanese.reading)));
-	}
-
-	function repairAndFilterSenses (word: string, partOfSpeech: keyof typeof PartOfSpeech, senses: Sense[]) {
-		// Jisho.org doesn't list all parts of speech for every "sense", ones with no parts of speech
-		// that follow ones with parts of speech are supposed to inherit them
-		let lastPartsOfSpeech: string[] = [];
-		for (const sense of senses) {
-			if (!sense.parts_of_speech.length) sense.parts_of_speech = [...lastPartsOfSpeech];
-			else lastPartsOfSpeech = sense.parts_of_speech;
-		}
-
-		if (senses.some(senseMatches.bind(null, word, partOfSpeech)))
-			return senses.filter(senseMatches.bind(null, word, partOfSpeech));
-
-		return senses;
-	}
-
-	function senseMatches (word: string, partOfSpeech: keyof typeof PartOfSpeech, sense: Sense) {
-		const hiraganaWord = toHiragana(word);
-		return partsOfSpeechMatches(partOfSpeech, sense)
-			&& (!sense.restrictions.length || sense.restrictions.some(restriction => toHiragana(restriction) === hiraganaWord));
-	}
-
-	function partsOfSpeechMatches (lookingFor: string, sense: Sense) {
-		if (lookingFor === "any") return true;
-
-		if (!sense.parts_of_speech.length && lookingFor === "Interjection") {
-			if (sense.english_definitions.some(def => def.startsWith("-"))) {
-				sense.parts_of_speech.push("Suffix");
-			} else return true;
-		}
-
-		if (sense.parts_of_speech.includes("Expression")) return true;
-
-		lookingFor = lookingFor.toLowerCase();
-		return sense.parts_of_speech.some(part => part.toLowerCase().includes(lookingFor));
-	}
+	lookingFor = lookingFor.toLowerCase();
+	return sense.parts_of_speech.some(part => part.toLowerCase().includes(lookingFor));
 }
 
-export default Gloss;
-
+/**
+ * Returns the morphologically-analyzed words for a Japanese phrase, retrieved by scraping the Jisho.org search page.
+ */
 async function getMorphologicalWords (phrase: string) {
-	const result = await fetch(`${SCRAPE_BASE_URI}${phrase}`);
-	const xml = await result.text();
+	const xml = await concurrentFetchText(`${SCRAPE_BASE_URI}${phrase}`, "");
+	if (!xml) return Stream.empty<Word>();
 
 	const words = /<li\b.*?\bclass=".*?\bjapanese_word\b.*?>(.|\r|\n)*?<\/li>/g.matches(xml)
 		.map(([match]) => extractWord(match));
 
 	if (words.hasNext()) return words;
 
-	return Stream.of<MorphologicalWord[]>({ word: phrase, part_of_speech: "any" });
+	return Stream.of<Word[]>({ word: phrase, part_of_speech: "any" });
 }
 
-function extractWord (wordXml: string): MorphologicalWord {
+/**
+ * Takes XML that matches the markup of a morphologically-analyzed word on Jisho.org.
+ */
+function extractWord (wordXml: string): Word {
 	return {
 		word: (wordXml.match(/\bdata-word="([^"]*?)"/) || [])[1]
 			|| (wordXml.match(/<span\b.*?\bclass="(?:japanese_word__text_wrapper|japanese_word__text_with_furigana)".*?>([^<]*?)<\/span>/) || [])[1],
@@ -283,14 +337,17 @@ function extractWord (wordXml: string): MorphologicalWord {
 	};
 }
 
-interface MorphologicalWord {
+interface Word {
 	word: string;
 	furigana?: string;
 	part_of_speech?: keyof typeof PartOfSpeech;
 }
 
+// The "part of speech" names below should match the tooltip text of morphologically-analyzed words on Jisho.org.
+// There's likely a lot of parts of speech missing here.
 enum PartOfSpeech {
 	"any",
+	// "any" is separate from all other parts of speech because it's something unique to this glossing functionality
 	Noun,
 	Particle,
 	Adverb,
@@ -301,11 +358,11 @@ enum PartOfSpeech {
 }
 
 interface PhraseSearchResult {
-	meta: { status: number };
-	data: Result[];
+	meta?: { status: number };
+	data?: Definition[];
 }
 
-interface Result {
+interface Definition {
 	slug: string;
 	is_common: boolean;
 	tags: string[];
@@ -333,4 +390,33 @@ interface Sense {
 	antonyms: string[];
 	source: string[];
 	info: string[];
+}
+
+
+////////////////////////////////////
+// Fetch Utilities
+//
+
+async function concurrentFetchJson<T> (path: string, defaultValue: T): Promise<T> {
+	return concurrentFetch(path)
+		.then(response => response.json())
+		.catch(err => {
+			console.error(err);
+			return defaultValue;
+		});
+}
+
+async function concurrentFetchText (path: string, defaultValue: string): Promise<string> {
+	return concurrentFetch(path)
+		.then(response => response.text())
+		.catch(err => {
+			console.error(err);
+			return defaultValue;
+		});
+}
+
+const concurrent = new Concurrency(1, 0.1);
+
+async function concurrentFetch (path: string): Promise<Response> {
+	return concurrent.promise<Response>(resolve => fetch(path).then(resolve));
 }
