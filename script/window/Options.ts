@@ -160,7 +160,7 @@ export default class Options {
 
 	public static async chooseCapture2TextCLIPath () {
 		const path = await this.chooseCLIFolder("prompt-capture2text-cli", ...capture2TextCLIPaths[process.platform] || []);
-		if (path) options.imageMagickCLIPath = path;
+		if (path) options.capture2TextCLIPath = path;
 	}
 
 	public static async chooseImageMagickCLIPath () {
