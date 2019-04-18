@@ -5,7 +5,7 @@ import Button from "component/shared/Button";
 import ButtonBar from "component/shared/ButtonBar";
 import Dropdown from "component/shared/Dropdown";
 import Img from "component/shared/Img";
-import SortableList, { SortableListEvent, SortableListItem } from "component/shared/SortableList";
+import SortableTiles from "component/shared/SortableTiles";
 import Textarea from "component/shared/Textarea";
 import { CaptureData } from "data/Captures";
 import { BasicCharacter } from "data/Characters";
@@ -13,13 +13,25 @@ import Projects from "data/Projects";
 import Gloss from "util/api/Gloss";
 import { tuple } from "util/Arrays";
 import Enums from "util/Enums";
+import EventEmitter, { Events } from "util/EventEmitter";
 import { pad } from "util/string/String";
 
-export default class Capture extends SortableListItem {
+interface CaptureEvents extends Events<Component> {
+	captureChange (): any;
+	removeCapture (): any;
+}
+
+enum NoteType {
+	Gloss = "gloss",
+	Normal = "normal",
+}
+
+export default class Capture extends Component {
+
+	@Override public readonly event: EventEmitter<this, CaptureEvents>;
 
 	private readonly img: Img;
-	private readonly notes: SortableList;
-	private readonly glossNotes: Component;
+	private readonly notesWrappers = new Map<NoteType, SortableTiles<Note>>();
 
 	public constructor (private readonly captureRoot: string, private readonly capture: CaptureData) {
 		super();
@@ -36,30 +48,26 @@ export default class Capture extends SortableListItem {
 				.classes.add("japanese-wrapper")
 				.append(new Textarea()
 					.classes.add("japanese")
-					.listeners.add(["change", "blur"], this.changeTextarea)
+					.event.subscribe(["change", "blur"], this.changeTextarea)
 					.setText(() => capture.text)
 					.setPlaceholder("source-placeholder"))
 				.append(new Button()
 					.setIcon("\uE164")
 					.setText("gloss")
-					.listeners.add("click", this.gloss)))
+					.event.subscribe("click", this.gloss)))
 			.append(new Textarea()
 				.classes.add("translation")
 				.setText(() => capture.translation || "")
 				.setPlaceholder("translation-placeholder")
-				.listeners.add(["change", "blur"], this.changeTextarea))
-			.append(new Component()
-				.classes.add("notes-wrapper", "empty")
-				.append(new Component("h3").setText("gloss"))
-				.append(this.glossNotes = new SortableList()
-					.classes.add("notes")
-					.listeners.add(SortableListEvent.SortComplete, () => this.emit("capture-change"))))
-			.append(new Component()
-				.classes.add("notes-wrapper", "empty")
-				.append(new Component("h3").setText("notes"))
-				.append(this.notes = new SortableList()
-					.classes.add("notes")
-					.listeners.add(SortableListEvent.SortComplete, () => this.emit("capture-change"))))
+				.event.subscribe(["change", "blur"], this.changeTextarea))
+			.append(Enums.values(NoteType)
+				.map(noteType => new Component()
+					.classes.add("notes-wrapper", "empty")
+					.append(new Component("h3").setText(noteType))
+					.append(new SortableTiles<Note>("vertical")
+						.classes.add("notes")
+						.event.subscribe("sort", () => this.event.emit("captureChange"))
+						.schedule(notesWrapper => this.notesWrappers.set(noteType, notesWrapper)))))
 			.appendTo(this);
 
 		const characters = Projects.current!.characters;
@@ -74,42 +82,40 @@ export default class Capture extends SortableListItem {
 				.setOptionInitializer((option, character) => option
 					.classes.add("character-preview-button")
 					.style.set("--headshot", typeof character !== "number" ? "" : `url("${Projects.current!.getPath("character", character)}")`))
-				.listeners.add("select", this.changeCharacter)
-				.listeners.add("open", () => this.classes.add("active"))
-				.listeners.add("close", () => this.classes.remove("active"))
+				.event.subscribe("select", this.changeCharacter)
+				.event.subscribe("open", () => this.classes.add("active"))
+				.event.subscribe("close", () => this.classes.remove("active"))
 				.listeners.add("click", this.onCharacterDropdownClick))
 			.append(new Button()
 				.setIcon("\uE16D")
 				.setText("paste-notes")
-				.listeners.add("click", async () => this.insertNotes("normal", await navigator.clipboard.readText())))
+				.event.subscribe("click", async () => this.insertNotes(NoteType.Normal, await navigator.clipboard.readText())))
 			.append(new Button()
 				.setIcon("\uE107")
 				.classes.add("warning")
 				.setText("remove")
-				.listeners.add("click", () => this.emit("remove-capture")))
+				.event.subscribe("click", () => this.event.emit("removeCapture")))
 			.appendTo(this);
 
 		(capture.glossNotes && capture.glossNotes.length ? capture.glossNotes : [tuple("", "")])
-			.forEach(this.addNote.bind(this, "gloss"));
+			.forEach(this.addNote.bind(this, NoteType.Gloss));
 
 		(capture.notes && capture.notes.length ? capture.notes : [tuple("", "")])
-			.forEach(this.addNote.bind(this, "normal"));
+			.forEach(this.addNote.bind(this, NoteType.Normal));
 	}
 
 	public getData (): CaptureData {
-		const notes = this.notes.children<Note>()
-			.filter(note => !note.isBlank())
-			.map(note => note.getData())
-			.toArray();
-		const glossNotes = this.glossNotes.children<Note>()
-			.filter(note => !note.isBlank())
-			.map(note => note.getData())
-			.toArray();
+		const notes = this.notesWrappers.entries()
+			.map(([type, wrapper]) => tuple(type, wrapper.tiles()
+				.filter(note => !note.isBlank())
+				.map(note => note.getData())
+				.toArray()))
+			.toObject();
 
 		return {
 			...this.capture,
-			notes,
-			glossNotes,
+			notes: notes.normal,
+			glossNotes: notes.gloss,
 		};
 	}
 
@@ -117,85 +123,84 @@ export default class Capture extends SortableListItem {
 		this.img.setSrc(`${this.captureRoot}/cap${pad(this.capture.id!, 3)}.png?cachebuster`);
 	}
 
-	@Bound private async changeCharacter (event: Event) {
-		const dropdown = Component.get<Dropdown<number | BasicCharacter>>(event);
+	@Bound private async changeCharacter (dropdown: Dropdown<number | BasicCharacter>) {
 		const character = this.capture.character = dropdown.getSelected();
 		dropdown.style.set("--headshot", typeof character !== "number" ? "" : `url("${Projects.current!.getPath("character", character)}")`);
-		this.emit("capture-change");
+		this.event.emit("captureChange");
 	}
 
 	@Bound private async gloss () {
-		this.glossNotes.dump();
+		const glossNotes = this.notesWrappers.get(NoteType.Gloss)!;
+		glossNotes.dump();
 
-		this.glossNotes.classes.add("loading");
+		glossNotes.classes.add("loading");
 
 		const words = await Gloss.gloss(this.capture.text);
 
-		this.glossNotes.classes.remove("loading");
+		glossNotes.classes.remove("loading");
 
-		if (!words.hasNext()) this.addNote("gloss", ["", ""]);
+		if (!words.hasNext()) this.addNote(NoteType.Gloss, ["", ""]);
 
 		for (let { text, gloss } of words) {
 			gloss = gloss.trim().replace(/^- (.*?)$/, "$1");
-			this.addNote("gloss", [text, gloss]);
+			this.addNote(NoteType.Gloss, [text, gloss]);
 		}
 
-		this.emit("capture-change");
+		this.event.emit("captureChange");
 	}
 
-	@Bound private async insertNotes (type: "normal" | "gloss", text: string) {
+	@Bound private async insertNotes (type: NoteType, text: string) {
 		for (const [, note, translation] of (/- (.*?):((?:.|\r|\n)*)(?!\n- )/g).matches(text)) {
 			this.addNote(type, [note.trim(), translation.trim()]);
 		}
 
-		this.emit("capture-change");
+		this.event.emit("captureChange");
 	}
 
-	@Bound private addNote (type: "normal" | "gloss", noteData?: [string, string]) {
-		const parent = type === "normal" ? this.notes : this.glossNotes;
+	@Bound private addNote (type: NoteType, noteData?: [string, string]) {
+		const wrapper = this.notesWrappers.get(type)!;
 
 		const note = new Note(noteData)
-			.listeners.add("note-change", this.noteChange)
-			.listeners.add("note-blur", this.noteBlur)
-			.appendTo(parent);
+			.attributes.set("type", type)
+			.event.subscribe("change", this.noteChange)
+			.event.subscribe("blur", this.noteBlur)
+			.schedule(wrapper.addTile);
 
-		if (!note.isBlank()) parent.parent!.classes.remove("empty");
+		if (!note.isBlank()) wrapper.parent!.classes.remove("empty");
 	}
 
-	@Bound private noteChange (event: Event) {
-		const note = Component.get<Note>(event);
-
+	@Bound private noteChange (note: Note) {
 		if (!note.isBlank()) {
-			if (note.parent!.child(-1) === note) {
-				this.addNote(note.parent === this.notes ? "normal" : "gloss");
+			const noteType = note.attributes.get<NoteType>("type");
+			if (note.isDescendantOf(this.notesWrappers.get(noteType)!.child(-1)!)) {
+				this.addNote(noteType);
 			}
 		}
 
-		this.emit("capture-change");
+		this.event.emit("captureChange");
 	}
 
-	@Bound private async noteBlur (event: Event) {
+	@Bound private async noteBlur () {
 		const activeComponent = Component.get(document.activeElement!);
 
-		this.notes.children<Note>()
-			.merge(this.glossNotes.children<Note>())
-			.filter(note => note.isBlank() &&
-				!activeComponent.isDescendantOf(note.parent!) &&
-				(note.parent!.child(-1) !== note || note.parent!.childCount > 1))
-			.collectStream()
-			.forEach(note => note.remove());
+		this.notesWrappers.values()
+			.forEach(wrapper => wrapper.tiles()
+				.filter(note => note.isBlank() &&
+					!activeComponent.isDescendantOf(wrapper) &&
+					(wrapper.child(-1) !== note.parent! || wrapper.childCount > 1))
+				.collectStream()
+				.forEach(note => note.remove()));
 
-		for (const noteList of [this.notes, this.glossNotes]) {
-			if (noteList.childCount <= 1 && noteList.child<Note>(0)!.isBlank()) {
+		for (const noteList of this.notesWrappers.values()) {
+			if (noteList.childCount <= 1 && noteList.tiles().first()!.isBlank()) {
 				noteList.parent!.classes.add("empty");
 			}
 		}
 	}
 
-	@Bound private changeTextarea (event: Event) {
-		const textarea = Component.get<Textarea>(event);
+	@Bound private changeTextarea (textarea: Textarea) {
 		this.capture[textarea.classes.has("japanese") ? "text" : "translation"] = textarea.getText();
-		this.emit("capture-change");
+		this.event.emit("captureChange");
 	}
 
 	@Bound private async onCharacterDropdownClick (event: MouseEvent) {

@@ -12,10 +12,20 @@ import Projects, { PagePathSegment, Project } from "data/Projects";
 import Options from "Options";
 import { tuple } from "util/Arrays";
 import { sleep } from "util/Async";
+import EventEmitter, { Events } from "util/EventEmitter";
 import Stream from "util/stream/Stream";
 import Translation from "util/string/Translation";
 
+interface ExplorerEvents extends Events<Component> {
+	extract (volume: number, chapter: number, page: number): any;
+	back (): any;
+	remove (): any;
+}
+
 export default class Explorer extends Component {
+
+	@Override public readonly event: EventEmitter<this, ExplorerEvents>;
+
 	private readonly explorerWrapper: Component;
 	private readonly actionWrapper = new ButtonBar().appendTo(this);
 	private projects: SortableTiles<ImageButton>;
@@ -55,7 +65,7 @@ export default class Explorer extends Component {
 		this.actionWrapper.dump();
 		this.explorerWrapper.dump();
 		this.projects = new SortableTiles<ImageButton>()
-			.listeners.add("sort", this.onSortProjects)
+			.event.subscribe("sort", this.onSortProjects)
 			.appendTo(this.explorerWrapper);
 
 		Projects.keys().forEach(this.addProjectButton);
@@ -63,14 +73,14 @@ export default class Explorer extends Component {
 		new Button()
 			.setIcon("\uE109")
 			.setText("add-project")
-			.listeners.add("click", this.addProject)
+			.event.subscribe("click", this.addProject)
 			.appendTo(this.actionWrapper);
 
 		new Button()
 			.setIcon("\uE115")
 			.classes.add("float-right")
 			.setText("app-settings")
-			.listeners.add("click", this.onSettings)
+			.event.subscribe("click", this.onSettings)
 			.appendTo(this.actionWrapper);
 
 		Header.setBreadcrumbs(["title"]);
@@ -86,7 +96,7 @@ export default class Explorer extends Component {
 			.setIcon("\uE115")
 			.classes.add("float-right")
 			.setText("project-settings")
-			.listeners.add("click", this.onProjectSettings(root))
+			.listeners.add("click", this.onProjectSettings(root)) // event.stopPropagation
 			.appendTo(this.actionWrapper);
 
 		const project = Projects.current = Projects.get(root)!;
@@ -97,7 +107,7 @@ export default class Explorer extends Component {
 
 		for (const [volumeIndex] of project.volumes.indexedEntries()) {
 			this.addImageButton(volumeIndex)
-				.listeners.add("click", () => this.showChapters(volumeIndex));
+				.event.subscribe("click", () => this.showChapters(volumeIndex));
 		}
 
 		Header.setBreadcrumbs(
@@ -118,21 +128,21 @@ export default class Explorer extends Component {
 			.setIcon("\uE100")
 			.setDisabled(volume === 0)
 			.setText("prev-volume")
-			.listeners.add("click", () => this.showChapters(volume - 1))
+			.event.subscribe("click", () => this.showChapters(volume - 1))
 			.appendTo(this.actionWrapper);
 
 		new Button()
 			.setIcon("\uE101")
 			.setDisabled(volume === project.volumes.size - 1)
 			.setText("next-volume")
-			.listeners.add("click", () => this.showChapters(volume + 1))
+			.event.subscribe("click", () => this.showChapters(volume + 1))
 			.appendTo(this.actionWrapper);
 
 		const chapters = project.volumes.getByIndex(volume)!;
 
 		for (const [index] of chapters.indexedEntries()) {
 			this.addImageButton(volume, index)
-				.listeners.add("click", () => this.showPages(volume, index));
+				.event.subscribe("click", () => this.showPages(volume, index));
 		}
 
 		const [volumeNumber] = project.getSegmentNumbers(volume);
@@ -156,7 +166,7 @@ export default class Explorer extends Component {
 			.setIcon("\uE100")
 			.setDisabled(chapter <= 0 && volume <= 0)
 			.setText(chapter <= 0 ? "prev-volume" : "prev-chapter")
-			.listeners.add("click", () => chapter > 0 ? this.showPages(volume, chapter - 1)
+			.event.subscribe("click", () => chapter > 0 ? this.showPages(volume, chapter - 1)
 				: this.showPages(volume - 1, project.volumes.getByIndex(volume - 1)!.size - 1))
 			.appendTo(this.actionWrapper);
 
@@ -164,7 +174,7 @@ export default class Explorer extends Component {
 			.setIcon("\uE101")
 			.setDisabled(chapter >= chapters.size - 1 && volume >= project.volumes.size - 1)
 			.setText(chapter >= chapters.size - 1 ? "next-volume" : "next-chapter")
-			.listeners.add("click", () => chapter < chapters.size - 1 ? this.showPages(volume, chapter + 1)
+			.event.subscribe("click", () => chapter < chapters.size - 1 ? this.showPages(volume, chapter + 1)
 				: this.showPages(volume + 1, 0))
 			.appendTo(this.actionWrapper);
 
@@ -172,23 +182,21 @@ export default class Explorer extends Component {
 			.setIcon("\uE11C")
 			.classes.add("float-right")
 			.setText("export")
-			.listeners.add("click", () => this.export(volume, chapter))
+			.event.subscribe("click", () => this.export(volume, chapter))
 			.appendTo(this.actionWrapper);
 
 		new Button()
 			.setIcon("\uE118")
 			.classes.add("float-right")
 			.setText("import")
-			.listeners.add("click", () => this.import(volume, chapter))
+			.event.subscribe("click", () => this.import(volume, chapter))
 			.appendTo(this.actionWrapper);
 
 		const pages = await project.volumes.getByIndex(volume)!.getByIndex(chapter)!;
 
 		for (let i = 0; i < pages.length; i++) {
 			this.addImageButton(volume, chapter, i)
-				.listeners.add("click", () => this
-					.emit<[number, number, number]>("extract", event => event
-						.data = tuple(volume, chapter, i)));
+				.event.subscribe("click", () => this.event.emit("extract", volume, chapter, i));
 		}
 
 		const [volumeNumber, chapterNumber] = project.getSegmentNumbers(volume, chapter);
@@ -204,7 +212,7 @@ export default class Explorer extends Component {
 		return this.projects.addTile(this.addImageButton(root)
 			.data.set("root", root)
 			.classes.add("project-button")
-			.listeners.add("click", () => this.showVolumes(root)));
+			.event.subscribe("click", () => this.showVolumes(root)));
 	}
 
 	private addImageButton (volume?: number, chapter?: number, page?: number): ImageButton;
@@ -277,13 +285,15 @@ export default class Explorer extends Component {
 		new Button()
 			.setIcon("\uE096")
 			.setText("back")
-			.listeners.add("click", handler)
+			.event.subscribe("click", handler)
 			.appendTo(this.actionWrapper);
 
-		Component.window.listeners.until(this.listeners.waitFor(["back", "remove"]))
+		Component.window.listeners.until(this.event.waitFor(["back", "remove"]))
 			.add("keyup", this.keyup, true);
 
-		this.listeners.until("back").add("back", () => sleep(0.001).then(handler));
+		this.event.waitFor("back")
+			.then(() => sleep(0.001))
+			.then(handler);
 	}
 
 	@Bound private async addProject () {
@@ -304,7 +314,7 @@ export default class Explorer extends Component {
 			event.stopPropagation();
 
 			const projectSettings = new ProjectSettings(root);
-			await projectSettings.listeners.waitFor("close");
+			await projectSettings.event.waitFor("close");
 
 			const project = Projects.get(root);
 
@@ -335,11 +345,18 @@ export default class Explorer extends Component {
 	}
 
 	@Bound private keyup (event: KeyboardEvent) {
-		if (event.code === "Escape") this.emit("back");
+		if (event.code === "Escape") this.event.emit("back");
 	}
 }
 
+interface ImageButtonEvents extends Events<Component> {
+	click (): any;
+}
+
 class ImageButton extends Component {
+
+	@Override public readonly event: EventEmitter<this, ImageButtonEvents>;
+
 	public readonly title = new Component()
 		.classes.add("title")
 		.schedule(Tooltip.register, (tooltip: Tooltip) => tooltip
@@ -351,6 +368,7 @@ class ImageButton extends Component {
 		this.classes.add("image-button", "loading");
 		this.attributes.set("href", "#");
 		this.loadPreview();
+		this.listeners.add("click", () => this.event.emit("click"));
 	}
 
 	@Override public setText (text?: TextGenerator<Component>) {
@@ -365,7 +383,7 @@ class ImageButton extends Component {
 	}
 
 	private async loadPreview () {
-		this.listeners.waitFor("remove")
+		this.event.waitFor("remove")
 			.then(() => Projects.get(this.root)!.thumbs.cancel(this.imagePath));
 
 		const thumbnail = await Projects.get(this.root)!.thumbs.get(this.imagePath);

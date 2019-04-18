@@ -1,10 +1,15 @@
 import Component from "component/Component";
 import Tooltip from "component/shared/Tooltip";
+import EventEmitter, { Events } from "util/EventEmitter";
 
 export enum ButtonDisplayMode {
 	Normal = "normal",
 	IconOnly = "icon-only",
 	TextOnly = "text-only",
+}
+
+interface ButtonEvents extends Events<Component> {
+	click (): any;
 }
 
 export default class Button extends Component {
@@ -23,8 +28,11 @@ export default class Button extends Component {
 		return Component.document.attributes.get("button-display-mode") as ButtonDisplayMode;
 	}
 
+	@Override public event: EventEmitter<this, ButtonEvents>;
+
 	public constructor () {
 		super("button");
+		this.listeners.add("click", () => this.event.emit("click"));
 	}
 
 	public setIcon (icon: string | null) {

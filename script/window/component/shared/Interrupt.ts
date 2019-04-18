@@ -1,6 +1,6 @@
 import Component, { TextGenerator } from "component/Component";
-import { ComponentEvent } from "component/ComponentManipulator";
 import Button from "component/shared/Button";
+import EventEmitter, { Events } from "util/EventEmitter";
 
 export enum InterruptChoice {
 	No = "no",
@@ -10,21 +10,25 @@ export enum InterruptChoice {
 	Done = "done",
 }
 
-export default class Interrupt extends Component {
-	public static async info (initializer: (interruptScreen: Interrupt) => any) {
+interface InterruptEvents<O extends string> extends Events<Component> {
+	resolve (choice: O): any;
+}
+
+export default class Interrupt<O extends string = string> extends Component {
+	public static async info (initializer: (interruptScreen: Interrupt<string>) => any) {
 		await Interrupt.choice(interrupt => interrupt
 			.setActions(InterruptChoice.Dismiss)
 			.schedule(initializer));
 	}
 
-	public static async confirm (initializer: (interruptScreen: Interrupt) => any) {
+	public static async confirm (initializer: (interruptScreen: Interrupt<string>) => any) {
 		const choice = await Interrupt.choice(interrupt => interrupt
 			.setActions(InterruptChoice.No, InterruptChoice.Yes)
 			.schedule(initializer));
 		return choice === InterruptChoice.Yes;
 	}
 
-	public static async remove (initializer: (interruptScreen: Interrupt) => any) {
+	public static async remove (initializer: (interruptScreen: Interrupt<InterruptChoice.Cancel | "remove">) => any) {
 		const confirm = await Interrupt.choice<InterruptChoice.Cancel | "remove">(interrupt => interrupt
 			.setActions(InterruptChoice.Cancel, "remove")
 			.schedule(i => i
@@ -35,14 +39,16 @@ export default class Interrupt extends Component {
 		return confirm === "remove";
 	}
 
-	public static choice<O extends string = InterruptChoice> (initializer: (interruptScreen: Interrupt) => any) {
-		return new Promise<O>(resolve => new Interrupt()
+	public static choice<O extends string = InterruptChoice> (initializer: (interruptScreen: Interrupt<O>) => any) {
+		return new Promise<O>(resolve => new Interrupt<O>()
 			.classes.add("center")
 			.appendTo(Component.get("#content"))
 			.schedule(initializer)
 			.show()
-			.listeners.until("resolve").add<ComponentEvent<O>>("resolve", ({ data: choice }) => resolve(choice)));
+			.event.waitFor("resolve").then(([choice]) => resolve(choice)));
 	}
+
+	@Override public readonly event: EventEmitter<this, InterruptEvents<O>>;
 
 	protected content: Component;
 	private readonly title: Component;
@@ -54,7 +60,7 @@ export default class Interrupt extends Component {
 
 		const hidden = Component.all(".interrupt:not(.hidden)").toArray();
 		hidden.forEach(c => c.hide());
-		this.listeners.waitFor("remove")
+		this.event.waitFor("remove")
 			.then(() => hidden.forEach(c => c.show()));
 
 		this.classes.add("interrupt");
@@ -68,7 +74,7 @@ export default class Interrupt extends Component {
 				.classes.add("interrupt-actions"))
 			.appendTo(this);
 
-		this.listeners.add("show", this.onShow);
+		this.event.subscribe("show", this.onShow);
 
 		for (const focusable of Component.all("button, textarea, input, a")) {
 			if (focusable.matches(".interrupt:not(.hidden) *")) return;
@@ -100,7 +106,7 @@ export default class Interrupt extends Component {
 				.attributes.set("action", action)
 				.setIcon(this.getIcon(action))
 				.setText(action)
-				.listeners.add("click", () => this.resolve(action))
+				.event.subscribe("click", () => this.resolve(action))
 				.appendTo(this.actions);
 		}
 
@@ -129,7 +135,7 @@ export default class Interrupt extends Component {
 	}
 
 	@Bound private async onShow () {
-		const closePromise = this.listeners.waitFor(["hide", "remove"]);
+		const closePromise = this.event.waitFor(["hide", "remove"]);
 		Component.window.listeners.until(closePromise)
 			.add("keyup", this.keyup, true);
 
@@ -145,7 +151,7 @@ export default class Interrupt extends Component {
 		if (!this.actions.children().any(action => action.attributes.get("action") === choice)) return false;
 
 		this.remove();
-		this.emit<string>("resolve", event => event.data = choice);
+		this.event.emit("resolve", choice as O);
 
 		return true;
 	}

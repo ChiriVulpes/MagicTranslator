@@ -34,6 +34,7 @@
 		position: fixed;
 		left: var(--preview-left);
 		top: var(--preview-top);
-		pointer-events: none;
+		pointer-events: none !important;
+		box-sizing: border-box;
 	}
 }

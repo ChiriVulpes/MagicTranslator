@@ -59,7 +59,7 @@ export default class ContextMenu extends Component {
 
 	private static async onDeregister (component: Component) {
 		return Promise.race([
-			component.listeners.waitFor("remove"),
+			component.event.waitFor("remove"),
 			ContextMenu.registry.get(component)!.deregistrationPromise,
 		]);
 	}
@@ -110,7 +110,7 @@ export default class ContextMenu extends Component {
 	}
 
 	@Override public show () {
-		const listenUntil = Component.window.listeners.until(this.listeners.waitFor("hide"));
+		const listenUntil = Component.window.listeners.until(this.event.waitFor("hide"));
 		listenUntil.add("mousedown", ContextMenu.hide(this.host));
 		listenUntil.add("keydown", ContextMenu.hide(this.host));
 

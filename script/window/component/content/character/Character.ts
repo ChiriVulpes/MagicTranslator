@@ -2,9 +2,20 @@ import Component from "component/Component";
 import Input from "component/shared/Input";
 import { BasicCharacter, CharacterData } from "data/Characters";
 import Projects from "data/Projects";
+import EventEmitter, { Events } from "util/EventEmitter";
 import Translation from "util/string/Translation";
 
+interface CharacterEvents extends Events<Component> {
+	focus (): any;
+	blur (): any;
+	click (): any;
+	change (): any;
+	shouldRemove (): any;
+}
+
 export default class Character extends Component {
+
+	@Override public readonly event: EventEmitter<this, CharacterEvents>;
 
 	private name?: Component;
 
@@ -16,6 +27,8 @@ export default class Character extends Component {
 		this.classes.add("character");
 
 		this.setCharacter(character);
+		this.listeners.add("click", () => this.event.emit("click"));
+		this.listeners.add("blur", () => this.event.emit("blur"));
 	}
 
 	public setCharacter (character: number | CharacterData | BasicCharacter): void;
@@ -38,7 +51,7 @@ export default class Character extends Component {
 					.setPlaceholder("name")
 					.setText(this.getName)
 					.listeners.add("keydown", this.onNameInputKeydown)
-					.listeners.add("focus", () => this.emit("focus"))
+					.listeners.add("focus", () => this.event.emit("focus"))
 					.listeners.add("change", this.changeName));
 
 		} else {
@@ -58,7 +71,7 @@ export default class Character extends Component {
 
 	@Bound private onNameInputKeydown (event: KeyboardEvent): false | void {
 		if (event.code === "Delete" && event.ctrlKey) {
-			this.emit("should-remove");
+			this.event.emit("shouldRemove");
 			event.stopPropagation();
 			event.preventDefault();
 			return false;
@@ -71,7 +84,7 @@ export default class Character extends Component {
 		const characterData = (this._character as CharacterData);
 		if (characterData.name !== value) {
 			characterData.name = value;
-			this.emit("change-name");
+			this.event.emit("change");
 		}
 	}
 }

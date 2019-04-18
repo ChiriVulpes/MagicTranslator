@@ -1,7 +1,15 @@
 import Component, { TextGenerator } from "component/Component";
+import EventEmitter, { Events } from "util/EventEmitter";
 import Translation from "util/string/Translation";
 
+interface InputEvents extends Events<Component> {
+	change (): any;
+}
+
 export default class Input extends Component {
+
+	@Override public readonly event: EventEmitter<this, InputEvents>;
+
 	private placeholderTextGenerator?: (component: any) => string | number;
 
 	public constructor () {
@@ -24,12 +32,12 @@ export default class Input extends Component {
 	@Override @Bound public refreshText () {
 		this.element<HTMLInputElement>().value = this.textGenerator ? `${this.textGenerator(this)}` : "";
 		this.attributes.set("placeholder", this.placeholderTextGenerator ? `${this.placeholderTextGenerator(this)}` : "");
-		this.emit("change");
+		this.event.emit("change");
 		return this;
 	}
 
 	@Bound private onChange () {
-		this.emit("change");
+		this.event.emit("change");
 	}
 
 	@Bound private onBlur () {

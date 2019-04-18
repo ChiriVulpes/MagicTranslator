@@ -1,14 +1,21 @@
 import Component from "component/Component";
-import { SortableListItem } from "component/shared/SortableList";
 import Textarea from "component/shared/Textarea";
 import { sleep } from "util/Async";
+import EventEmitter, { Events } from "util/EventEmitter";
 
-export default class Note extends SortableListItem {
+interface NoteEvents extends Events<Component> {
+	change (): any;
+	blur (): any;
+}
+
+export default class Note extends Component {
+
+	@Override public readonly event: EventEmitter<this, NoteEvents>;
 
 	protected readonly ja = new Textarea()
 		.classes.add("japanese")
-		.listeners.add("change", this.changeTextarea)
-		.listeners.add("blur", this.blurTextarea)
+		.event.subscribe("change", this.changeTextarea)
+		.event.subscribe("blur", this.blurTextarea)
 		// .setHandleHeight(false)
 		.setText(() => this.noteData[0])
 		.setPlaceholder("source-placeholder")
@@ -16,8 +23,8 @@ export default class Note extends SortableListItem {
 
 	protected readonly en = new Textarea()
 		.classes.add("translation")
-		.listeners.add("change", this.changeTextarea)
-		.listeners.add("blur", this.blurTextarea)
+		.event.subscribe("change", this.changeTextarea)
+		.event.subscribe("blur", this.blurTextarea)
 		// .setHandleHeight(false)
 		.setText(() => this.noteData[1])
 		.setPlaceholder("note-placeholder")
@@ -38,21 +45,19 @@ export default class Note extends SortableListItem {
 		return this.noteData[0] === "" && this.noteData[1] === "";
 	}
 
-	@Bound private changeTextarea (event: Event) {
-		const textarea = Component.get<Textarea>(event);
+	@Bound private changeTextarea (textarea: Textarea) {
 		const ja = textarea.classes.has("japanese");
 		this.noteData[ja ? 0 : 1] = textarea.getText();
 		// sleep(0.2).then(() => {
 		// 	const height = Math.max(this.ja.getHeight(), this.en.getHeight());
 		// 	[this.en, this.ja].forEach(t => t.setHeight(height));
 		// });
-		this.emit("note-change");
+		this.event.emit("change");
 	}
 
-	@Bound private blurTextarea (event: Event) {
-		const textarea = Component.get<Textarea>(event);
+	@Bound private blurTextarea (textarea: Textarea) {
 		this.noteData[textarea.classes.has("japanese") ? 0 : 1] = textarea.getText();
-		sleep(0.01).then(() => this.emit("note-blur"));
+		sleep(0.01).then(() => this.event.emit("blur"));
 		this.classes.toggle(this.isBlank(), "empty");
 	}
 }

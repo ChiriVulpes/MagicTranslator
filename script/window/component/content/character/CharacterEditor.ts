@@ -7,10 +7,14 @@ import Characters, { BasicCharacter, CharacterData } from "data/Characters";
 import Projects from "data/Projects";
 import Options from "Options";
 import Enums from "util/Enums";
+import EventEmitter, { Events } from "util/EventEmitter";
 import FileSystem from "util/FileSystem";
-import { ComponentEvent } from "util/Manipulator";
 import { pad } from "util/string/String";
 import Translation from "util/string/Translation";
+
+interface CharacterEditorEvents extends Events<Component> {
+	choose (choice: number | BasicCharacter): any;
+}
 
 export default class CharacterEditor extends Component {
 
@@ -21,10 +25,10 @@ export default class CharacterEditor extends Component {
 		if (startingCharacter !== undefined) editor.select(editor.startingCharacter = startingCharacter);
 
 		return new Promise<number | BasicCharacter>(resolve => {
-			editor.listeners.until("choose")
-				.add<ComponentEvent<number | BasicCharacter>>("choose", event => {
+			editor.event.waitFor("choose")
+				.then(([choice]) => {
 					editor.hide();
-					resolve(event.data);
+					resolve(choice);
 				});
 		});
 	}
@@ -65,6 +69,8 @@ export default class CharacterEditor extends Component {
 		return editor;
 	}
 
+	@Override public readonly event: EventEmitter<this, CharacterEditorEvents>;
+
 	private readonly removeSelectedCharacterButton: Component;
 	private readonly characterWrapper: SortableTiles<Character>;
 	private readonly actionRow: Component;
@@ -80,7 +86,7 @@ export default class CharacterEditor extends Component {
 
 		this.characterWrapper = new SortableTiles<Character>()
 			.classes.add("character-wrapper")
-			.listeners.add("sort", this.updateJson)
+			.event.subscribe("sort", this.updateJson)
 			.appendTo(content);
 
 		this.actionRow = new Component()
@@ -91,18 +97,18 @@ export default class CharacterEditor extends Component {
 			.setIcon("\uE109")
 			.classes.add("permanent")
 			.setText("character-new")
-			.listeners.add("click", () => CharacterEditor.createCharacter())
+			.event.subscribe("click", () => CharacterEditor.createCharacter())
 			.appendTo(this.actionRow);
 
 		this.removeSelectedCharacterButton = new Button()
 			.setIcon("\uE107")
 			.classes.add("permanent", "warning")
 			.setText("remove-selected-character")
-			.listeners.add("click", this.removeSelectedCharacter)
+			.event.subscribe("click", this.removeSelectedCharacter)
 			.appendTo(this.actionRow);
 
-		this.listeners.add("show", () =>
-			Component.window.listeners.until(this.listeners.waitFor("hide"))
+		this.event.subscribe("show", () =>
+			Component.window.listeners.until(this.event.waitFor("hide"))
 				.add("keyup", this.keyup, true));
 	}
 
@@ -154,12 +160,12 @@ export default class CharacterEditor extends Component {
 				.setIcon("\uE106")
 				.classes.add("float-left")
 				.setText("cancel")
-				.listeners.add("click", this.cancel))
+				.event.subscribe("click", this.cancel))
 			.append(new Button()
 				.setIcon("\uE10B")
 				.classes.add("float-right")
 				.setText("choose")
-				.listeners.add("click", this.choose));
+				.event.subscribe("click", this.choose));
 
 		return this.show();
 	}
@@ -170,7 +176,7 @@ export default class CharacterEditor extends Component {
 				.setIcon("\uE10B")
 				.classes.add("float-right")
 				.setText("done")
-				.listeners.add("click", () => this.hide()));
+				.event.subscribe("click", () => this.hide()));
 
 		this.show();
 
@@ -186,9 +192,9 @@ export default class CharacterEditor extends Component {
 
 	@Bound private addCharacter (character: CharacterData | BasicCharacter) {
 		const characterButton = new Character(character, typeof character === "object")
-			.listeners.add("click", this.select)
-			.listeners.add("should-remove", this.removeSelectedCharacter)
-			.listeners.add(["change-name", "blur", "focus"], event => {
+			.event.subscribe("click", this.select)
+			.event.subscribe("shouldRemove", this.removeSelectedCharacter)
+			.event.subscribe(["change", "blur", "focus"], event => {
 				this.select(event, false);
 				this.updateJson();
 			});
@@ -228,10 +234,8 @@ export default class CharacterEditor extends Component {
 	}
 
 	@Bound private choose () {
-		this.emit("choose", chooseEvent => {
-			const character = this.getSelected().character;
-			chooseEvent.data = typeof character === "object" ? character.id : character;
-		});
+		const character = this.getSelected().character;
+		this.event.emit("choose", typeof character === "object" ? character.id : character);
 	}
 
 	private getSelected () {
@@ -240,28 +244,26 @@ export default class CharacterEditor extends Component {
 	}
 
 	@Bound private cancel () {
-		this.emit("choose", event => event.data = this.startingCharacter);
+		this.event.emit("choose", this.startingCharacter);
 	}
 
-	private select (event: Event, focus?: boolean): void;
+	private select (characterButton: Character, focus?: boolean): void;
 	private select (character: number | BasicCharacter, focus?: boolean): void;
-	@Bound private select (eventOrCharacter: Event | number | BasicCharacter, focus = true) {
-		let characterButton: Character;
+	@Bound private select (characterButton: Character | number | BasicCharacter, focus = true) {
 
-		if (typeof eventOrCharacter === "object") {
-			characterButton = Component.get(eventOrCharacter);
+		if (typeof characterButton === "object") {
 			if (!characterButton.classes.has("character"))
 				characterButton = characterButton.ancestors<Character>(".character").first()!;
 
 		} else {
 			characterButton = this.characterWrapper.tiles()
-				.first(button => typeof eventOrCharacter === "string" ?
-					button.character === eventOrCharacter :
-					typeof button.character === "object" && button.character.id === eventOrCharacter)!;
+				.first(button => typeof characterButton === "string" ?
+					button.character === characterButton :
+					typeof button.character === "object" && button.character.id === characterButton)!;
 		}
 
 		if (!characterButton) {
-			console.warn("Tried to select an invalid character", eventOrCharacter);
+			console.warn("Tried to select an invalid character", characterButton);
 			return;
 		}
 

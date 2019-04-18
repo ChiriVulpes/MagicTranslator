@@ -7,7 +7,7 @@ import ButtonBar from "component/shared/ButtonBar";
 import Dropdown from "component/shared/Dropdown";
 import Img from "component/shared/Img";
 import Interrupt from "component/shared/Interrupt";
-import SortableList, { SortableListEvent } from "component/shared/SortableList";
+import SortableTiles from "component/shared/SortableTiles";
 import Captures, { CaptureData } from "data/Captures";
 import { BasicCharacter } from "data/Characters";
 import Dialog from "data/Dialog";
@@ -17,6 +17,7 @@ import { tuple } from "util/Arrays";
 import Canvas from "util/Canvas";
 import ChildProcess from "util/ChildProcess";
 import Enums from "util/Enums";
+import EventEmitter, { Events } from "util/EventEmitter";
 import FileSystem from "util/FileSystem";
 import { Vector } from "util/math/Geometry";
 import Path from "util/string/Path";
@@ -29,12 +30,20 @@ enum DisplayMode {
 	Translated = "translated-mode",
 }
 
+interface ExtractorEvents extends Events<Component> {
+	quit (): any;
+	previous (): any;
+	next (): any;
+}
+
 export default class Extractor extends Component {
 
 	private static displayMode = DisplayMode.Translate;
 
+	@Override public readonly event: EventEmitter<this, ExtractorEvents>;
+
 	private readonly pageImage: Img;
-	private readonly capturesWrapper: SortableList;
+	private readonly capturesWrapper: SortableTiles<Capture>;
 	private readonly displayModeDropdown: Dropdown<DisplayMode>;
 
 	private captures: Captures;
@@ -54,7 +63,7 @@ export default class Extractor extends Component {
 			.append(new Component()
 				.append(this.pageImage = new Img()
 					.setAlt("no-translated-image")
-					.listeners.add("load", () => {
+					.event.subscribe("load", () => {
 						const image = this.pageImage.element<HTMLImageElement>();
 						this.pageImage.style.set("--natural-width", `${image.naturalWidth}px`);
 						this.pageImage.style.set("--natural-height", `${image.naturalHeight}px`);
@@ -70,7 +79,7 @@ export default class Extractor extends Component {
 				.append(new Button()
 					.setIcon("\uE012")
 					.setText("back")
-					.listeners.add("click", () => this.emit("quit")))
+					.event.subscribe("click", () => this.event.emit("quit")))
 				.append(new Button()
 					.setIcon("\uE100")
 					.setText(page > 0 ? "prev-page"
@@ -78,7 +87,7 @@ export default class Extractor extends Component {
 							: volume > 0 ? "prev-volume"
 								: "prev-page")
 					.setDisabled(page <= 0 && chapter <= 0 && volume <= 0)
-					.listeners.add("click", () => this.emit("previous")))
+					.event.subscribe("click", () => this.event.emit("previous")))
 				.append(new Button()
 					.setIcon("\uE101")
 					.setText(page < project.volumes.getByIndex(volume)!.getByIndex(chapter)!.length - 1 ? "next-page"
@@ -88,25 +97,25 @@ export default class Extractor extends Component {
 					.setDisabled(page >= project.volumes.getByIndex(volume)!.getByIndex(chapter)!.length - 1
 						&& chapter >= project.volumes.getByIndex(volume)!.size - 1
 						&& volume >= project.volumes.size - 1)
-					.listeners.add("click", () => this.emit("next")))
+					.event.subscribe("click", () => this.event.emit("next")))
 				.append(this.displayModeDropdown = Dropdown.from(Enums.values(DisplayMode))
 					.classes.add("float-right")
-					.listeners.add("select", this.changeDisplayMode))
+					.event.subscribe("select", this.changeDisplayMode))
 				.append(new Button()
 					.setIcon("\uE70F")
 					.classes.add("float-right")
 					.setText("open")
-					.listeners.add("click", this.openInExternalEditor))
+					.event.subscribe("click", this.openInExternalEditor))
 				.append(new Button()
 					.setIcon("\uE11C")
 					.classes.add("float-right")
 					.setText("export")
-					.listeners.add("click", this.export)))
+					.event.subscribe("click", this.export)))
 			.append(new Component()
 				.classes.add("extraction-captures-wrapper")
-				.append(this.capturesWrapper = new SortableList()
+				.append(this.capturesWrapper = new SortableTiles<Capture>("vertical")
 					.classes.add("loading", "extraction-captures")
-					.listeners.add(SortableListEvent.SortComplete, this.onSortComplete)))
+					.event.subscribe("sort", this.onSortComplete)))
 			.appendTo(this);
 	}
 
@@ -116,10 +125,10 @@ export default class Extractor extends Component {
 		}
 
 		const captureComponent = new Capture(this.getCapturePagePath(), capture)
-			.listeners.add("capture-change", this.updateJSON)
+			.event.subscribe("captureChange", this.updateJSON)
+			.event.subscribe("removeCapture", this.removeCapture)
 			.listeners.add<MouseEvent>("mouseenter", this.mouseEnterCapture)
-			.listeners.add("remove-capture", this.removeCapture)
-			.appendTo(this.capturesWrapper);
+			.schedule(this.capturesWrapper.addTile);
 
 		if (capture.position === undefined || capture.size === undefined) {
 			const [position, size] = await this.waitForCapture(capture.id);
@@ -131,7 +140,7 @@ export default class Extractor extends Component {
 	}
 
 	@Bound public async updateJSON () {
-		this.captures.captures = this.capturesWrapper.children<Capture>()
+		this.captures.captures = this.capturesWrapper.tiles()
 			.map(component => component.getData())
 			.toArray();
 	}
@@ -147,9 +156,9 @@ export default class Extractor extends Component {
 
 		this.pageImage.listeners.add("mousedown", this.mouseDown);
 
-		Component.window.listeners.until(this.listeners.waitFor("remove"))
+		Component.window.listeners.until(this.event.waitFor("remove"))
 			.add("keyup", this.keyup, true);
-		Component.window.listeners.until(this.listeners.waitFor("remove"))
+		Component.window.listeners.until(this.event.waitFor("remove"))
 			.add("mousewheel", this.scroll, true);
 
 		this.capturesWrapper.classes.remove("loading");
@@ -162,8 +171,7 @@ export default class Extractor extends Component {
 		this.updateJSON();
 	}
 
-	@Bound private async removeCapture (event: Event) {
-		const component = Component.get<Capture>(event);
+	@Bound private async removeCapture (component: Capture) {
 		const capture = component.getData();
 
 		const confirm = await Interrupt.remove(interrupt => interrupt
@@ -185,7 +193,7 @@ export default class Extractor extends Component {
 
 		if (event.code === "Equal" && event.ctrlKey) this.zoomIn();
 		else if (event.code === "Minus" && event.ctrlKey) this.zoomOut();
-		else if (event.code === "Escape") this.emit("quit");
+		else if (event.code === "Escape") this.event.emit("quit");
 	}
 
 	@Bound private scroll (event: WheelEvent) {
@@ -227,8 +235,8 @@ export default class Extractor extends Component {
 		if (event) Component.get(event).listeners.remove<MouseEvent>("mouseleave", this.mouseLeaveCapture);
 		this.classes.remove("selecting");
 
-		if (this.capturesWrapper.isSorting) {
-			this.capturesWrapper.descendants<Capture>(".sorting")
+		if (this.capturesWrapper.isSorting()) {
+			this.capturesWrapper.descendants<Capture>(".moving > .capture")
 				.first()!
 				.schedule(this.mouseEnterCapture);
 		}
@@ -349,8 +357,7 @@ export default class Extractor extends Component {
 		await this.updateJSON();
 	}
 
-	@Bound private changeDisplayMode (event: Event) {
-		const dropdown = Component.get<Dropdown<DisplayMode>>(event);
+	@Bound private changeDisplayMode (dropdown: Dropdown<DisplayMode>) {
 		Extractor.displayMode = dropdown.getSelected();
 
 		const readMode = Extractor.displayMode === DisplayMode.Read || Extractor.displayMode === DisplayMode.Translated;
@@ -358,7 +365,7 @@ export default class Extractor extends Component {
 
 		if (readMode) {
 			let lastCharacter: number | BasicCharacter | undefined;
-			for (const capture of this.capturesWrapper.children<Capture>()) {
+			for (const capture of this.capturesWrapper.tiles()) {
 				const thisCharacter = capture.getData().character;
 				capture.classes.toggle(thisCharacter === lastCharacter, "repeat-character");
 				lastCharacter = thisCharacter;
@@ -397,7 +404,7 @@ export default class Extractor extends Component {
 					.setTitle("confirm-imagemagick-for-viewing-psd")
 					.setDescription("confirm-imagemagick-for-viewing-psd-description"))) return;
 
-				await new GlobalSettings().listeners.waitFor("remove");
+				await new GlobalSettings().event.waitFor("remove");
 				if (!options.imageMagickCLIPath) return;
 			}
 

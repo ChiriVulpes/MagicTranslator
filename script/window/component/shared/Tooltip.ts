@@ -59,7 +59,7 @@ export default class Tooltip extends Component {
 
 	private static async onDeregister (component: Component) {
 		return Promise.race([
-			component.listeners.waitFor("remove"),
+			component.event.waitFor("remove"),
 			Tooltip.registry.get(component)!.deregistrationPromise,
 		]);
 	}

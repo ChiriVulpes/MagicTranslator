@@ -1,5 +1,11 @@
 import Component, { TextGenerator } from "component/Component";
+import EventEmitter, { Events } from "util/EventEmitter";
 import Translation from "util/string/Translation";
+
+interface TextareaEvents extends Events<Component> {
+	change (): any;
+	blur (): any;
+}
 
 export default class Textarea extends Component {
 
@@ -21,6 +27,8 @@ export default class Textarea extends Component {
 		setTimeout(Textarea.setTextareaHeight, 10);
 	}
 
+	@Override public readonly event: EventEmitter<this, TextareaEvents>;
+
 	private textarea = new Component("textarea")
 		.listeners.add(["change", "keyup", "paste", "input", "focus"], this.onChange)
 		.listeners.add("blur", this.onBlur)
@@ -37,7 +45,7 @@ export default class Textarea extends Component {
 		super();
 		this.classes.add("textarea");
 
-		this.listeners.waitFor("append")
+		this.event.waitFor("append")
 			.then(() => {
 				const shouldStart = !Textarea.list.length;
 				Textarea.list.push(this);
@@ -65,7 +73,7 @@ export default class Textarea extends Component {
 		this.setHiddenTextareaText();
 		this.attributes.set("placeholder", this.placeholderTextGenerator ? `${this.placeholderTextGenerator(this)}` : "");
 		this.setHeight();
-		this.emit("change");
+		this.event.emit("change");
 		return this;
 	}
 
@@ -76,7 +84,7 @@ export default class Textarea extends Component {
 
 		this.setHiddenTextareaText();
 		this.setHeight();
-		this.emit("change");
+		this.event.emit("change");
 	}
 
 	@Bound private setHeight (height = this.getHeight()) {
@@ -91,7 +99,7 @@ export default class Textarea extends Component {
 	@Bound private onBlur () {
 		this.textarea.element<HTMLTextAreaElement>().value = this.textarea.element<HTMLTextAreaElement>().value.trim();
 		this.setHiddenTextareaText();
-		this.emit("blur");
+		this.event.emit("blur");
 	}
 
 	@Bound private onContextMenu (event: MouseEvent) {

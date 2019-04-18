@@ -1,5 +1,6 @@
 import { AttributeManipulator, ClassManipulator, ComponentEvent, DataManipulator, EventListenerManipulator, StyleManipulator } from "component/ComponentManipulator";
 import { sleep } from "util/Async";
+import EventEmitter from "util/EventEmitter";
 import { Box } from "util/math/Geometry";
 import Stream from "util/stream/Stream";
 import Translation from "util/string/Translation";
@@ -17,7 +18,15 @@ export module TextGenerator {
 	}
 }
 
-export default class Component {
+interface ComponentEvents {
+	remove (): any;
+	hide (): any;
+	show (): any;
+	appendChild (child: Component): any;
+	append (parent: Component): any;
+}
+
+export default class Component extends EventEmitter.Host<ComponentEvents> {
 	public static window = {
 		get listeners (): EventListenerManipulator<(typeof Component)["window"]> {
 			Object.defineProperty(this, "listeners", {
@@ -75,6 +84,8 @@ export default class Component {
 	public constructor (tagType?: string);
 	public constructor ();
 	public constructor (element: string | Element = "div") {
+		super();
+
 		this.internalElement = typeof element === "string" ? document.createElement(element) : element as HTMLElement;
 
 		if (Component.map.get(this.internalElement)) {
@@ -92,11 +103,7 @@ export default class Component {
 
 		this.classes.add("component");
 
-		if (this.element().parentElement) {
-			this.bindObserverForRemoval();
-		}
-
-		this.listeners.add("remove", () => {
+		this.event.subscribe("remove", () => {
 			Component.map.delete(this.element());
 			if (this.observerForRemoval) this.observerForRemoval.disconnect();
 		});
@@ -157,21 +164,21 @@ export default class Component {
 
 	public show () {
 		this.classes.remove("hidden", "transparent");
-		this.emit("show");
+		this.event.emit("show");
 		return this;
 	}
 
 	public hide (transparent = false) {
 		this.classes.remove("hidden", "transparent");
 		this.classes.add(transparent ? "transparent" : "hidden");
-		this.emit("hide");
+		this.event.emit("hide");
 		return this;
 	}
 
 	public toggle (visible = !this.classes.none("hidden", "transparent")) {
 		this.classes.remove("transparent");
 		this.classes.toggle(!visible, "hidden");
-		this.emit(visible ? "show" : "hide");
+		this.event.emit(visible ? "show" : "hide");
 		return this;
 	}
 
@@ -180,7 +187,7 @@ export default class Component {
 	//
 
 	public appendTo (parent: Component, location: "beginning" | "end" | { before: Component | Node } | { after: Component | Node } = "end") {
-		parent.emit("append-child", event => event.data = this);
+		parent.event.emit("appendChild", this);
 		const parentElement = parent.element();
 		if (location === "end" || !parentElement.firstChild) parentElement.appendChild(this.element());
 		else {
@@ -191,8 +198,7 @@ export default class Component {
 				parentElement.insertBefore(this.element(), (location.after instanceof Component ? location.after.element() : location.after).nextSibling);
 		}
 
-		this.emit("append");
-		this.bindObserverForRemoval();
+		this.event.emit("append", parent);
 		return this;
 	}
 
@@ -205,7 +211,12 @@ export default class Component {
 	}
 
 	@Bound public remove () {
+		for (const descendant of this.descendants(".component")) {
+			descendant.event.emit("remove");
+		}
+
 		this.element().remove();
+		this.event.emit("remove");
 	}
 
 	/**
@@ -311,12 +322,6 @@ export default class Component {
 	// Misc
 	//
 
-	public emit<D = any> (event: string | Event, manipulator?: (event: ComponentEvent<D>) => any) {
-		event = typeof event === "string" ? new Event(event) : event;
-		if (manipulator) manipulator(event as ComponentEvent);
-		return this.element().dispatchEvent(event);
-	}
-
 	public box () {
 		return new Box(this.element().getBoundingClientRect());
 	}
@@ -349,32 +354,5 @@ export default class Component {
 		if (typeof s !== "number") args.unshift(handler), s && s(this, ...args);
 		else sleep(s).then(() => handler && handler(this, ...args));
 		return this;
-	}
-
-	/**
-	 * Creates a MutationObserver and attaches it to this component's element's parent. Whenever
-	 * the parent element's children changes, this component checks if it has a valid parent. If
-	 * it does not, it triggers the "remove" event on it, and any component descendants.
-	 */
-	private bindObserverForRemoval () {
-		if (this.observerForRemoval) {
-			this.observerForRemoval.disconnect();
-		}
-
-		if (!this.element().parentElement) {
-			throw new Error("Cannot bind removal observer, there is no parent element.");
-		}
-
-		this.observerForRemoval = new MutationObserver(() => {
-			if (!this.element().parentElement) {
-				this.element().dispatchEvent(new Event("remove"));
-
-				for (const descendant of this.element().getElementsByClassName("component")) {
-					descendant.dispatchEvent(new Event("remove"));
-				}
-			}
-		});
-
-		this.observerForRemoval.observe(this.element().parentElement!, { childList: true });
 	}
 }

@@ -8,13 +8,22 @@ import Tooltip from "component/shared/Tooltip";
 import Projects, { PagePathSegment, PagePathType, pathSegments, pathTypes, ProjectStructure } from "data/Projects";
 import Options from "Options";
 import { tuple } from "util/Arrays";
+import EventEmitter, { Events } from "util/EventEmitter";
 import { generalRandom } from "util/Random";
 import Stream from "util/stream/Stream";
 import { interpolate } from "util/string/Interpolator";
 import Path from "util/string/Path";
 import Translation from "util/string/Translation";
 
+interface ProjectSettingsEvents extends Events<SettingsInterrupt> {
+	close (): any;
+}
+
 export default class ProjectSettings extends SettingsInterrupt {
+
+	// @ts-ignore
+	@Override public readonly event: EventEmitter<this, ProjectSettingsEvents>;
+
 	private readonly pathInputs = new Map<keyof ProjectStructure, Input>();
 	private restoreButton?: Component;
 	private changedFileStructure = false;
@@ -34,16 +43,16 @@ export default class ProjectSettings extends SettingsInterrupt {
 			.append(new LabelledRow("name")
 				.append(new Input()
 					.setText(() => project.name || "")
-					.listeners.add("change", event => project.name = Component.get<Input>(event).getText())))
+					.event.subscribe("change", input => project.name = input.getText())))
 			.append(new LabelledRow("external-editor")
-				.append(new Component("button")
+				.append(new Button()
 					.setText(() => project.externalEditorCLIPath || new Translation("use-global-setting").get())
-					.listeners.add("click", this.changeExternalEditorCLIPath)))
+					.event.subscribe("click", this.changeExternalEditorCLIPath)))
 			.append(new Button()
 				.setIcon("\uE107")
 				.classes.add("warning", "float-right")
 				.setText("remove")
-				.listeners.add("click", this.onRemoveProject));
+				.event.subscribe("click", this.onRemoveProject));
 
 		this.addSection("file-structure")
 			.append(Stream.of(...pathSegments, ...pathTypes, ...["character", "thumb"] as const)
@@ -53,7 +62,7 @@ export default class ProjectSettings extends SettingsInterrupt {
 						.append(new Input()
 							.attributes.set("path-type", pathType)
 							.setText(() => project.structure && project.structure[pathType])
-							.listeners.add("change", this.onPathInputChange)
+							.event.subscribe("change", this.onPathInputChange)
 							.schedule(input => this.pathInputs.set(pathType, input
 								.schedule(Tooltip.register, tooltip => tooltip
 									.setText(() => input.attributes.get("error")!))))))
@@ -63,21 +72,20 @@ export default class ProjectSettings extends SettingsInterrupt {
 							.classes.add("file-structure-path-example")
 							.setText(this.getPathExample(pathType))))));
 
-		this.listeners.add("remove", this.onClose);
+		this.event.subscribe("remove", this.onClose);
 	}
 
 	public wasFileStructureChanged () {
 		return this.changedFileStructure;
 	}
 
-	@Bound private async changeExternalEditorCLIPath (event: Event) {
+	@Bound private async changeExternalEditorCLIPath (button: Button) {
 		Projects.current!.externalEditorCLIPath = await Options.chooseExternalEditorCLIPath(false);
-		Component.get(event).refreshText();
+		button.refreshText();
 	}
 
 	// tslint:disable cyclomatic-complexity
-	@Bound private onPathInputChange (event: Event) {
-		const input = Component.get<Input>(event);
+	@Bound private onPathInputChange (input: Input) {
 		const inputText = input.getText().trim();
 		const pathType = input.attributes.get<keyof ProjectStructure>("path-type");
 		let error: false | string = false;
@@ -118,7 +126,7 @@ export default class ProjectSettings extends SettingsInterrupt {
 			.setIcon("\uE109")
 			.classes.add("float-right")
 			.setText("restore")
-			.listeners.add("click", this.onRestore)
+			.event.subscribe("click", this.onRestore)
 			.appendTo(this.descendants(".interrupt-actions").first()!);
 	}
 
@@ -132,7 +140,7 @@ export default class ProjectSettings extends SettingsInterrupt {
 	@Bound private async onClose () {
 		const project = Projects.get(this.root);
 		if (project) await project.load();
-		this.emit("close");
+		this.event.emit("close");
 	}
 
 	private getPathExample (pathType: keyof ProjectStructure) {

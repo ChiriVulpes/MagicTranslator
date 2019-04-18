@@ -79,6 +79,7 @@ export class Vector {
 
 	public plus (xAndY: number): Vector;
 	public plus (vector: { x: number; y: number }): Vector;
+	public plus (vector: number | { x: number; y: number }): Vector;
 	public plus (vector: number | { x: number; y: number }) {
 		return new Vector(
 			this.x + (typeof vector === "number" ? vector : vector.x),
@@ -88,6 +89,7 @@ export class Vector {
 
 	public minus (xAndY: number): Vector;
 	public minus (vector: { x: number; y: number }): Vector;
+	public minus (vector: number | { x: number; y: number }): Vector;
 	public minus (vector: number | { x: number; y: number }) {
 		return new Vector(
 			this.x - (typeof vector === "number" ? vector : vector.x),
@@ -97,6 +99,7 @@ export class Vector {
 
 	public times (xAndY: number): Vector;
 	public times (vector: { x: number; y: number }): Vector;
+	public times (vector: number | { x: number; y: number }): Vector;
 	public times (vector: number | { x: number; y: number }) {
 		return new Vector(
 			this.x * (typeof vector === "number" ? vector : vector.x),
@@ -106,6 +109,7 @@ export class Vector {
 
 	public over (xAndY: number): Vector;
 	public over (vector: { x: number; y: number }): Vector;
+	public over (vector: number | { x: number; y: number }): Vector;
 	public over (vector: number | { x: number; y: number }) {
 		return new Vector(
 			this.x / (typeof vector === "number" ? vector : vector.x),

@@ -1,8 +1,15 @@
 import Component from "component/Component";
 import { tuple } from "util/Arrays";
 import { sleep } from "util/Async";
+import EventEmitter, { Events } from "util/EventEmitter";
 import Stream from "util/stream/Stream";
 import Translation from "util/string/Translation";
+
+interface DropdownEvents<O> extends Events<Component> {
+	select (option: O): any;
+	open (): any;
+	close (): any;
+}
 
 export default class Dropdown<O> extends Component {
 	public static of<A extends any[]> (...options: A) {
@@ -13,6 +20,8 @@ export default class Dropdown<O> extends Component {
 		const entries = typeof iterable === "function" ? undefined : [...iterable];
 		return new Dropdown(typeof iterable === "function" ? iterable : () => entries!);
 	}
+
+	@Override public readonly event: EventEmitter<this, DropdownEvents<O>>;
 
 	private selected: O;
 	private title?: (...args: any[]) => string;
@@ -31,7 +40,7 @@ export default class Dropdown<O> extends Component {
 
 		this.refresh();
 
-		this.listeners.add("remove", this.wrapper.remove);
+		this.event.subscribe("remove", this.wrapper.remove);
 		this.listeners.add("click", this.onClick);
 		this.listeners.add("contextmenu", this.onContextMenu);
 	}
@@ -71,7 +80,7 @@ export default class Dropdown<O> extends Component {
 
 		if (this.selected !== option) {
 			this.selected = option;
-			this.emit<O>("select", event => event.data = option);
+			this.event.emit("select", option);
 		}
 
 		this.inheritText(this.options.get(option)!, this.title);
@@ -125,7 +134,7 @@ export default class Dropdown<O> extends Component {
 			.forEach(child => child.setDisabled());
 
 		this.focus();
-		this.emit("close");
+		this.event.emit("close");
 	}
 
 	@Bound private onClick () {
@@ -158,11 +167,11 @@ export default class Dropdown<O> extends Component {
 			});
 		}
 
-		Component.window.listeners.until(this.listeners.waitFor("close"))
+		Component.window.listeners.until(this.event.waitFor("close"))
 			.add(["wheel", "resize", "keyup"], this.onWindowEventForClose);
 
 		this.options.get(this.selected)!.focus();
-		this.emit("open");
+		this.event.emit("open");
 	}
 
 	@Bound private onContextMenu () {
