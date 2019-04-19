@@ -116,6 +116,8 @@ export default Gloss;
  * (Gets a list of words in the phrase and lists their possible definitions)
  */
 async function getWords (phrase: string) {
+	phrase = phrase.replace(/\r?\n/g, " ");
+
 	if (!options.glosserCLIPath) return getWordsJisho(phrase);
 
 	try {
