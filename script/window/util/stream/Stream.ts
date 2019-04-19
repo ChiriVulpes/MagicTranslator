@@ -1226,7 +1226,7 @@ class StreamImplementation<T> extends Stream<T> {
 		while (true) {
 			this.next();
 			if (this._done) {
-				return result;
+				return typeof concatenator === "string" ? result.slice(concatenator.length) : result;
 			}
 
 			if (typeof concatenator === "string") {

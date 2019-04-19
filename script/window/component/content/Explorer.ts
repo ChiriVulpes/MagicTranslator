@@ -211,7 +211,7 @@ export default class Explorer extends Component {
 	@Bound private addProjectButton (root: string) {
 		return this.projects.addTile(this.addImageButton(root)
 			.data.set("root", root)
-			.classes.add("project-button")
+			.classes.add("project-button", "allows-propagation")
 			.event.subscribe("click", () => this.showVolumes(root)));
 	}
 

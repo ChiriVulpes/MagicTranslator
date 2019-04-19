@@ -2,6 +2,7 @@ import Component from "component/Component";
 import { sleep } from "util/Async";
 import EventEmitter, { Events } from "util/EventEmitter";
 import { Vector } from "util/math/Geometry";
+import Stream from "util/stream/Stream";
 
 interface SortableTilesEvents extends Events<Component> {
 	sort (): any;
@@ -43,6 +44,10 @@ interface SortableTileEvents extends Events<Component> {
 	moved (): any;
 }
 
+const disallowSortingWhenHovered = Stream.of("button", "input", "textarea", "a")
+	.flatMap(c => (c = `${c}:not(.allows-propagation):not(.disabled)`, [c, `${c} *`]))
+	.toString(",");
+
 class SortableTile<T extends Component> extends Component {
 
 	@Override public readonly event: EventEmitter<this, SortableTileEvents>;
@@ -67,6 +72,9 @@ class SortableTile<T extends Component> extends Component {
 
 	@Bound private async onMouseDown (event: MouseEvent) {
 		event.stopPropagation();
+
+		const target = Component.get(event);
+		if (target.matches(disallowSortingWhenHovered)) return;
 
 		const box = this.box();
 		const position = box.position();
