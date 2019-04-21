@@ -120,7 +120,7 @@ export default class Capture extends Component {
 	}
 
 	public refreshImage () {
-		this.img.setSrc(`${this.captureRoot}/cap${pad(this.capture.id!, 3)}.png?cachebuster`);
+		this.img.setSrc(`${this.captureRoot}/cap${pad(this.capture.id!, 3)}.png?cachebuster${Math.random()}`);
 	}
 
 	@Bound private async changeCharacter (dropdown: Dropdown<number | BasicCharacter>) {

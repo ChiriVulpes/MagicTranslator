@@ -390,7 +390,7 @@ export default class Extractor extends Component {
 
 		if (translated) await this.initializePageImage(translatedPath);
 
-		this.pageImage.setSrc(`${translatedPath}?cachebuster`);
+		this.pageImage.setSrc(`${translatedPath}?cachebuster${Math.random()}`);
 		this.pageImage.parent!.classes.remove("loading");
 	}
 
