@@ -245,10 +245,10 @@ export default class Extractor extends Component {
 	@Bound private async mouseDown (event: MouseEvent) {
 		if (event.button !== 0) return;
 
-		if (!options.capture2TextCLIPath) {
+		if (!options.OCRApplicationPath) {
 			if (!await Interrupt.confirm(interrupt => interrupt
-				.setTitle("no-capture2text-confirm")
-				.setDescription("no-capture2text-confirm-description")))
+				.setTitle("no-ocr-application-confirm")
+				.setDescription("no-ocr-application-confirm-description")))
 				return;
 
 			new GlobalSettings();
@@ -448,8 +448,7 @@ export default class Extractor extends Component {
 
 		const vertical = size.x < size.y;
 
-		const [out] = await ChildProcess.exec(`"${options.capture2TextCLIPath}" --language Japanese --image "${capturePath}" --line-breaks${vertical ? " --vertical" : ""}`);
-		return out.toString("utf8").trim();
+		return options.getCaptor().capture(capturePath, vertical);
 	}
 
 	private async waitForCapture (id: number) {
