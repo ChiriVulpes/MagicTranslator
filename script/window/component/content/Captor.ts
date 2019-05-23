@@ -21,7 +21,7 @@ export class TesseractCaptor implements Captor {
 	}
 
 	public async capture (captureImagePath: string, vertical: boolean) {
-		const [out] = await ChildProcess.exec(`"${this.tesseractPath}" "${captureImagePath}" stdout -l jpn+jpn_vert`);
+		const [out] = await ChildProcess.exec(`"${this.tesseractPath}" "${captureImagePath}" stdout -l jpn+jpn_vert --psm ${vertical ? "5" : "6"}`);
 		return out.toString("utf8").trim()
 	}
 }
