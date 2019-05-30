@@ -1,4 +1,4 @@
-import { isPathValid, PlatformCLIPaths } from "Options";
+import { getValidPath, PlatformCLIPaths } from "Options";
 import ChildProcess from "util/ChildProcess";
 import { Objects } from "util/Objects";
 import Path from "util/string/Path";
@@ -40,7 +40,7 @@ export default abstract class Captor {
 	protected abstract getCaptureExecPath (captureImagePath: string, vertical: boolean): string;
 
 	private async isValid () {
-		return isPathValid(Path.dirname(this.path), this.getValidPaths());
+		return getValidPath(Path.dirname(this.path), this.getValidPaths());
 	}
 }
 

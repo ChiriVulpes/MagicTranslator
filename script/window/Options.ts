@@ -158,13 +158,13 @@ export default class Options {
 	}
 
 	public static async chooseOCRApplicationPath () {
-		const path = await this.chooseCLIFolder("prompt-ocr-application-cli", ...Captor.getCaptorPlatformPaths()[process.platform] || []);
+		const path = await this.chooseCLIFolder("prompt-ocr-application-cli", Captor.getCaptorPlatformPaths());
 		if (path) options.OCRApplicationPath = path;
 		Options.captor = await Captor.get(options.OCRApplicationPath);
 	}
 
 	public static async chooseImageMagickCLIPath () {
-		const path = await this.chooseCLIFolder("prompt-imagemagick-cli", ...imageMagickCLIPaths[process.platform] || []);
+		const path = await this.chooseCLIFolder("prompt-imagemagick-cli", imageMagickCLIPaths);
 		if (path) options.imageMagickCLIPath = path;
 	}
 
@@ -179,16 +179,11 @@ export default class Options {
 		if (path) options.glosserCLIPath = path;
 	}
 
-	private static async chooseCLIFolder (prompt: string, ...filenames: string[]) {
-		let file!: string;
+	private static async chooseCLIFolder (prompt: string, paths: PlatformCLIPaths) {
+		let file: string | undefined;
 		const folder = await this.chooseFolder(prompt, async result => {
-			for (const filename of filenames) {
-				if (await FileSystem.exists(`${result}/${filename}`)) {
-					file = filename;
-					return true;
-				}
-			}
-			return false;
+			file = await getValidPath(result, paths);
+			return !!file;
 		}, false);
 
 		return folder && `${folder}/${file}`;
@@ -217,7 +212,7 @@ export default class Options {
 	}
 }
 
-export async function isPathValid (path: string, platformPaths: PlatformCLIPaths) {
+export async function getValidPath (path: string, platformPaths: PlatformCLIPaths) {
 	for (const filename of platformPaths[process.platform] || []) {
 		if (await FileSystem.exists(`${path}/${filename}`)) {
 			return filename;
