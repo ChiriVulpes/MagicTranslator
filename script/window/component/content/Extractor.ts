@@ -245,7 +245,7 @@ export default class Extractor extends Component {
 	@Bound private async mouseDown (event: MouseEvent) {
 		if (event.button !== 0) return;
 
-		if (!options.OCRApplicationPath) {
+		if (!options.getCaptor()) {
 			if (!await Interrupt.confirm(interrupt => interrupt
 				.setTitle("no-ocr-application-confirm")
 				.setDescription("no-ocr-application-confirm-description")))
@@ -319,7 +319,7 @@ export default class Extractor extends Component {
 			textarea.style.setProperty("opacity", "0");
 			document.body.appendChild(textarea);
 
-			textarea.value = await this.saveCapture("temp.png", canvas, size);
+			textarea.value = (await this.saveCapture("temp.png", canvas, size))!;
 
 			textarea.select();
 			document.execCommand("copy");
@@ -348,7 +348,7 @@ export default class Extractor extends Component {
 		await this.addCapture({
 			position: position.raw(),
 			size: size.raw(),
-			text,
+			text: text!,
 			translation: "",
 			notes: [],
 			character,
@@ -448,7 +448,8 @@ export default class Extractor extends Component {
 
 		const vertical = size.x < size.y;
 
-		return options.getCaptor().capture(capturePath, vertical);
+		const captor = options.getCaptor();
+		return captor && captor.capture(capturePath, vertical);
 	}
 
 	private async waitForCapture (id: number) {

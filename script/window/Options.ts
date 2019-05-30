@@ -1,8 +1,8 @@
+import Captor from "component/content/Captor";
 import Button, { ButtonDisplayMode } from "component/shared/Button";
 import FileSystem from "util/FileSystem";
 import Language from "util/string/Language";
 import Translation from "util/string/Translation";
-import { Captor, Capture2TextCaptor, TesseractCaptor } from "component/content/Captor";
 
 let Dialog: typeof Electron.dialog;
 let Store: StoreModule;
@@ -11,17 +11,7 @@ interface StoredData extends MagicalData {
 	options: Partial<Options>;
 }
 
-type PlatformCLIPaths = { [key in NodeJS.Platform]?: string[] };
-
-const OCRApplicationPaths: PlatformCLIPaths = {
-	win32: ["Capture2Text_CLI.exe", "tesseract.exe"],
-	linux: ["tesseract"],
-	darwin: ["tesseract"],
-	aix: ["tesseract"],
-	freebsd: ["tesseract"],
-	openbsd: ["tesseract"],
-	sunos: ["tesseract"],
-};
+export type PlatformCLIPaths = { [key in NodeJS.Platform]?: string[] };
 
 const imageMagickCLIPaths: PlatformCLIPaths = {
 	win32: ["magick.exe", "convert.exe"],
@@ -35,6 +25,7 @@ const imageMagickCLIPaths: PlatformCLIPaths = {
 
 export default class Options {
 
+	private static captor?: Captor;
 	private static readonly INSTANCE = new Options();
 
 	////////////////////////////////////
@@ -109,6 +100,7 @@ export default class Options {
 		if (!await FileSystem.exists(options.OCRApplicationPath)) options.OCRApplicationPath = "";
 		if (!await FileSystem.exists(options.imageMagickCLIPath)) options.imageMagickCLIPath = "";
 		Button.setDisplayMode(options.buttonDisplayMode);
+		Options.captor = await Captor.get(options.OCRApplicationPath);
 	}
 
 	public static async waitForOptions () {
@@ -166,8 +158,9 @@ export default class Options {
 	}
 
 	public static async chooseOCRApplicationPath () {
-		const path = await this.chooseCLIFolder("prompt-ocr-application-cli", ...OCRApplicationPaths[process.platform] || []);
+		const path = await this.chooseCLIFolder("prompt-ocr-application-cli", ...Captor.getCaptorPlatformPaths()[process.platform] || []);
 		if (path) options.OCRApplicationPath = path;
+		Options.captor = await Captor.get(options.OCRApplicationPath);
 	}
 
 	public static async chooseImageMagickCLIPath () {
@@ -201,12 +194,6 @@ export default class Options {
 		return folder && `${folder}/${file}`;
 	}
 
-	public getCaptor(): Captor {
-		if(this.OCRApplicationPath.endsWith("Capture2Text_CLI.exe"))
-			return new Capture2TextCaptor(this.OCRApplicationPath);
-		else
-			return new TesseractCaptor(this.OCRApplicationPath);
-	}
 
 	////////////////////////////////////
 	// Actual Options
@@ -224,4 +211,17 @@ export default class Options {
 	// appearance
 	public customTitleBar = process.platform === "win32";
 	public buttonDisplayMode = ButtonDisplayMode.Normal;
+
+	public getCaptor () {
+		return Options.captor;
+	}
+}
+
+export async function isPathValid (path: string, platformPaths: PlatformCLIPaths) {
+	for (const filename of platformPaths[process.platform] || []) {
+		if (await FileSystem.exists(`${path}/${filename}`)) {
+			return filename;
+		}
+	}
+	return undefined;
 }
