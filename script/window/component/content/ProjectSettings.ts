@@ -24,7 +24,6 @@ export default class ProjectSettings extends SettingsInterrupt {
 	// @ts-ignore
 	@Override public readonly event: EventEmitter<this, ProjectSettingsEvents>;
 
-	private readonly pathInputs = new Map<keyof ProjectStructure, Input>();
 	private restoreButton?: Component;
 	private changedFileStructure = false;
 
@@ -63,9 +62,9 @@ export default class ProjectSettings extends SettingsInterrupt {
 							.attributes.set("path-type", pathType)
 							.setText(() => project.structure && project.structure[pathType])
 							.event.subscribe("change", this.onPathInputChange)
-							.schedule(input => this.pathInputs.set(pathType, input
+							.schedule(input => input
 								.schedule(Tooltip.register, tooltip => tooltip
-									.setText(() => input.attributes.get("error")!))))))
+									.setText(() => input.attributes.get("error")!)))))
 					.append(PagePathSegment.is(pathType) ? undefined : new LabelledRow("example")
 						.classes.add("example")
 						.append(new Component("span")

@@ -33,8 +33,10 @@ export default class IndexedMap<K, V> extends Map<K, V> {
 		return this.indexMap[index];
 	}
 
-	@Bound public getByIndex (index: number) {
-		return super.get(this.indexMap[index]);
+	public getByIndex<A> (index: number): V | undefined;
+	public getByIndex<A> (index: number, orElse: () => A): V | A;
+	@Bound public getByIndex<A> (index: number, orElse?: () => A) {
+		return super.get(this.indexMap[index]) || (orElse ? orElse() : undefined);
 	}
 
 	@Override @Bound public set (key: K, value: V) {

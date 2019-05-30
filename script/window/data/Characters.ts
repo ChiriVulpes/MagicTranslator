@@ -41,7 +41,7 @@ export default class Characters extends Serializable {
 		if (basicCharacter !== undefined) return basicCharacter;
 
 		return this.characters.stream()
-			.first(character => character.name === name, {} as CharacterData)
+			.first(character => character.name === name, () => ({}))
 			.id;
 	}
 

@@ -13,6 +13,7 @@ import Options from "Options";
 import { tuple } from "util/Arrays";
 import { sleep } from "util/Async";
 import EventEmitter, { Events } from "util/EventEmitter";
+import IndexedMap from "util/Map";
 import Stream from "util/stream/Stream";
 import Translation from "util/string/Translation";
 
@@ -250,16 +251,16 @@ export default class Explorer extends Component {
 
 	private getPreviewImageData (project: Project, volume?: number, chapter?: number, page?: number) {
 		let type: "root" | PagePathSegment | undefined;
-		if (volume === undefined) type = type || "root", [volume] = project.volumes.indexedEntries().first()!;
+		if (volume === undefined) type = type || "root", [volume] = project.volumes.indexedEntries().first(undefined, () => [])!;
 
-		const chapters = project.volumes.getByIndex(volume)!;
-		if (chapter === undefined) type = type || "volume", [chapter] = chapters.indexedEntries().first()!;
+		const chapters = project.volumes.getByIndex(volume!, () => new IndexedMap());
+		if (chapter === undefined) type = type || "volume", [chapter] = chapters.indexedEntries().first(undefined, () => [])!;
 
 		if (page === undefined) type = type || "chapter", page = 0;
 
 		type = type || "page";
 
-		return tuple(type, volume, chapter, page);
+		return tuple(type, volume!, chapter!, page!);
 	}
 
 	private getMissingTranslations (root: string, volume?: number, chapter?: number, page?: number): Stream<CaptureData> {

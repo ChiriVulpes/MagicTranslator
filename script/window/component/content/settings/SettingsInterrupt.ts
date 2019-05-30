@@ -1,7 +1,7 @@
 import Component from "component/Component";
 import Interrupt, { InterruptChoice } from "component/shared/Interrupt";
 
-export default class SettingsInterrupt extends Interrupt {
+export default class SettingsInterrupt extends Interrupt<InterruptChoice.Done> {
 	private readonly sections = new Component()
 		.classes.add("sections")
 		.appendTo(this.content, "beginning");
