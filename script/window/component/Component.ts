@@ -72,11 +72,11 @@ export default class Component extends EventEmitter.Host<ComponentEvents> {
 
 	public get id () { return this.element().id; }
 
-	public get isRemoved () { return !this.internalElement; }
+	public get isRemoved () { return !document.contains(this.internalElement); }
 
 	protected textGenerator?: (component: any) => string | number;
 
-	private readonly internalElement: HTMLElement | undefined;
+	private readonly internalElement: HTMLElement;
 
 	private observerForRemoval: MutationObserver;
 
@@ -211,6 +211,8 @@ export default class Component extends EventEmitter.Host<ComponentEvents> {
 	}
 
 	@Bound public remove () {
+		if (this.isRemoved) return;
+
 		for (const descendant of this.descendants(".component")) {
 			descendant.event.emit("remove");
 		}

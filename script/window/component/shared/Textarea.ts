@@ -20,7 +20,7 @@ export default class Textarea extends Component {
 			if (Textarea.index >= Textarea.list.length || Textarea.index < 0) Textarea.index = 0;
 
 			const textarea = Textarea.list[Textarea.index++];
-			if (!document.contains(textarea.element())) Textarea.list.splice(--Textarea.index, 1);
+			if (textarea.isRemoved) Textarea.list.splice(--Textarea.index, 1);
 			else textarea.setHeight();
 		}
 

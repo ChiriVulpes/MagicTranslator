@@ -140,6 +140,7 @@ export default class Extractor extends Component {
 	}
 
 	@Bound public async updateJSON () {
+		if (this.isRemoved) return;
 		this.captures.captures = this.capturesWrapper.tiles()
 			.map(component => component.getData())
 			.toArray();
