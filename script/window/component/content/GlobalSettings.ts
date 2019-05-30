@@ -27,10 +27,10 @@ export default class GlobalSettings extends SettingsInterrupt {
 					.event.subscribe("select", (d, selected) => Button.setDisplayMode(selected))));
 
 		this.addSection("dependencies")
-			.append(new LabelledRow("capture2text-path")
+			.append(new LabelledRow("ocr-application-path")
 				.append(new Button()
-					.setText(() => options.capture2TextCLIPath || new Translation("unset").get())
-					.event.subscribe("click", this.changeCapture2TextCLIPath)))
+					.setText(() => options.OCRApplicationPath || new Translation("unset").get())
+					.event.subscribe("click", this.changeOCRApplicationPath)))
 			.append(new LabelledRow("imagemagick-path")
 				.append(new Button()
 					.setText(() => options.imageMagickCLIPath || new Translation("unset").get())
@@ -45,8 +45,8 @@ export default class GlobalSettings extends SettingsInterrupt {
 					.event.subscribe("click", this.changeGlosserCLIPath)));
 	}
 
-	@Bound private async changeCapture2TextCLIPath (button: Button) {
-		await Options.chooseCapture2TextCLIPath();
+	@Bound private async changeOCRApplicationPath (button: Button) {
+		await Options.chooseOCRApplicationPath();
 		button.refreshText();
 	}
 

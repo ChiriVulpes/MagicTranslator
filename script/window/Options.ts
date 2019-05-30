@@ -2,6 +2,7 @@ import Button, { ButtonDisplayMode } from "component/shared/Button";
 import FileSystem from "util/FileSystem";
 import Language from "util/string/Language";
 import Translation from "util/string/Translation";
+import { Captor, Capture2TextCaptor, TesseractCaptor } from "component/content/Captor";
 
 let Dialog: typeof Electron.dialog;
 let Store: StoreModule;
@@ -12,8 +13,14 @@ interface StoredData extends MagicalData {
 
 type PlatformCLIPaths = { [key in NodeJS.Platform]?: string[] };
 
-const capture2TextCLIPaths: PlatformCLIPaths = {
-	win32: ["Capture2Text_CLI.exe"],
+const OCRApplicationPaths: PlatformCLIPaths = {
+	win32: ["Capture2Text_CLI.exe", "tesseract.exe"],
+	linux: ["tesseract"],
+	darwin: ["tesseract"],
+	aix: ["tesseract"],
+	freebsd: ["tesseract"],
+	openbsd: ["tesseract"],
+	sunos: ["tesseract"],
 };
 
 const imageMagickCLIPaths: PlatformCLIPaths = {
@@ -99,7 +106,7 @@ export default class Options {
 
 	public static async onInitialize () {
 		await Language.waitForLanguage();
-		if (!await FileSystem.exists(options.capture2TextCLIPath)) options.capture2TextCLIPath = "";
+		if (!await FileSystem.exists(options.OCRApplicationPath)) options.OCRApplicationPath = "";
 		if (!await FileSystem.exists(options.imageMagickCLIPath)) options.imageMagickCLIPath = "";
 		Button.setDisplayMode(options.buttonDisplayMode);
 	}
@@ -158,9 +165,9 @@ export default class Options {
 		return folder;
 	}
 
-	public static async chooseCapture2TextCLIPath () {
-		const path = await this.chooseCLIFolder("prompt-capture2text-cli", ...capture2TextCLIPaths[process.platform] || []);
-		if (path) options.capture2TextCLIPath = path;
+	public static async chooseOCRApplicationPath () {
+		const path = await this.chooseCLIFolder("prompt-ocr-application-cli", ...OCRApplicationPaths[process.platform] || []);
+		if (path) options.OCRApplicationPath = path;
 	}
 
 	public static async chooseImageMagickCLIPath () {
@@ -194,6 +201,13 @@ export default class Options {
 		return folder && `${folder}/${file}`;
 	}
 
+	public getCaptor(): Captor {
+		if(this.OCRApplicationPath.endsWith("Capture2Text_CLI.exe"))
+			return new Capture2TextCaptor(this.OCRApplicationPath);
+		else
+			return new TesseractCaptor(this.OCRApplicationPath);
+	}
+
 	////////////////////////////////////
 	// Actual Options
 	//
@@ -202,7 +216,7 @@ export default class Options {
 	public projectFolders: string[] = [];
 
 	// other programs
-	public capture2TextCLIPath: string = "";
+	public OCRApplicationPath: string = "";
 	public imageMagickCLIPath: string = "";
 	public externalEditorCLIPath: string = "";
 	public glosserCLIPath: string = "";

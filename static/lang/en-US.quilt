@@ -6,7 +6,7 @@ breadcrumb-separator:  —
 button-display-mode: Button Appearance
 cancel: Cancel
 capture-path: Page Captures
-capture2text-path: Capture2Text Path
+ocr-application-path: OCR Application Path
 chapter-path: Chapter Name
 chapter: Chapter {0}
 character-chapter-title: Chapter Title
@@ -54,8 +54,8 @@ name: Name
 next-chapter: Next Chapter
 next-page: Next Page
 next-volume: Next Volume
-no-capture2text-confirm-description: A capture cannot be created\nwithout Capture2Text being installed.
-no-capture2text-confirm: Would you like to select\nthe path to Capture2Text?
+no-ocr-application-confirm-description: A capture cannot be created\nwithout Capture2Text or Tesseract being installed.
+no-ocr-application-confirm: Would you like to select\nthe path to the application?
 no-translated-image: There is no translated\nversion of this page.
 no: No
 normal: Normal
@@ -72,7 +72,7 @@ prev-page: Previous Page
 prev-volume: Previous Volume
 project-settings: Project Settings
 project: {0}
-prompt-capture2text-cli: Choose Capture2Text Folder
+prompt-ocr-application-cli: Choose Capture2Text or Tesseract Folder
 prompt-character-headshot: Choose the Headshot Image for {0?{0}:the Character} (Prefer Square Images)
 prompt-dialog-file: Choose dialog.md file. The file must be properly formatted. It must have the ".md" file extension.
 prompt-external-editor: Choose External Editor
