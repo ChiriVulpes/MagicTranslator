@@ -10,7 +10,7 @@
 		"chalk": "2.4.2",
 		"cross-var": "1.1.0",
 		"del": "4.1.0",
-		"electron": "4.1.4",
+		"electron": "6.0.0-beta.5",
 		"gulp": "^4.0.0",
 		"gulp-run-electron": "3.0.2",
 		"gulp-sass": "4.0.2",
@@ -18,7 +18,7 @@
 		"ts-node": "8.0.3",
 		"tslint": "5.15.0",
 		"tslint-override": "0.5.0",
-		"typescript": "^3.4.2",
+		"typescript": "3.4.5",
 		"typescript-tslint-plugin": "0.3.1"
 	},
 	"scripts": {

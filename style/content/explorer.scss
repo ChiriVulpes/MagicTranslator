@@ -50,7 +50,7 @@
 	outline: none;
 	display: grid;
     --height: 330;
-    grid-template-rows: var(--height) auto;
+    grid-template-rows: calc(1px * var(--height)) auto;
     width: calc(1114px * (var(--height) / 1600));
 	float: left;
 	overflow: hidden;

@@ -5,6 +5,6 @@
 		"electron-store": "3.1.0"
 	},
 	"devDependencies": {
-		"typescript": "^3.4.2"
+		"typescript": "^3.4.5"
 	}
 }
