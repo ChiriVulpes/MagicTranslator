@@ -226,7 +226,7 @@ async function getDefinitions (word: Word) {
 
 		if (wordText === word.furigana) {
 			const baseWordKanji = Array.from(word.word).filter(char => !nonKanjiSyllabaries.includes(char));
-			if (definitions.some(result => result.japanese.some(japanese => baseWordKanji.some(kanji => japanese.word.includes(kanji))))) {
+			if (definitions.some(result => result.japanese.some(japanese => baseWordKanji.some(kanji => !!japanese.word && japanese.word.includes(kanji))))) {
 				definitions = definitions.filter(result => !result.japanese.some(japanese => baseWordKanji.some(kanji => japanese.word.includes(kanji))));
 			}
 		}
