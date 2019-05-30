@@ -113,8 +113,8 @@ class SortableTile<T extends Component> extends Component {
 		this.style.set("--preview-top", position.y);
 
 		const center = this.getCenter();
-		const hoveredElement = document.elementFromPoint(center.x, center.y);
-		const hoveredTile = hoveredElement && hoveredElement.closest(".sorting > .sortable-tile:not(.immobile)");
+		const hoveredTile = document.elementsFromPoint(center.x, center.y)
+			.find(element => element.matches(".sorting > .sortable-tile:not(.immobile):not(.moving)"));
 		if (hoveredTile && hoveredTile !== this.element()) {
 			const isAfter = Component.get(hoveredTile).getIndex()! < this.getIndex()!;
 			const movement = this.lastMove ? position.minus(this.lastMove.position) : Vector.ZERO;
