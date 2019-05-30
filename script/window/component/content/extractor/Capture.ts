@@ -188,7 +188,6 @@ export default class Capture extends Component {
 				.filter(note => note.isBlank() &&
 					!activeComponent.isDescendantOf(wrapper) &&
 					(wrapper.child(-1) !== note.parent! || wrapper.childCount > 1))
-				.collectStream()
 				.forEach(note => note.remove()));
 
 		for (const noteList of this.notesWrappers.values()) {
