@@ -43,7 +43,8 @@ export default class Button extends Component {
 
 	@Override @Bound public refreshText () {
 		let text = this.textGenerator ? this.textGenerator(this) as any : "";
-		if (Component.document.attributes.get("button-display-mode") === ButtonDisplayMode.IconOnly) text = "";
+		if (Component.document.attributes.get("button-display-mode") === ButtonDisplayMode.IconOnly && this.attributes.has("icon"))
+			text = "";
 		this.element().textContent = text === null || text === undefined ? "" : `${text}`;
 		return this;
 	}
