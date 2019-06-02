@@ -115,17 +115,17 @@ export default class Options {
 		while (true) {
 			file = undefined;
 
-			const result = await new Promise<string[] | undefined>(resolve => Dialog.showOpenDialog({
+			const dialog = await Dialog.showOpenDialog({
 				properties: ["openFile"],
 				title: new Translation(title).get(...args),
-			}, resolve));
+			});
 
-			if (!result) {
+			if (!dialog.filePaths || !dialog.filePaths.length) {
 				if (retryOnCancel) continue;
 				else break;
 			}
 
-			file = result[0].replace(/\\/g, "/");
+			file = dialog.filePaths[0].replace(/\\/g, "/");
 			if (!validator || await validator(file)) break;
 		}
 
@@ -140,17 +140,17 @@ export default class Options {
 		while (true) {
 			folder = undefined;
 
-			const result = await new Promise<string[] | undefined>(resolve => Dialog.showOpenDialog({
+			const dialog = await Dialog.showOpenDialog({
 				properties: ["openDirectory"],
 				title: new Translation(title).get(),
-			}, resolve));
+			});
 
-			if (!result) {
+			if (!dialog.filePaths || !dialog.filePaths.length) {
 				if (retryOnCancel) continue;
 				else break;
 			}
 
-			folder = result[0].replace(/\\/g, "/");
+			folder = dialog.filePaths[0].replace(/\\/g, "/");
 			if (!validator || await validator(folder)) break;
 		}
 
