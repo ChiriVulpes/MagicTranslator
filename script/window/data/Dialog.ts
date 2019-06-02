@@ -4,7 +4,6 @@ import { BasicCharacter, CharacterData } from "data/Characters";
 import Projects from "data/Projects";
 import Options from "Options";
 import { tuple } from "util/Arrays";
-import File from "util/File";
 import FileSystem from "util/FileSystem";
 
 export class DialogImpl {
@@ -24,7 +23,8 @@ export class DialogImpl {
 			result += "\n\n# " + pages.join("\n\n\n# ");
 		}
 
-		File.download(`dialog-${volumeString}-${chapterString}${pageNumber !== undefined ? `-${pageNumber}` : ""}.md`, result);
+		const directory = project.getChapterDirectory("raw", volumeNumber, chapterNumber);
+		FileSystem.writeToUserChoice(result, `${directory}/dialog-${volumeString}-${chapterString}${page === undefined ? "" : `-${pageNumber}`}.md`);
 	}
 
 	public async import (volume: number, chapter: number) {

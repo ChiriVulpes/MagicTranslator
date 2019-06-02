@@ -166,6 +166,33 @@ export class Project extends Serializable {
 		] as any;
 	}
 
+	public getVolumeDirectory (type: keyof ProjectStructure) {
+		const [, match] = /^([^{}]*?){volume}/.match(this.structure[type]);
+		return Path.join(this.root, match);
+	}
+
+	public getChapterDirectory (type: keyof ProjectStructure, volume: string | number, chapter?: string | number) {
+		if (chapter) {
+			const [, match] = /^([^{}]*?{volume}[^{}]*?{chapter})/.match(this.structure[type]);
+			return Path.join(this.root, interpolate(match, {
+				volume: this.getSegment("volume", volume),
+				chapter: chapter === undefined ? undefined : this.getSegment("chapter", chapter),
+			}));
+
+		} else {
+			const [, match] = /^([^{}]*?{volume}[^{}]*?){chapter}/.match(this.structure[type]);
+			return Path.join(this.root, interpolate(match, { volume: this.getSegment("volume", volume) }));
+		}
+	}
+
+	public getPageDirectory (type: keyof ProjectStructure, volume: string | number, chapter: string | number) {
+		const [, match] = /^([^{}]*?{volume}[^{}]*?{chapter}[^{}]*?){page}/.match(this.structure[type]);
+		return Path.join(this.root, interpolate(match, {
+			volume: this.getSegment("volume", volume),
+			chapter: this.getSegment("chapter", chapter),
+		}));
+	}
+
 	private async getVolumes () {
 		return (await FileSystem.readdir(this.getVolumeDirectory("raw")))
 			.filter(volume => this.getRegex("volume").test(volume))
@@ -204,24 +231,6 @@ export class Project extends Serializable {
 		let segment = this.structure[name];
 		if (name === "chapter" && !Number.isInteger(parseFloat(`${value}`))) segment = segment.replace("#", "###");
 		return typeof value === "string" ? value : segment.replace(/#+/, match => pad(value, match.length));
-	}
-
-	private getVolumeDirectory (type: keyof ProjectStructure) {
-		const [, match] = /^([^{}]*?){volume}/.match(this.structure[type]);
-		return Path.join(this.root, match);
-	}
-
-	private getChapterDirectory (type: keyof ProjectStructure, volume: string | number) {
-		const [, match] = /^([^{}]*?{volume}[^{}]*?){chapter}/.match(this.structure[type]);
-		return Path.join(this.root, interpolate(match, { volume: this.getSegment("volume", volume) }));
-	}
-
-	private getPageDirectory (type: keyof ProjectStructure, volume: string | number, chapter: string | number) {
-		const [, match] = /^([^{}]*?{volume}[^{}]*?{chapter}[^{}]*?){page}/.match(this.structure[type]);
-		return Path.join(this.root, interpolate(match, {
-			volume: this.getSegment("volume", volume),
-			chapter: this.getSegment("chapter", chapter),
-		}));
 	}
 
 }

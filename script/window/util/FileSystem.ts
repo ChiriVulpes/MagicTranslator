@@ -3,6 +3,7 @@ import Concurrency from "util/Concurrency";
 
 let nodefs: typeof import("fs");
 let path: typeof import("path");
+let Dialog: typeof Electron.dialog;
 
 const fileWriteLocks = new Map<string, Promise<void>>();
 
@@ -97,6 +98,12 @@ class FileSystem {
 		});
 	}
 
+	public async writeToUserChoice (data: string, defaultPath?: string) {
+		const dialog = await Dialog.showSaveDialog({ defaultPath });
+		if (!dialog.filePath) return;
+		this.writeFile(dialog.filePath, data);
+	}
+
 	private async mkdirp (filepath: string) {
 		filepath = path.resolve(filepath);
 
@@ -123,8 +130,13 @@ export default new class extends FileSystem {
 
 	public priority = new FileSystem(Infinity);
 
-	public initialize (nodefs_: typeof import("fs"), path_: typeof import("path")) {
+	public initialize (
+		nodefs_: typeof import("fs"),
+		path_: typeof import("path"),
+		dialog: typeof Electron.dialog,
+	) {
 		nodefs = nodefs_;
 		path = path_;
+		Dialog = dialog;
 	}
 };
