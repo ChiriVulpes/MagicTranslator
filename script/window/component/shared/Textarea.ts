@@ -24,7 +24,7 @@ export default class Textarea extends Component {
 			else textarea.setHeight();
 		}
 
-		setTimeout(Textarea.setTextareaHeight, 10);
+		setTimeout(Textarea.setTextareaHeight, 20);
 	}
 
 	@Override public readonly event: EventEmitter<this, TextareaEvents>;
@@ -88,7 +88,8 @@ export default class Textarea extends Component {
 	}
 
 	@Bound private setHeight (height = this.getHeight()) {
-		this.style.set("--height", `${height}px`);
+		if (height !== parseInt(this.style.get("--height")))
+			this.style.set("--height", `${height}px`);
 		return this;
 	}
 
