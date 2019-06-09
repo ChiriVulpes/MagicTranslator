@@ -253,17 +253,18 @@
 
 .textarea {
 	position: relative;
-	--height: 0px;
 	overflow: hidden;
-	height: var(--height);
 	
 	> * {
 		margin: 0;
 		word-break: break-word;
 	}
 	> textarea {
-		height: var(--height);
-		max-width: 100%;
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
 		color: transparent;
 		caret-color: white;
 		background: none;
@@ -276,7 +277,6 @@
 		font-family: inherit;
 		font-size: inherit;
 		font-weight: inherit;
-		margin-top: calc(var(--height) * -1);
 		background: #0003;
     	min-height: 1.75em;
 	}
@@ -293,7 +293,6 @@
 		}
 		
 		> textarea {
-			height: var(--height);
 			max-width: 100%;
 		}
 		> div {
@@ -318,7 +317,7 @@
 		transition: opacity .1s ease-in-out 0s;
 		> * {
 			pointer-events: none;
-			margin-top: calc(var(--height) * -1);
+			margin-top: -1.8em;
 		}
 	}
 	

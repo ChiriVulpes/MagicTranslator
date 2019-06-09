@@ -9,24 +9,6 @@ interface TextareaEvents extends Events<Component> {
 
 export default class Textarea extends Component {
 
-	private static readonly list: Textarea[] = [];
-	private static index = 0;
-	private static setTextareaHeight () {
-		if (!Textarea.list.length) return;
-
-		const count = Math.min(50, Textarea.list.length);
-		for (let i = 0; i < count; i++) {
-			if (!Textarea.list.length) return;
-			if (Textarea.index >= Textarea.list.length || Textarea.index < 0) Textarea.index = 0;
-
-			const textarea = Textarea.list[Textarea.index++];
-			if (textarea.isRemoved) Textarea.list.splice(--Textarea.index, 1);
-			else textarea.setHeight();
-		}
-
-		setTimeout(Textarea.setTextareaHeight, 20);
-	}
-
 	@Override public readonly event: EventEmitter<this, TextareaEvents>;
 
 	private textarea = new Component("textarea")
@@ -44,21 +26,10 @@ export default class Textarea extends Component {
 	public constructor () {
 		super();
 		this.classes.add("textarea");
-
-		this.event.waitFor("append")
-			.then(() => {
-				const shouldStart = !Textarea.list.length;
-				Textarea.list.push(this);
-				if (shouldStart) Textarea.setTextareaHeight();
-			});
 	}
 
 	public getText () {
 		return this.textarea.element<HTMLTextAreaElement>().value;
-	}
-
-	public getHeight () {
-		return this.hiddenTextarea.box().height;
 	}
 
 	public setPlaceholder (translation: TextGenerator<this>) {
@@ -72,7 +43,6 @@ export default class Textarea extends Component {
 		this.textarea.element<HTMLTextAreaElement>().value = this.textGenerator ? `${this.textGenerator(this)}` : "";
 		this.setHiddenTextareaText();
 		this.attributes.set("placeholder", this.placeholderTextGenerator ? `${this.placeholderTextGenerator(this)}` : "");
-		this.setHeight();
 		this.event.emit("change");
 		return this;
 	}
@@ -83,14 +53,7 @@ export default class Textarea extends Component {
 		}
 
 		this.setHiddenTextareaText();
-		this.setHeight();
 		this.event.emit("change");
-	}
-
-	@Bound private setHeight (height = this.getHeight()) {
-		if (height !== parseInt(this.style.get("--height")))
-			this.style.set("--height", `${height}px`);
-		return this;
 	}
 
 	private setHiddenTextareaText () {
