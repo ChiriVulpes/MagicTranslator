@@ -1,4 +1,4 @@
-import * as gulpSass from "gulp-sass";
+import gulpSass from "gulp-sass";
 import Electron from "./gulp/Electron";
 import Task, { Pipe, remove, Series, symlink, watch } from "./gulp/Task";
 import TypescriptWatch from "./gulp/TypescriptWatch";

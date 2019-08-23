@@ -9,6 +9,7 @@
         "strictPropertyInitialization": false,
         "experimentalDecorators": true,
         "target": "esnext",
+        "esModuleInterop": true,
         "types": [
             "node"
         ],

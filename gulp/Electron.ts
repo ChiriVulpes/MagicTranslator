@@ -1,6 +1,6 @@
-import * as proc from "child_process";
-import * as electron from "electron";
-import * as path from "path";
+import proc from "child_process";
+import electron from "electron";
+import path from "path";
 import { nameFunction, stringifyCall } from "./Util";
 
 module Electron {

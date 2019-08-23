@@ -17,7 +17,7 @@ class FileSystem {
 
 	public async readdir (dir: string) {
 		return this.concurrent.promise<string[]>((resolve, reject) => {
-			nodefs.readdir(dir, (err: NodeJS.ErrnoException | undefined, files) => {
+			nodefs.readdir(dir, (err, files) => {
 				if (err) {
 					if (err.code === "ENOENT") resolve([]);
 					else reject(err);
@@ -31,7 +31,7 @@ class FileSystem {
 	public async readFile (filepath: string, encoding?: string): Promise<string | Buffer>;
 	public async readFile (filepath: string, encoding?: string) {
 		return this.concurrent.promise<string | Buffer>((resolve, reject) => {
-			nodefs.readFile(filepath, encoding, (err: NodeJS.ErrnoException | undefined, file) => {
+			nodefs.readFile(filepath, encoding, (err, file) => {
 				if (err) reject(err);
 				else resolve(file);
 			});
@@ -40,7 +40,7 @@ class FileSystem {
 
 	public async exists (filepath: string) {
 		return new Promise<boolean>((resolve, reject) => {
-			nodefs.stat(filepath, (err: NodeJS.ErrnoException | undefined, stats) => {
+			nodefs.stat(filepath, (err, stats) => {
 				resolve(!err);
 			});
 		});
@@ -48,7 +48,7 @@ class FileSystem {
 
 	public async stat (filepath: string) {
 		return new Promise<Stats | undefined>((resolve, reject) => {
-			nodefs.stat(filepath, (err: NodeJS.ErrnoException | undefined, stats) => {
+			nodefs.stat(filepath, (err, stats) => {
 				resolve(err ? undefined : stats);
 			});
 		});
