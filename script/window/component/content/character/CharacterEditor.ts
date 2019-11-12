@@ -35,7 +35,7 @@ export default class CharacterEditor extends Component {
 
 	public static async createCharacter (path?: string, name?: string) {
 		if (!path) {
-			path = await Options.chooseFile("prompt-character-headshot", result => /\.(png|jpg|jpeg)/.test(result) && FileSystem.exists(result), undefined, name);
+			path = await Options.chooseFile("prompt-character-headshot", result => /\.(png|jpe?g|bmp|gif)/.test(result) && FileSystem.exists(result), undefined, name);
 			if (!path) return;
 		}
 

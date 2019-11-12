@@ -213,7 +213,7 @@ export class Project extends Serializable {
 
 	private async getPages (volume: string, chapter: string) {
 		return (await (await FileSystem.readdir(this.getPageDirectory("raw", volume, chapter)))
-			.filter(page => this.getRegex("page", rs => rs.replace("$", ".png$")).test(page))
+			.filter(page => this.getRegex("page", rs => rs.replace("$", ".(png|jpe?g|bmp|gif)$")).test(page))
 			.sort()
 			.map(async (page): Promise<Page> => ({
 				filename: page,
