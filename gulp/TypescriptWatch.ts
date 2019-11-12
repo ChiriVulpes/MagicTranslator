@@ -1,6 +1,7 @@
 import chalk from "chalk";
-import { exec } from "child_process";
+import { ChildProcess, exec } from "child_process";
 import * as path from "path";
+import Bound from "./Bound";
 
 export default class TypescriptWatch {
 	private onDataHandler: (data: string) => any;
@@ -9,6 +10,7 @@ export default class TypescriptWatch {
 	private readonly inDir: string;
 	private readonly outDir: string;
 	private declaration: string | undefined;
+	private task: ChildProcess;
 
 	public constructor (dir: string, outDir: string) {
 		this.inDir = path.resolve(dir);
@@ -30,17 +32,23 @@ export default class TypescriptWatch {
 		return this;
 	}
 
+	@Bound
+	public async compile () {
+		await this.watch().waitForInitial();
+		this.task.kill();
+	}
+
 	public watch () {
 		const ocwd = process.cwd();
 		process.chdir(this.inDir);
 		const declaration = this.declaration ? `--declaration --declarationDir ${this.declaration}` : "";
-		const task = exec(`npx tsc --outDir ${this.outDir} --pretty --watch ${declaration}`);
+		this.task = exec(`npx tsc --outDir ${this.outDir} --pretty --watch ${declaration}`);
 		process.chdir(ocwd);
 
-		task.stderr!.on("data", data => process.stderr.write(data));
+		this.task.stderr!.on("data", data => process.stderr.write(data));
 
 		let start: number;
-		task.stdout!.on("data", data => {
+		this.task.stdout!.on("data", data => {
 			if (this.onDataHandler && this.onDataHandler(data.toString()) === false)
 				return;
 

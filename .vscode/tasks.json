@@ -9,6 +9,13 @@
 			},
 			"type": "shell",
 			"command": "gulp watch"
+		},
+		{
+			"label": "build",
+			"group": "build",
+			"type": "shell",
+			"command": "gulp build",
+			"problemMatcher": []
 		}
 	]
 }
