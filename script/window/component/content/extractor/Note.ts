@@ -1,7 +1,7 @@
 import Component from "component/Component";
 import Textarea from "component/shared/Textarea";
 import { sleep } from "util/Async";
-import EventEmitter, { Events } from "util/EventEmitter";
+import { Events, IEventEmitter } from "util/EventEmitter";
 
 interface NoteEvents extends Events<Component> {
 	change (): any;
@@ -10,7 +10,7 @@ interface NoteEvents extends Events<Component> {
 
 export default class Note extends Component {
 
-	@Override public readonly event: EventEmitter<this, NoteEvents>;
+	@Override public readonly event: IEventEmitter<this, NoteEvents>;
 
 	protected readonly ja = new Textarea()
 		.classes.add("japanese")

@@ -1,8 +1,7 @@
 import Component from "component/Component";
 import { sleep } from "util/Async";
-import EventEmitter, { Events } from "util/EventEmitter";
+import { Events, IEventEmitter } from "util/EventEmitter";
 import { Vector } from "util/math/Geometry";
-import Stream from "util/stream/Stream";
 
 interface SortableTilesEvents extends Events<Component> {
 	sort (): any;
@@ -10,7 +9,7 @@ interface SortableTilesEvents extends Events<Component> {
 
 export default class SortableTiles<T extends Component> extends Component {
 
-	@Override public readonly event: EventEmitter<this, SortableTilesEvents>;
+	@Override public readonly event: IEventEmitter<this, SortableTilesEvents>;
 
 	public constructor (private readonly variablySized?: "vertical" | "horizontal") {
 		super();
@@ -50,7 +49,7 @@ const disallowSortingWhenHovered = Stream.of("button", "input", "textarea", "a")
 
 class SortableTile<T extends Component> extends Component {
 
-	@Override public readonly event: EventEmitter<this, SortableTileEvents>;
+	@Override public readonly event: IEventEmitter<this, SortableTileEvents>;
 
 	private mouseOffset: Vector;
 	private lastMove?: LastMove;

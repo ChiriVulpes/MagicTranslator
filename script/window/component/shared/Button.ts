@@ -1,6 +1,6 @@
 import Component from "component/Component";
 import Tooltip from "component/shared/Tooltip";
-import EventEmitter, { Events } from "util/EventEmitter";
+import { Events, IEventEmitter } from "util/EventEmitter";
 
 export enum ButtonDisplayMode {
 	Normal = "normal",
@@ -28,7 +28,7 @@ export default class Button extends Component {
 		return Component.document.attributes.get("button-display-mode") as ButtonDisplayMode;
 	}
 
-	@Override public event: EventEmitter<this, ButtonEvents>;
+	@Override public event: IEventEmitter<this, ButtonEvents>;
 
 	public constructor () {
 		super("button");

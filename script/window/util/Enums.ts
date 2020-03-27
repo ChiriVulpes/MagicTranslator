@@ -1,5 +1,4 @@
 import { tuple } from "util/Arrays";
-import Stream from "util/stream/Stream";
 
 module Enums {
 

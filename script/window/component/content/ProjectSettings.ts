@@ -8,9 +8,8 @@ import Tooltip from "component/shared/Tooltip";
 import Projects, { PagePathSegment, PagePathType, pathSegments, pathTypes, ProjectStructure } from "data/Projects";
 import Options from "Options";
 import { tuple } from "util/Arrays";
-import EventEmitter, { Events } from "util/EventEmitter";
+import { Events, IEventEmitter } from "util/EventEmitter";
 import { generalRandom } from "util/Random";
-import Stream from "util/stream/Stream";
 import { interpolate } from "util/string/Interpolator";
 import Path from "util/string/Path";
 import Translation from "util/string/Translation";
@@ -22,7 +21,7 @@ interface ProjectSettingsEvents extends Events<SettingsInterrupt> {
 export default class ProjectSettings extends SettingsInterrupt {
 
 	// @ts-ignore
-	@Override public readonly event: EventEmitter<this, ProjectSettingsEvents>;
+	@Override public readonly event: IEventEmitter<this, ProjectSettingsEvents>;
 
 	private restoreButton?: Component;
 	private changedFileStructure = false;

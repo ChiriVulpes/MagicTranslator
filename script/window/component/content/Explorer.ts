@@ -12,9 +12,8 @@ import Projects, { PagePathSegment, Project } from "data/Projects";
 import Options from "Options";
 import { tuple } from "util/Arrays";
 import { sleep } from "util/Async";
-import EventEmitter, { Events } from "util/EventEmitter";
+import { Events, IEventEmitter } from "util/EventEmitter";
 import IndexedMap from "util/Map";
-import Stream from "util/stream/Stream";
 import Translation from "util/string/Translation";
 
 interface ExplorerEvents extends Events<Component> {
@@ -25,7 +24,7 @@ interface ExplorerEvents extends Events<Component> {
 
 export default class Explorer extends Component {
 
-	@Override public readonly event: EventEmitter<this, ExplorerEvents>;
+	@Override public readonly event: IEventEmitter<this, ExplorerEvents>;
 
 	private readonly explorerWrapper: Component;
 	private readonly actionWrapper = new ButtonBar().appendTo(this);
@@ -356,7 +355,7 @@ interface ImageButtonEvents extends Events<Component> {
 
 class ImageButton extends Component {
 
-	@Override public readonly event: EventEmitter<this, ImageButtonEvents>;
+	@Override public readonly event: IEventEmitter<this, ImageButtonEvents>;
 
 	public readonly title = new Component()
 		.classes.add("title")
@@ -389,7 +388,7 @@ class ImageButton extends Component {
 
 		const thumbnail = await Projects.get(this.root)!.thumbs.get(this.imagePath);
 		this.classes.remove("loading");
-		this.style.set("--preview", `url("${thumbnail}")`);
+		this.style.set("--preview", `url("chiri://${thumbnail}")`);
 	}
 }
 

@@ -2,7 +2,7 @@ import Component from "component/Component";
 import Input from "component/shared/Input";
 import { BasicCharacter, CharacterData } from "data/Characters";
 import Projects from "data/Projects";
-import EventEmitter, { Events } from "util/EventEmitter";
+import { Events, IEventEmitter } from "util/EventEmitter";
 import Translation from "util/string/Translation";
 
 interface CharacterEvents extends Events<Component> {
@@ -15,7 +15,7 @@ interface CharacterEvents extends Events<Component> {
 
 export default class Character extends Component {
 
-	@Override public readonly event: EventEmitter<this, CharacterEvents>;
+	@Override public readonly event: IEventEmitter<this, CharacterEvents>;
 
 	private name?: Component;
 
@@ -39,7 +39,7 @@ export default class Character extends Component {
 		this._character = character;
 
 		if (typeof this._character === "object") {
-			this.style.set("--headshot", `url("${Projects.current!.getPath("character", this._character.id)}")`);
+			this.style.set("--headshot", `url("chiri://${Projects.current!.getPath("character", this._character.id)}")`);
 
 		} else {
 			this.style.remove("--headshot");

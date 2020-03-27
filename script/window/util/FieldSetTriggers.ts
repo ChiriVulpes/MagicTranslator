@@ -13,7 +13,7 @@ export function Triggers (host: any, property: string | number | symbol) {
 }
 
 export module Triggers {
-	export function get<T> (inst: T): (keyof T)[] {
+	export function get<T extends object> (inst: T): (keyof T)[] {
 		const h = inst.constructor as any as TriggerHandlerClass;
 		return (h[SYMBOL_TRIGGER_FIELDS] || new Map())
 			.getOrDefault(h, () => []) as any;

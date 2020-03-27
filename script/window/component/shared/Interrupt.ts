@@ -1,6 +1,6 @@
 import Component, { TextGenerator } from "component/Component";
 import Button from "component/shared/Button";
-import EventEmitter, { Events } from "util/EventEmitter";
+import { Events, IEventEmitter } from "util/EventEmitter";
 
 export enum InterruptChoice {
 	No = "no",
@@ -48,7 +48,7 @@ export default class Interrupt<O extends string = string> extends Component {
 			.event.waitFor("resolve").then(([choice]) => resolve(choice)));
 	}
 
-	@Override public readonly event: EventEmitter<this, InterruptEvents<O>>;
+	@Override public readonly event: IEventEmitter<this, InterruptEvents<O>>;
 
 	protected content: Component;
 	private readonly title: Component;

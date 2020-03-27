@@ -8,13 +8,15 @@ type UnaryFunction<I = any, O = any> = (input: I) => O;
 type ReturnTypeOrT<T> = T extends (...args: any[]) => infer R ? R : T;
 type FunctionOrNoParams<H extends AnyFunction> = H | (() => ReturnType<H>);
 
+type LiterallyJustTheSameThing<T> = { [K in keyof T]: T[K] };
 /**
  * Gets the arguments tuple of a function.
  */
-type ArgumentsOf<F extends AnyFunction | Class<any>> =
-	F extends (...args: infer A) => any ? A :
-	F extends new (...args: infer A) => any ? A :
-	[];
+type ArgumentsOf<T> = Extract<LiterallyJustTheSameThing<Parameters<Extract<T, AnyFunction>>>, any[]>;
+// type ArgumentsOf<F extends AnyFunction | Class<any>> =
+// 	F extends (...args: infer A) => any ? A :
+// 	F extends new (...args: infer A) => any ? A :
+// 	[];
 
 
 ////////////////////////////////////

@@ -1,7 +1,6 @@
 // tslint:disable max-line-length
 
 import PriorityMap from "util/PriorityMap";
-import Stream from "util/stream/Stream";
 
 const SYMBOL_SUBSCRIPTIONS = Symbol("subscriptions");
 
@@ -222,8 +221,8 @@ interface UntilSubscriber<H, E> {
 // this is the last in the file because for some reason it breaks the syntax highlighter ¯\_(ツ)_/¯
 
 // tslint:disable-next-line interface-name
-interface IEventEmitter<H = any, E = any> {
-	copyFrom (emitter: IEventEmitter<H, E>): void;
+export interface IEventEmitter<H = any, E = any> {
+	// copyFrom (emitter: IEventEmitter<H, E>): void;
 	emit<K extends keyof E> (event: K, ...args: ArgsOf<E[K]>): H;
 	emitStream<K extends keyof E> (event: K, ...args: ArgsOf<E[K]>): Stream<ReturnOf<E[K]>>;
 	emitReduce<K extends keyof E, A extends ReturnOf<E[K]> & Head<ArgsOf<E[K]>>> (event: K, arg: A, ...args: Tail<ArgsOf<E[K]>>): Extract<ReturnOf<E[K]> & Head<ArgsOf<E[K]>>, undefined> extends undefined ? (undefined extends A ? ReturnOf<E[K]> : A) : ReturnOf<E[K]>;

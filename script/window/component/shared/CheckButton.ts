@@ -1,5 +1,5 @@
 import Component from "component/Component";
-import EventEmitter, { Events } from "util/EventEmitter";
+import { Events, IEventEmitter } from "util/EventEmitter";
 
 interface CheckButtonEvents extends Events<Component> {
 	toggle (enabled: boolean): any;
@@ -7,7 +7,7 @@ interface CheckButtonEvents extends Events<Component> {
 
 export default class CheckButton extends Component {
 
-	@Override public readonly event: EventEmitter<this, CheckButtonEvents>;
+	@Override public readonly event: IEventEmitter<this, CheckButtonEvents>;
 
 	public constructor () {
 		super("button");

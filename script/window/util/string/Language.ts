@@ -1,4 +1,5 @@
 import Translations from "util/string/Translations";
+import FileSystem from "util/FileSystem";
 
 export default class Language {
 	public static current: Language;
@@ -8,13 +9,13 @@ export default class Language {
 	public static async initialize () {
 		const locale = await window.send<string>("get-locale");
 
-		const fallbackResponse = await fetch("./lang/en-US.quilt");
-		Language.fallback = new Language("en-US", await fallbackResponse.text());
+		const fallbackResponse = await FileSystem.readFile("./lang/en-US.quilt", "utf8");
+		Language.fallback = new Language("en-US", fallbackResponse);
 
-		const response = await fetch(`./lang/${locale}.quilt`).catch(() => {
+		const response = await FileSystem.readFile(`./lang/${locale}.quilt`, "utf8").catch(() => {
 			console.warn(`The locale ${locale} is not supported. =(`);
 		});
-		Language.current = response ? new Language(locale, await response.text()) : Language.fallback;
+		Language.current = response ? new Language(locale, response) : Language.fallback;
 
 		for (const waiter of Language.languageWaiters) waiter(Language.current);
 	}

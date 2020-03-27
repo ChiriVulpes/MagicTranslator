@@ -1,5 +1,6 @@
 /// <reference path="../Common.d.ts" />
-import { app, BrowserWindow, ipcMain, Menu, screen, WebContents } from "electron";
+import { app, BrowserWindow, ipcMain, Menu, screen, WebContents, protocol } from "electron";
+import * as path from "path";
 // tslint:disable-next-line
 const Store = require("electron-store") as StoreModule;
 
@@ -20,7 +21,16 @@ function on (windowEvent: WindowEvent, listener: (event: IpcEvent, ...args: any[
 // 	mainWindow.webContents.send(windowEvent);
 // }
 
+// hide the annoying deprecation issue
+app.allowRendererProcessReuse = true;
+
 function createWindow () {
+	protocol.registerFileProtocol('chiri', (request, callback) => {
+		callback({
+			path: path.normalize(decodeURIComponent(request.url.replace(/^chiri:\/+|\?.*$/g, ""))),
+			headers: { "Content-Security-Policy": "default-src *" },
+		});
+	});
 
 	Menu.setApplicationMenu(null);
 
@@ -90,21 +100,22 @@ function createWindow () {
 			const { webFrame } = require("electron");
 			webFrame.setVisualZoomLevelLimits(1, 1);
 			webFrame.setLayoutZoomLevelLimits(0, 0);
+			
+			window.Stream = require("@wayward/goodstream").default;
+			require("@wayward/goodstream/apply");
 
 			window.nodeRequire = require;
 			delete window.require;
 			delete window.exports;
-			delete window.module;
+			delete window.module;			
 		</script>
 		<script src="script/vendor/require.js"></script>
 		<script>
 			requirejs(["script/init/Decorator.js"], () => {
-				requirejs(["script/init/Prototype.js"], () => {
-					requirejs(["script/index.js"]);
-				});
+				requirejs(["script/index.js"]);
 			});
 		</script>
-	`), { baseURLForDataURL: `file://${__dirname}/out`, extraHeaders: "pragma: no-cache\n" });
+	`), { baseURLForDataURL: `chiri://${__dirname}/out`, extraHeaders: "pragma: no-cache\n" });
 
 	mainWindow.on("ready-to-show", () => mainWindow.show());
 }

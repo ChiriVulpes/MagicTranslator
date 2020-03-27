@@ -1,8 +1,7 @@
 import Component from "component/Component";
 import { tuple } from "util/Arrays";
 import { sleep } from "util/Async";
-import EventEmitter, { Events } from "util/EventEmitter";
-import Stream from "util/stream/Stream";
+import { Events, IEventEmitter } from "util/EventEmitter";
 import Translation from "util/string/Translation";
 
 interface DropdownEvents<O> extends Events<Component> {
@@ -21,7 +20,7 @@ export default class Dropdown<O> extends Component {
 		return new Dropdown(typeof iterable === "function" ? iterable : () => entries!);
 	}
 
-	@Override public readonly event: EventEmitter<this, DropdownEvents<O>>;
+	@Override public readonly event: IEventEmitter<this, DropdownEvents<O>>;
 
 	private selected: O;
 	private title?: (...args: any[]) => string;

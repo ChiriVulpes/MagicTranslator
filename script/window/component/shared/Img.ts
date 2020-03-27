@@ -1,5 +1,5 @@
 import Component, { TextGenerator } from "component/Component";
-import EventEmitter, { Events } from "util/EventEmitter";
+import { Events, IEventEmitter } from "util/EventEmitter";
 import Translation from "util/string/Translation";
 
 interface ImgEvents extends Events<Component> {
@@ -8,17 +8,18 @@ interface ImgEvents extends Events<Component> {
 
 export default class Img extends Component {
 
-	@Override public readonly event: EventEmitter<this, ImgEvents>;
+	@Override public readonly event: IEventEmitter<this, ImgEvents>;
 
 	private altGenerator?: (component: any) => string | number;
 
 	public constructor () {
 		super("img");
+		this.element<HTMLImageElement>().crossOrigin = "Anonymous";
 		this.listeners.add("load", () => this.event.emit("load"));
 	}
 
 	public setSrc (src: string) {
-		this.attributes.set("src", src);
+		this.attributes.set("src", src.startsWith("chiri") ? src : `chiri://${src}`);
 		return this;
 	}
 

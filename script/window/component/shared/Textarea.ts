@@ -1,5 +1,5 @@
 import Component, { TextGenerator } from "component/Component";
-import EventEmitter, { Events } from "util/EventEmitter";
+import { Events, IEventEmitter } from "util/EventEmitter";
 import Translation from "util/string/Translation";
 
 interface TextareaEvents extends Events<Component> {
@@ -9,7 +9,7 @@ interface TextareaEvents extends Events<Component> {
 
 export default class Textarea extends Component {
 
-	@Override public readonly event: EventEmitter<this, TextareaEvents>;
+	@Override public readonly event: IEventEmitter<this, TextareaEvents>;
 
 	private textarea = new Component("textarea")
 		.listeners.add(["change", "keyup", "paste", "input", "focus"], this.onChange)

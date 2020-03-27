@@ -2,7 +2,6 @@ import { AttributeManipulator, ClassManipulator, ComponentEvent, DataManipulator
 import { sleep } from "util/Async";
 import EventEmitter from "util/EventEmitter";
 import { Box } from "util/math/Geometry";
-import Stream from "util/stream/Stream";
 import Translation from "util/string/Translation";
 
 /**

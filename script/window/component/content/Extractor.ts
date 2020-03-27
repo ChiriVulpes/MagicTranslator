@@ -17,7 +17,7 @@ import { tuple } from "util/Arrays";
 import Canvas from "util/Canvas";
 import ChildProcess from "util/ChildProcess";
 import Enums from "util/Enums";
-import EventEmitter, { Events } from "util/EventEmitter";
+import { Events, IEventEmitter } from "util/EventEmitter";
 import FileSystem from "util/FileSystem";
 import { Vector } from "util/math/Geometry";
 import Path from "util/string/Path";
@@ -40,7 +40,7 @@ export default class Extractor extends Component {
 
 	private static displayMode = DisplayMode.Translate;
 
-	@Override public readonly event: EventEmitter<this, ExtractorEvents>;
+	@Override public readonly event: IEventEmitter<this, ExtractorEvents>;
 
 	private readonly pageImage: Img;
 	private readonly capturesWrapper: SortableTiles<Capture>;

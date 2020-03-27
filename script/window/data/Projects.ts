@@ -5,7 +5,6 @@ import Thumbs from "data/Thumbs";
 import { tuple } from "util/Arrays";
 import FileSystem from "util/FileSystem";
 import IndexedMap from "util/Map";
-import Stream from "util/stream/Stream";
 import { interpolate } from "util/string/Interpolator";
 import Path from "util/string/Path";
 import { mask, pad } from "util/string/String";
@@ -167,26 +166,26 @@ export class Project extends Serializable {
 	}
 
 	public getVolumeDirectory (type: keyof ProjectStructure) {
-		const [, match] = /^([^{}]*?){volume}/.match(this.structure[type]);
+		const [, match] = this.structure[type].match(/^([^{}]*?){volume}/) || [];
 		return Path.join(this.root, match);
 	}
 
 	public getChapterDirectory (type: keyof ProjectStructure, volume: string | number, chapter?: string | number) {
 		if (chapter) {
-			const [, match] = /^([^{}]*?{volume}[^{}]*?{chapter})/.match(this.structure[type]);
+			const [, match] = this.structure[type].match(/^([^{}]*?{volume}[^{}]*?{chapter})/) || [];
 			return Path.join(this.root, interpolate(match, {
 				volume: this.getSegment("volume", volume),
 				chapter: chapter === undefined ? undefined : this.getSegment("chapter", chapter),
 			}));
 
 		} else {
-			const [, match] = /^([^{}]*?{volume}[^{}]*?){chapter}/.match(this.structure[type]);
+			const [, match] = this.structure[type].match(/^([^{}]*?{volume}[^{}]*?){chapter}/) || [];
 			return Path.join(this.root, interpolate(match, { volume: this.getSegment("volume", volume) }));
 		}
 	}
 
 	public getPageDirectory (type: keyof ProjectStructure, volume: string | number, chapter: string | number) {
-		const [, match] = /^([^{}]*?{volume}[^{}]*?{chapter}[^{}]*?){page}/.match(this.structure[type]);
+		const [, match] = this.structure[type].match(/^([^{}]*?{volume}[^{}]*?{chapter}[^{}]*?){page}/) || [];
 		return Path.join(this.root, interpolate(match, {
 			volume: this.getSegment("volume", volume),
 			chapter: this.getSegment("chapter", chapter),

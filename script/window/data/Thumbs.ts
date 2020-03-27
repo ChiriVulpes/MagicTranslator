@@ -88,7 +88,8 @@ const concurrent = new Concurrency(2);
 function downScaleImage (filename: string, scale: number) {
 	return concurrent.promise<HTMLCanvasElement>(true, async resolve => {
 		const img = new Image();
-		img.src = filename;
+		img.crossOrigin = "Anonymous";
+		img.src = filename.startsWith("chiri:") ? filename : `chiri://${filename}`;
 
 		await new Promise(resolve2 => img.addEventListener("load", resolve2));
 

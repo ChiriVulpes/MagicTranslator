@@ -1,5 +1,5 @@
 import Component, { TextGenerator } from "component/Component";
-import EventEmitter, { Events } from "util/EventEmitter";
+import { Events, IEventEmitter } from "util/EventEmitter";
 import Translation from "util/string/Translation";
 
 interface InputEvents extends Events<Component> {
@@ -8,7 +8,7 @@ interface InputEvents extends Events<Component> {
 
 export default class Input extends Component {
 
-	@Override public readonly event: EventEmitter<this, InputEvents>;
+	@Override public readonly event: IEventEmitter<this, InputEvents>;
 
 	private placeholderTextGenerator?: (component: any) => string | number;
 

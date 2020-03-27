@@ -41,6 +41,18 @@ declare global {
 
 
 ////////////////////////////////////
+// Streams!
+//
+
+req<typeof import("@wayward/goodstream/apply")>("@wayward/goodstream/apply");
+
+declare global {
+	const Stream: typeof import("@wayward/goodstream").default;
+	type Stream<T> = import("@wayward/goodstream").default<T>;
+}
+
+
+////////////////////////////////////
 // Initialize external dependencies for utility classes
 //
 

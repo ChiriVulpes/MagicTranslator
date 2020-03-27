@@ -7,7 +7,7 @@ import Characters, { BasicCharacter, CharacterData } from "data/Characters";
 import Projects from "data/Projects";
 import Options from "Options";
 import Enums from "util/Enums";
-import EventEmitter, { Events } from "util/EventEmitter";
+import { Events, IEventEmitter } from "util/EventEmitter";
 import FileSystem from "util/FileSystem";
 import { pad } from "util/string/String";
 import Translation from "util/string/Translation";
@@ -69,7 +69,7 @@ export default class CharacterEditor extends Component {
 		return editor;
 	}
 
-	@Override public readonly event: EventEmitter<this, CharacterEditorEvents>;
+	@Override public readonly event: IEventEmitter<this, CharacterEditorEvents>;
 
 	private readonly removeSelectedCharacterButton: Component;
 	private readonly characterWrapper: SortableTiles<Character>;

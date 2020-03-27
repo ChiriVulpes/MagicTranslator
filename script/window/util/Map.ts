@@ -1,5 +1,4 @@
 import { tuple } from "util/Arrays";
-import Stream from "util/stream/Stream";
 
 export default class IndexedMap<K, V> extends Map<K, V> {
 	public static create<K, V> (entriesIterable: Iterable<[K, V]>) {

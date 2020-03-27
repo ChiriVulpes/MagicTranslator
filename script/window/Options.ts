@@ -75,7 +75,7 @@ export default class Options {
 			set (target, property, value) {
 				const key = property as keyof Options;
 				store.set(`options.${key}` as any, value);
-				target[key] = value;
+				target[key] = value as never;
 
 				return true;
 			},
