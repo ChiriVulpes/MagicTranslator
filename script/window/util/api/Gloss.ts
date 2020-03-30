@@ -2,7 +2,6 @@ import Interrupt from "component/shared/Interrupt";
 import { tuple } from "util/Arrays";
 import ChildProcess from "util/ChildProcess";
 import Concurrency from "util/Concurrency";
-import FileSystem from "util/FileSystem";
 
 const API_BASE_URI = "http://jisho.org/api/v1/search/words/";
 const SCRAPE_BASE_URI = "http://jisho.org/search/";
@@ -401,7 +400,7 @@ interface Sense {
 
 async function concurrentFetchJson<T> (path: string, defaultValue: T): Promise<T> {
 	return concurrentFetch(path)
-		.then(response => JSON.parse(response))
+		.then(response => response.json())
 		.catch(err => {
 			console.error(err);
 			return defaultValue;
@@ -410,6 +409,7 @@ async function concurrentFetchJson<T> (path: string, defaultValue: T): Promise<T
 
 async function concurrentFetchText (path: string, defaultValue: string): Promise<string> {
 	return concurrentFetch(path)
+		.then(response => response.text())
 		.catch(err => {
 			console.error(err);
 			return defaultValue;
@@ -418,6 +418,6 @@ async function concurrentFetchText (path: string, defaultValue: string): Promise
 
 const concurrent = new Concurrency(1, 0.1);
 
-async function concurrentFetch (path: string): Promise<string> {
-	return concurrent.promise<string>(resolve => FileSystem.readFile(path, "utf8").then(resolve));
+async function concurrentFetch (path: string): Promise<Response> {
+	return concurrent.promise<Response>(resolve => fetch(path).then(resolve));
 }

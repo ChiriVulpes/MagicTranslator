@@ -50,6 +50,7 @@ function createWindow () {
 		y: Math.floor(display.height / 2 - height / 2),
 		webPreferences: {
 			nodeIntegration: true,
+			webSecurity: false,
 		},
 	});
 
@@ -100,14 +101,14 @@ function createWindow () {
 			const { webFrame } = require("electron");
 			webFrame.setVisualZoomLevelLimits(1, 1);
 			webFrame.setLayoutZoomLevelLimits(0, 0);
-			
+
 			window.Stream = require("@wayward/goodstream").default;
 			require("@wayward/goodstream/apply");
 
 			window.nodeRequire = require;
 			delete window.require;
 			delete window.exports;
-			delete window.module;			
+			delete window.module;
 		</script>
 		<script src="script/vendor/require.js"></script>
 		<script>
