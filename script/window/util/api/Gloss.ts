@@ -308,7 +308,7 @@ function partsOfSpeechMatches (lookingFor: string, sense: Sense) {
 	if (sense.parts_of_speech.includes("Expression")) return true;
 
 	lookingFor = lookingFor.toLowerCase();
-	return sense.parts_of_speech.some(part => part.toLowerCase().includes(lookingFor));
+	return sense.parts_of_speech.some(part => part?.toLowerCase().includes(lookingFor));
 }
 
 /**
