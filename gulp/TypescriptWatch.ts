@@ -2,6 +2,7 @@ import chalk from "chalk";
 import { ChildProcess, exec } from "child_process";
 import * as path from "path";
 import Bound from "./Bound";
+import { getTimeString, getElapsedString } from "./Util";
 
 export default class TypescriptWatch {
 	private onDataHandler: (data: string) => any;
@@ -41,8 +42,9 @@ export default class TypescriptWatch {
 	public watch () {
 		const ocwd = process.cwd();
 		process.chdir(this.inDir);
-		const declaration = this.declaration ? `--declaration --declarationDir ${this.declaration}` : "";
-		this.task = exec(`npx tsc --outDir ${this.outDir} --pretty --watch ${declaration}`);
+		const declaration = this.declaration ? `--declaration --declarationDir "${this.declaration}"` : "";
+		const command = `npx tsc --outDir "${this.outDir}" --pretty --watch ${declaration}`;
+		this.task = exec(command);
 		process.chdir(ocwd);
 
 		this.task.stderr!.on("data", data => process.stderr.write(data));
@@ -83,32 +85,16 @@ export default class TypescriptWatch {
 function handleTscOut (startTime: number, data: string | Buffer, prefix?: string) {
 	data = data.toString()
 		.replace("\u001bc", "")
-		.replace(/. Watching for file changes.\r\n/, ` after ${getTimeString(startTime)}`)
+		.replace(/\. Watching for file changes\.(\r\n)*/, ` after ${getElapsedString(startTime)}\r\n`)
 		.replace(/(incremental compilation...|in watch mode...)\r\n/g, "$1")
 		.replace(/( TS\d{4}: [^\r\n]*?\r\n)\r\n/g, "$1")
 		.replace(/(~+[^\r\n]*?\r\n)\r\n\r\n/g, "$1")
-		.replace(/(?=\[30;47m(\d+| +)\u001b\[0m)/g, "\t");
+		.replace(/(?=\[30;47m(\d+| +)\u001b\[0m)/g, "\t")
+		.replace(/\[\u001b\[90m\d{1,2}:\d{2}:\d{2} [AP]M\u001b\[0m\]/g, `[${getTimeString()}]`);
 
 	if (prefix) {
 		data = data.replace(/(\u001b\[96m.*?\u001b\[0m:\u001b\[93m)/g, chalk.cyan(`${prefix}$1`));
 	}
 
 	return data;
-}
-
-function getTimeString (start: number) {
-	const time = Date.now() - start;
-	let timeString;
-
-	if (time >= 1000) {
-		timeString = `${(time / 1000).toFixed(2).replace(/0+$/, "")} s`;
-
-	} else if (time >= 100) {
-		timeString = `${(time / 100).toFixed(0)} ms`;
-
-	} else {
-		timeString = `${time} μs`;
-	}
-
-	return chalk.magenta(timeString);
 }
