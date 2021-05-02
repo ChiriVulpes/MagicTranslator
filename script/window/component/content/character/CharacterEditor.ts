@@ -114,7 +114,7 @@ export default class CharacterEditor extends Component {
 
 	public async createCharacter (file: string, name = "") {
 		const img = new Image();
-		img.src = file; // `data:image/${path.extname(file)};base64,${new Buffer(await fs.readFile(file)).toString("base64")}`;
+		img.src = `chiri://${file}`; // `data:image/${path.extname(file)};base64,${new Buffer(await fs.readFile(file)).toString("base64")}`;
 		await new Promise(resolve => img.onload = resolve);
 
 		const canvas = document.createElement("canvas");
