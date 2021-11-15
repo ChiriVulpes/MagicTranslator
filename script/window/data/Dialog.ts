@@ -50,7 +50,7 @@ export class DialogImpl {
 
 		let lastCharacter: number | BasicCharacter | undefined;
 		for (const capture of captures.captures) {
-			if (capture.character && capture.character !== lastCharacter) {
+			if (capture.character !== undefined && capture.character !== lastCharacter) {
 				result += `## ${project.characters.getName(capture.character)}\n\n`;
 				lastCharacter = capture.character;
 			}
