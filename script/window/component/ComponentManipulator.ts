@@ -30,7 +30,8 @@ export abstract class Manipulator<T, U extends Until<T> | undefined = undefined>
 		if (!this.untilHandler) return {} as any;
 
 		return new Proxy({}, {
-			get: (_, key: keyof EmptyIfUndefined<U>) => (...args: any[]) => {
+			get: (_, k) => (...args: any[]) => {
+				const key = k as keyof EmptyIfUndefined<U>;
 				const { start, end } = this.untilHandler![key] as any as Until<T>;
 				start(...args);
 

@@ -48,7 +48,7 @@ export default class Interrupt<O extends string = string> extends Component {
 			.event.waitFor("resolve").then(([choice]) => resolve(choice)));
 	}
 
-	@Override public readonly event: IEventEmitter<this, InterruptEvents<O>>;
+	declare event: IEventEmitter<this, InterruptEvents<O>>;
 
 	protected content: Component;
 	private readonly title: Component;

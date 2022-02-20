@@ -8,7 +8,7 @@ interface InputEvents extends Events<Component> {
 
 export default class Input extends Component {
 
-	@Override public readonly event: IEventEmitter<this, InputEvents>;
+	declare event: IEventEmitter<this, InputEvents>;
 
 	private placeholderTextGenerator?: (component: any) => string | number;
 

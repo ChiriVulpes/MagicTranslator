@@ -8,7 +8,7 @@ interface ImgEvents extends Events<Component> {
 
 export default class Img extends Component {
 
-	@Override public readonly event: IEventEmitter<this, ImgEvents>;
+	declare event: IEventEmitter<this, ImgEvents>;
 
 	private altGenerator?: (component: any) => string | number;
 

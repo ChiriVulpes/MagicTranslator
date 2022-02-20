@@ -1,8 +1,11 @@
 import { build, Platform } from "electron-builder";
 import gulpSass from "gulp-sass";
+import sass from "sass";
 import Electron from "./gulp/Electron";
 import Task, { Pipe, remove, Series, symlink, watch } from "./gulp/Task";
 import TypescriptWatch from "./gulp/TypescriptWatch";
+
+const sassCompiler = gulpSass(sass);
 
 ////////////////////////////////////
 // Scripts
@@ -24,7 +27,7 @@ async function watchScriptApp () {
 }
 
 const style = new Pipe("style", "style/**/*.scss")
-	.pipe(gulpSass)
+	.pipe(sassCompiler)
 	.pipe("out/style");
 
 const statik = new Pipe("static", ["static/**/*", "!static/node_modules/**/*"])

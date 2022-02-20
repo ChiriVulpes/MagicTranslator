@@ -7,7 +7,7 @@ interface CheckButtonEvents extends Events<Component> {
 
 export default class CheckButton extends Component {
 
-	@Override public readonly event: IEventEmitter<this, CheckButtonEvents>;
+	declare event: IEventEmitter<this, CheckButtonEvents>;
 
 	public constructor () {
 		super("button");

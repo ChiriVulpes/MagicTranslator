@@ -13,7 +13,7 @@
         "noUnusedParameters": false,
         "strict": true,
         "strictPropertyInitialization": false,
-        "target": "esnext",
+        "target": "es2020",
         "types": [],
         "plugins": [
             {

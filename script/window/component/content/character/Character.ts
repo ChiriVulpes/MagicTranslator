@@ -15,7 +15,7 @@ interface CharacterEvents extends Events<Component> {
 
 export default class Character extends Component {
 
-	@Override public readonly event: IEventEmitter<this, CharacterEvents>;
+	declare event: IEventEmitter<this, CharacterEvents>;
 
 	private name?: Component;
 

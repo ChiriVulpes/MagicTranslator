@@ -9,7 +9,7 @@ interface SortableTilesEvents extends Events<Component> {
 
 export default class SortableTiles<T extends Component> extends Component {
 
-	@Override public readonly event: IEventEmitter<this, SortableTilesEvents>;
+	declare event: IEventEmitter<this, SortableTilesEvents>;
 
 	public constructor (private readonly variablySized?: "vertical" | "horizontal") {
 		super();
@@ -49,7 +49,7 @@ const disallowSortingWhenHovered = Stream.of("button", "input", "textarea", "a")
 
 class SortableTile<T extends Component> extends Component {
 
-	@Override public readonly event: IEventEmitter<this, SortableTileEvents>;
+	declare event: IEventEmitter<this, SortableTileEvents>;
 
 	private mouseOffset: Vector;
 	private lastMove?: LastMove;

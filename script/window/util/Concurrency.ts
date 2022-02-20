@@ -12,7 +12,7 @@ export default class Concurrency {
 	public promise<T> (cancellable: any, initializer?: (resolve: (v?: any) => any, reject: (error: any) => any) => any): CancellablePromise<T> {
 		if (!initializer) initializer = cancellable, cancellable = true;
 		return new CancellablePromise<T>(async (resolve, reject, isCancelled) => {
-			if (this.concurrentCount >= this.maxConcurrent) await new Promise(res => this.waiting.push(res));
+			if (this.concurrentCount >= this.maxConcurrent) await new Promise<void>(res => this.waiting.push(res));
 
 			let err: any;
 			let result!: T;

@@ -9,7 +9,7 @@ import { interpolate } from "util/string/Interpolator";
 import Path from "util/string/Path";
 import { mask, pad } from "util/string/String";
 
-export default new class Projects extends Map<string, Project> {
+class Projects extends Map<string, Project> {
 
 	public current?: Project;
 
@@ -27,7 +27,9 @@ export default new class Projects extends Map<string, Project> {
 			.map(async root => tuple(root, await new Project(root).load()))
 			.rest();
 	}
-};
+}
+
+export default new Projects;
 
 export interface Page {
 	filename: string;

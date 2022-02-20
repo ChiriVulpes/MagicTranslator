@@ -10,7 +10,7 @@ interface NoteEvents extends Events<Component> {
 
 export default class Note extends Component {
 
-	@Override public readonly event: IEventEmitter<this, NoteEvents>;
+	declare event: IEventEmitter<this, NoteEvents>;
 
 	protected readonly ja = new Textarea()
 		.classes.add("japanese")

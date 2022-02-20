@@ -28,7 +28,7 @@ enum NoteType {
 
 export default class Capture extends Component {
 
-	@Override public readonly event: IEventEmitter<this, CaptureEvents>;
+	declare event: IEventEmitter<this, CaptureEvents>;
 
 	private readonly img: Img;
 	private readonly notesWrappers = new Map<NoteType, SortableTiles<Note>>();

@@ -24,7 +24,7 @@ interface ExplorerEvents extends Events<Component> {
 
 export default class Explorer extends Component {
 
-	@Override public readonly event: IEventEmitter<this, ExplorerEvents>;
+	declare event: IEventEmitter<this, ExplorerEvents>;
 
 	private readonly explorerWrapper: Component;
 	private readonly actionWrapper = new ButtonBar().appendTo(this);
@@ -355,7 +355,7 @@ interface ImageButtonEvents extends Events<Component> {
 
 class ImageButton extends Component {
 
-	@Override public readonly event: IEventEmitter<this, ImageButtonEvents>;
+	declare event: IEventEmitter<this, ImageButtonEvents>;
 
 	public readonly title = new Component()
 		.classes.add("title")

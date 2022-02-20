@@ -20,7 +20,7 @@ export default class Dropdown<O> extends Component {
 		return new Dropdown(typeof iterable === "function" ? iterable : () => entries!);
 	}
 
-	@Override public readonly event: IEventEmitter<this, DropdownEvents<O>>;
+	declare event: IEventEmitter<this, DropdownEvents<O>>;
 
 	private selected: O;
 	private title?: (...args: any[]) => string;

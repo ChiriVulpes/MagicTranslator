@@ -137,7 +137,7 @@ async function getWords (phrase: string) {
 
 		await Interrupt.info(interrupt => interrupt
 			.setTitle("info-error-on-gloss")
-			.setDescription(() => err.message));
+			.setDescription(() => (err as Error).message));
 
 		return Stream.empty<ExpectedGloss>();
 	}

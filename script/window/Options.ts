@@ -84,7 +84,7 @@ export default class Options {
 		await Options.onInitialize();
 
 		for (const handler of this.waitForOptionsHandlers) handler();
-		delete this.waitForOptionsHandlers;
+		this.waitForOptionsHandlers = [];
 		Options.waitForOptions = Promise.resolve.bind(Promise) as any;
 	}
 
@@ -104,7 +104,7 @@ export default class Options {
 	}
 
 	public static async waitForOptions () {
-		return new Promise(resolve => this.waitForOptionsHandlers.push(resolve));
+		return new Promise<void>(resolve => this.waitForOptionsHandlers.push(resolve));
 	}
 
 	public static async chooseFile (title: string, validator: ((result: string) => boolean | Promise<boolean>) | undefined, retryOnCancel: true, ...args: any[]): Promise<string>;

@@ -2,7 +2,7 @@ export function sleep (s: number) {
 	return new Promise<void>(resolve => setTimeout(resolve, s * 1000));
 }
 
-export type Resolve<T> = (value?: T | PromiseLike<T> | undefined) => void;
+export type Resolve<T> = (value: T | PromiseLike<T>) => void;
 export type Reject = (reason?: any) => void;
 
 export class ResolvablePromise<T = void> extends Promise<T> {
@@ -20,7 +20,7 @@ export class ResolvablePromise<T = void> extends Promise<T> {
 		let reject!: Reject;
 
 		super((_resolve, _reject) => {
-			resolve = (value?: T | PromiseLike<T> | undefined) => {
+			resolve = (value: T | PromiseLike<T>) => {
 				this._isResolved = true;
 				_resolve(value);
 			};

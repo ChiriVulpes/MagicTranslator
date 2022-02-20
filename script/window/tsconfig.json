@@ -15,7 +15,7 @@
         "strict": true,
         "strictPropertyInitialization": false,
         "experimentalDecorators": true,
-        "target": "esnext",
+        "target": "es2020",
         "sourceMap": true,
         "lib": [
             "dom", "dom.iterable", "es2018", "es2018.promise"

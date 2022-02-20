@@ -7,7 +7,7 @@ let Dialog: typeof Electron.dialog;
 
 const fileWriteLocks = new Map<string, Promise<void>>();
 
-class FileSystem {
+class FileSystemMethods {
 
 	private readonly concurrent: Concurrency;
 
@@ -126,9 +126,9 @@ class FileSystem {
 
 }
 
-export default new class extends FileSystem {
+class FileSystem extends FileSystemMethods {
 
-	public priority = new FileSystem(Infinity);
+	public priority = new FileSystemMethods(Infinity);
 
 	public initialize (
 		nodefs_: typeof import("fs"),
@@ -139,4 +139,6 @@ export default new class extends FileSystem {
 		path = path_;
 		Dialog = dialog;
 	}
-};
+}
+
+export default new FileSystem;

@@ -8,7 +8,7 @@
         "strict": true,
         "strictPropertyInitialization": false,
         "experimentalDecorators": true,
-        "target": "esnext",
+        "target": "es2020",
         "esModuleInterop": true,
         "types": [
             "node"

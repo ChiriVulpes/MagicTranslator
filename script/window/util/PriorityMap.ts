@@ -7,7 +7,7 @@ export default class PriorityMap<T> {
 		return lists.stream()
 			.flatMap(list => list.priorities)
 			.distinct()
-			.sorted()
+			.sort()
 			.flatMap(priority => lists.stream()
 				.filter(list => priority in list.map)
 				.map(list => list.map[priority]));

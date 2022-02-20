@@ -28,7 +28,7 @@ export default class Button extends Component {
 		return Component.document.attributes.get("button-display-mode") as ButtonDisplayMode;
 	}
 
-	@Override public event: IEventEmitter<this, ButtonEvents>;
+	declare event: IEventEmitter<this, ButtonEvents>;
 
 	public constructor () {
 		super("button");

@@ -40,7 +40,7 @@ export default class Extractor extends Component {
 
 	private static displayMode = DisplayMode.Translate;
 
-	@Override public readonly event: IEventEmitter<this, ExtractorEvents>;
+	declare event: IEventEmitter<this, ExtractorEvents>;
 
 	private readonly pageImage: Img;
 	private readonly capturesWrapper: SortableTiles<Capture>;

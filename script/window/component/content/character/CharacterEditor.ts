@@ -69,7 +69,7 @@ export default class CharacterEditor extends Component {
 		return editor;
 	}
 
-	@Override public readonly event: IEventEmitter<this, CharacterEditorEvents>;
+	declare event: IEventEmitter<this, CharacterEditorEvents>;
 
 	private readonly removeSelectedCharacterButton: Component;
 	private readonly characterWrapper: SortableTiles<Character>;

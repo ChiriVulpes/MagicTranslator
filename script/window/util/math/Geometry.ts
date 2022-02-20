@@ -6,6 +6,10 @@ export class Box implements ClientRect {
 	public readonly left: number;
 	public readonly right: number;
 
+	public readonly x!: never;
+	public readonly y!: never;
+	public readonly toJSON!: never;
+
 	public constructor (rect: ClientRect) {
 		this.top = rect.top;
 		this.bottom = rect.bottom;

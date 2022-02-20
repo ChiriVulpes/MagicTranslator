@@ -46,7 +46,7 @@ export default class Component extends EventEmitter.Host<ComponentEvents> {
 
 	private static map = new Map<Element, Component>();
 
-	public static get<C extends Component = Component> (element: Element | Event | string) {
+	public static get<C extends Component = Component> (element: Element | Event | string): C {
 		if (typeof element === "string") {
 			element = document.querySelector(element)!;
 		}

@@ -9,7 +9,7 @@ interface TextareaEvents extends Events<Component> {
 
 export default class Textarea extends Component {
 
-	@Override public readonly event: IEventEmitter<this, TextareaEvents>;
+	declare event: IEventEmitter<this, TextareaEvents>;
 
 	private textarea = new Component("textarea")
 		.listeners.add(["change", "keyup", "paste", "input", "focus"], this.onChange)
