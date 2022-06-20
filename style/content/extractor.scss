@@ -6,6 +6,8 @@
 	
 	--textarea-font-size-main: 1.1vw;
 	--textarea-font-size-note: 0.8vw;
+	--natural-width: 1114;
+	--natural-height: 1600;
 	
 	&.waiting-for-capture {
 		button {
@@ -32,8 +34,8 @@
 		content: "";
 		display: block;
 		position: fixed;
-		left: var(--capture-x);
-		top: var(--capture-y);
+		left: calc(var(--capture-x) * 1px + var(--capture-offset-x) * 1px);
+		top: calc(var(--capture-y) * 1px + var(--capture-offset-y) * 1px);
 		width: var(--capture-w);
 		height: var(--capture-h);
 		box-shadow: 0 0 0 2000px transparent;
@@ -56,12 +58,10 @@
 		overflow: auto;
 		
 		> img {
-			--natural-width: 1114px;
-			--natural-height: 1600px;
 			--zoom: 0;
 			display: block;
-			max-width: calc(100% + (var(--natural-width) - 100%) * var(--zoom));
-			max-height: calc(100% + (var(--natural-height) - 100%) * var(--zoom));
+			max-width: calc(100% + ((var(--natural-width) * 1px) - 100%) * var(--zoom));
+			max-height: calc(100% + ((var(--natural-height) * 1px) - 100%) * var(--zoom));
 			margin: auto;
 			-webkit-user-drag: none;
 			transition: opacity .1s ease-in-out, height 0s linear;

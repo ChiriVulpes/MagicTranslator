@@ -2,6 +2,7 @@ import { BasicCharacter } from "data/Characters";
 import Serializable, { Serialized } from "data/Serialized";
 
 export interface CaptureData {
+	version?: number;
 	id?: number;
 	position?: { x: number; y: number };
 	size?: { x: number; y: number };

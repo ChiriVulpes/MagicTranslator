@@ -65,8 +65,8 @@ export default class Extractor extends Component {
 					.setAlt("no-translated-image")
 					.event.subscribe("load", () => {
 						const image = this.pageImage.element<HTMLImageElement>();
-						this.pageImage.style.set("--natural-width", `${image.naturalWidth}px`);
-						this.pageImage.style.set("--natural-height", `${image.naturalHeight}px`);
+						this.style.set("--natural-width", `${image.naturalWidth}`);
+						this.style.set("--natural-height", `${image.naturalHeight}`);
 					})))
 			.appendTo(this);
 
@@ -220,14 +220,17 @@ export default class Extractor extends Component {
 
 		this.classes.add("selecting");
 
-		const scale = this.pageImage.box().size().over(Vector.getNaturalSize(this.pageImage.element<HTMLImageElement>()));
+		const naturalSize = Vector.getNaturalSize(this.pageImage.element<HTMLImageElement>());
+		const scale = this.pageImage.box().size().over(naturalSize);
 
 		const capture = component.getData();
-		const position = new Vector(capture.position || 0).times(scale);
-		const size = new Vector(capture.size || 0).times(scale);
+		const position = new Vector(capture.position || 0).times(capture.version === 2 ? naturalSize : 1).times(scale);
+		const size = new Vector(capture.size || 0).times(capture.version === 2 ? naturalSize : 1).times(scale);
 
-		this.style.set("--capture-x", position.x + this.pageImage.box().left);
-		this.style.set("--capture-y", position.y + this.pageImage.box().top);
+		this.style.set("--capture-offset-x", this.pageImage.box().left);
+		this.style.set("--capture-offset-y", this.pageImage.box().top);
+		this.style.set("--capture-x", position.x);
+		this.style.set("--capture-y", position.y);
 		this.style.set("--capture-w", size.x);
 		this.style.set("--capture-h", size.y);
 	}
@@ -257,6 +260,8 @@ export default class Extractor extends Component {
 		}
 
 		this.captureStart = Vector.get(event);
+		this.style.set("--capture-offset-x", this.pageImage.box().left);
+		this.style.set("--capture-offset-y", this.pageImage.box().top);
 
 		Component.window.listeners.add("mousemove", this.mouseMove);
 		Component.window.listeners.add("mouseup", this.mouseUp);
@@ -271,8 +276,8 @@ export default class Extractor extends Component {
 
 		if (event.altKey) size = new Vector(Math.min(size.x, size.y));
 
-		this.style.set("--capture-x", position.x);
-		this.style.set("--capture-y", position.y);
+		this.style.set("--capture-x", position.x - this.pageImage.box().left);
+		this.style.set("--capture-y", position.y - this.pageImage.box().top);
 		this.style.set("--capture-w", size.x);
 		this.style.set("--capture-h", size.y);
 	}
@@ -284,7 +289,8 @@ export default class Extractor extends Component {
 		Component.window.listeners.remove("mousemove", this.mouseMove);
 		Component.window.listeners.remove("mouseup", this.mouseUp);
 
-		const scale = this.pageImage.box().size().over(Vector.getNaturalSize(this.pageImage.element<HTMLImageElement>()));
+		const naturalSize = Vector.getNaturalSize(this.pageImage.element<HTMLImageElement>());
+		const scale = this.pageImage.box().size().over(naturalSize);
 
 		const size = Vector.size(this.captureStart, this.captureEnd).over(scale);
 		if (size.x < 20 || size.y < 20) {
@@ -347,8 +353,9 @@ export default class Extractor extends Component {
 		]);
 
 		await this.addCapture({
-			position: position.raw(),
-			size: size.raw(),
+			version: 2,
+			position: position.over(naturalSize).raw(),
+			size: size.over(naturalSize).raw(),
 			text: text!,
 			translation: "",
 			notes: [],
