@@ -36,7 +36,7 @@ export default class Options {
 
 	public static async initialize (req: RequireFunction) {
 		Store = req<StoreModule>("electron-store");
-		const electron = req<typeof Electron>("electron").remote;
+		const electron = req<typeof Electron>("electron");
 		Dialog = electron.dialog;
 
 		const store = new Store<StoredData>();

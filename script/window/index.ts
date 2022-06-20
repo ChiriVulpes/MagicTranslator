@@ -12,7 +12,7 @@ function req<T = any> (module: string): T {
 	return (window as any).nodeRequire(module) as T;
 }
 
-const { ipcRenderer, remote } = req<typeof Electron>("electron");
+const { ipcRenderer, dialog } = req<typeof Electron>("electron");
 
 declare global {
 	// tslint:disable-next-line
@@ -61,7 +61,7 @@ const path = req<typeof import("path")>("path");
 const childProcess = req<typeof import("child_process")>("child_process");
 
 import FileSystem from "util/FileSystem";
-FileSystem.initialize(fs, path, remote.dialog);
+FileSystem.initialize(fs, path, dialog);
 
 import ChildProcess from "util/ChildProcess";
 ChildProcess.initialize(childProcess);

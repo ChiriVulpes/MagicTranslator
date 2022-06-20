@@ -1,5 +1,5 @@
 /// <reference path="../Common.d.ts" />
-import { app, BrowserWindow, ipcMain, Menu, screen, WebContents, protocol } from "electron";
+import { app, BrowserWindow, ipcMain, Menu, protocol, screen, WebContents } from "electron";
 import * as path from "path";
 // tslint:disable-next-line
 const Store = require("electron-store") as StoreModule;
@@ -20,9 +20,6 @@ function on (windowEvent: WindowEvent, listener: (event: IpcEvent, ...args: any[
 // function send (windowEvent: WindowEvent) {
 // 	mainWindow.webContents.send(windowEvent);
 // }
-
-// hide the annoying deprecation issue
-app.allowRendererProcessReuse = true;
 
 function createWindow () {
 	protocol.registerFileProtocol('chiri', (request, callback) => {
@@ -51,6 +48,7 @@ function createWindow () {
 		webPreferences: {
 			nodeIntegration: true,
 			webSecurity: false,
+			contextIsolation: false,
 		},
 	});
 
@@ -100,7 +98,6 @@ function createWindow () {
 		<script>
 			const { webFrame } = require("electron");
 			webFrame.setVisualZoomLevelLimits(1, 1);
-			webFrame.setLayoutZoomLevelLimits(0, 0);
 
 			window.Stream = require("@wayward/goodstream").default;
 			require("@wayward/goodstream/apply");
