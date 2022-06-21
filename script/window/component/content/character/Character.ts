@@ -39,7 +39,7 @@ export default class Character extends Component {
 		this._character = character;
 
 		if (typeof this._character === "object") {
-			this.style.set("--headshot", `url("chiri://${Projects.current!.getPath("character", this._character.id)}")`);
+			this.style.set("--headshot", `url("${Projects.current!.getPath("character", this._character.id)}")`);
 
 		} else {
 			this.style.remove("--headshot");

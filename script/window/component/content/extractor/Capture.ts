@@ -76,12 +76,12 @@ export default class Capture extends Component {
 			.classes.add("capture-action-row")
 			.append(Dropdown.from(() => [...characters.characters.map(c => c.id), ...Enums.values(BasicCharacter)])
 				.classes.add("character-preview-button")
-				.style.set("--headshot", typeof capture.character !== "number" ? "" : `url("chiri://${Projects.current!.getPath("character", capture.character)}")`)
+				.style.set("--headshot", typeof capture.character !== "number" ? "" : `url("${Projects.current!.getPath("character", capture.character)}")`)
 				.setTranslationHandler(characters.getName)
 				.select(characters.getId(capture.character !== undefined ? capture.character : BasicCharacter.Unknown))
 				.setOptionInitializer((option, character) => option
 					.classes.add("character-preview-button")
-					.style.set("--headshot", typeof character !== "number" ? "" : `url("chiri://${Projects.current!.getPath("character", character)}")`))
+					.style.set("--headshot", typeof character !== "number" ? "" : `url("${Projects.current!.getPath("character", character)}")`))
 				.event.subscribe("select", this.changeCharacter)
 				.event.subscribe("open", () => this.classes.add("active"))
 				.event.subscribe("close", () => this.classes.remove("active"))
@@ -125,7 +125,7 @@ export default class Capture extends Component {
 
 	@Bound private async changeCharacter (dropdown: Dropdown<number | BasicCharacter>) {
 		const character = this.capture.character = dropdown.getSelected();
-		dropdown.style.set("--headshot", typeof character !== "number" ? "" : `url("chiri://${Projects.current!.getPath("character", character)}")`);
+		dropdown.style.set("--headshot", typeof character !== "number" ? "" : `url("${Projects.current!.getPath("character", character)}")`);
 		this.event.emit("captureChange");
 	}
 

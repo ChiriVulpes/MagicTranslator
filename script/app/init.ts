@@ -1,6 +1,5 @@
 /// <reference path="../Common.d.ts" />
-import { app, BrowserWindow, ipcMain, Menu, protocol, screen, WebContents } from "electron";
-import * as path from "path";
+import { app, BrowserWindow, ipcMain, Menu, screen, WebContents } from "electron";
 // tslint:disable-next-line
 const Store = require("electron-store") as StoreModule;
 
@@ -17,17 +16,7 @@ function on (windowEvent: WindowEvent, listener: (event: IpcEvent, ...args: any[
 	});
 }
 
-// function send (windowEvent: WindowEvent) {
-// 	mainWindow.webContents.send(windowEvent);
-// }
-
 function createWindow () {
-	protocol.registerFileProtocol('chiri', (request, callback) => {
-		callback({
-			path: path.normalize(decodeURIComponent(request.url.replace(/^chiri:\/+|\?.*$/g, ""))),
-			headers: { "Content-Security-Policy": "default-src *" },
-		});
-	});
 
 	Menu.setApplicationMenu(null);
 
@@ -88,32 +77,11 @@ function createWindow () {
 	mainWindow.webContents.on("devtools-opened", () => store.set("window.devtools", true));
 	mainWindow.webContents.on("devtools-closed", () => store.set("window.devtools", false));
 
-
 	////////////////////////////////////
 	// Load the page!
 	//
 
-	mainWindow.loadURL("data:text/html;charset=UTF-8," + encodeURIComponent(`
-		<link rel="stylesheet" href="style/index.css">
-		<script>
-			const { webFrame } = require("electron");
-			webFrame.setVisualZoomLevelLimits(1, 1);
-
-			window.Stream = require("@wayward/goodstream").default;
-			require("@wayward/goodstream/apply");
-
-			window.nodeRequire = require;
-			delete window.require;
-			delete window.exports;
-			delete window.module;
-		</script>
-		<script src="script/vendor/require.js"></script>
-		<script>
-			requirejs(["script/init/Decorator.js"], () => {
-				requirejs(["script/index.js"]);
-			});
-		</script>
-	`), { baseURLForDataURL: `chiri://${__dirname}/out`, extraHeaders: "pragma: no-cache\n" });
+	mainWindow.loadFile("index.html");
 
 	mainWindow.on("ready-to-show", () => mainWindow.show());
 }

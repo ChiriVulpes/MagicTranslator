@@ -89,7 +89,7 @@ function downScaleImage (filename: string, scale: number) {
 	return concurrent.promise<HTMLCanvasElement>(true, async resolve => {
 		const img = new Image();
 		img.crossOrigin = "Anonymous";
-		img.src = filename.startsWith("chiri:") ? filename : `chiri://${filename}`;
+		img.src = filename;
 
 		await new Promise(resolve2 => img.addEventListener("load", resolve2));
 
@@ -123,7 +123,7 @@ async function downScaleCanvas (cv: HTMLCanvasElement, scale: number) {
 	const tBuffer = new Float32Array(3 * tw * th); // target buffer Float32 rgb
 	let sR = 0, sG = 0, sB = 0; // source's current point r,g,b
 	/* untested !
-    var sA = 0;  //source alpha  */
+	var sA = 0;  //source alpha  */
 
 	let time = Date.now();
 	for (sy = 0; sy < sh; sy++) {
@@ -135,7 +135,7 @@ async function downScaleCanvas (cv: HTMLCanvasElement, scale: number) {
 			wy = (tY + 1 - ty); // weight of point within target pixel
 			nwy = (ty + scale - tY - 1); // ... within y+1 target pixel
 		}
-		for (sx = 0; sx < sw; sx++ , sIndex += 4) {
+		for (sx = 0; sx < sw; sx++, sIndex += 4) {
 			tx = sx * scale; // x src position within target
 			tX = 0 | tx;    // rounded : target pixel's x
 			tIndex = yIndex + tX * 3; // target pixel index within target array
@@ -149,14 +149,14 @@ async function downScaleCanvas (cv: HTMLCanvasElement, scale: number) {
 			sB = sBuffer[sIndex + 2];
 
 			/* !! untested : handling alpha !!
-               sA = sBuffer[sIndex + 3];
-               if (!sA) continue;
-               if (sA != 0xFF) {
-                   sR = (sR * sA) >> 8;  // or use /256 instead ??
-                   sG = (sG * sA) >> 8;
-                   sB = (sB * sA) >> 8;
-               }
-            */
+			   sA = sBuffer[sIndex + 3];
+			   if (!sA) continue;
+			   if (sA != 0xFF) {
+				   sR = (sR * sA) >> 8;  // or use /256 instead ??
+				   sG = (sG * sA) >> 8;
+				   sB = (sB * sA) >> 8;
+			   }
+			*/
 			if (!crossX && !crossY) { // pixel does not cross
 				// just add components weighted by squared scale.
 				tBuffer[tIndex] += sR * sqScale;

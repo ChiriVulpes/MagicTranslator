@@ -19,7 +19,7 @@ export default class Img extends Component {
 	}
 
 	public setSrc (src: string) {
-		this.attributes.set("src", src.startsWith("chiri") ? src : `chiri://${src}`);
+		this.attributes.set("src", src);
 		return this;
 	}
 

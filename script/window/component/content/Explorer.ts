@@ -388,7 +388,7 @@ class ImageButton extends Component {
 
 		const thumbnail = await Projects.get(this.root)!.thumbs.get(this.imagePath);
 		this.classes.remove("loading");
-		this.style.set("--preview", `url("chiri://${thumbnail}")`);
+		this.style.set("--preview", `url("${thumbnail}")`);
 	}
 }
 

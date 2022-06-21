@@ -1,0 +1,19 @@
+<link rel="stylesheet" href="style/index.css">
+<script>
+	const { webFrame } = require("electron");
+	webFrame.setVisualZoomLevelLimits(1, 1);
+
+	window.Stream = require("@wayward/goodstream").default;
+	require("@wayward/goodstream/apply");
+
+	window.nodeRequire = require;
+	delete window.require;
+	delete window.exports;
+	delete window.module;
+</script>
+<script src="script/vendor/require.js"></script>
+<script>
+	requirejs(["script/init/Decorator.js"], () => {
+		requirejs(["script/index.js"]);
+	});
+</script>
