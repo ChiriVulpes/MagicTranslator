@@ -13,6 +13,10 @@ class Projects extends Map<string, Project> {
 
 	public current?: Project;
 
+	public override keys () {
+		return options.projectFolders.values();
+	}
+
 	public async load () {
 		(await this.getProjects())
 			.toMap(this);
