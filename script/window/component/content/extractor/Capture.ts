@@ -31,6 +31,7 @@ export default class Capture extends Component {
 	declare event: IEventEmitter<this, CaptureEvents>;
 
 	private readonly img: Img;
+	private readonly characterDropdown: Dropdown<number | BasicCharacter>;
 	private readonly notesWrappers = new Map<NoteType, SortableTiles<Note>>();
 
 	public constructor (private readonly captureRoot: string, private readonly capture: CaptureData) {
@@ -74,7 +75,7 @@ export default class Capture extends Component {
 
 		new ButtonBar()
 			.classes.add("capture-action-row")
-			.append(Dropdown.from(() => [...characters.characters.map(c => c.id), ...Enums.values(BasicCharacter)])
+			.append(this.characterDropdown = Dropdown.from(() => [...characters.characters.map(c => c.id), ...Enums.values(BasicCharacter)])
 				.classes.add("character-preview-button")
 				.style.set("--headshot", typeof capture.character !== "number" ? "" : `url("${Projects.current!.getPath("character", capture.character)}")`)
 				.setTranslationHandler(characters.getName)
@@ -123,9 +124,9 @@ export default class Capture extends Component {
 		this.img.setSrc(`${this.captureRoot}/cap${pad(this.capture.id!, 3)}.png?cachebuster${Math.random()}`);
 	}
 
-	@Bound private async changeCharacter (dropdown: Dropdown<number | BasicCharacter>) {
-		const character = this.capture.character = dropdown.getSelected();
-		dropdown.style.set("--headshot", typeof character !== "number" ? "" : `url("${Projects.current!.getPath("character", character)}")`);
+	@Bound private async changeCharacter () {
+		const character = this.capture.character = this.characterDropdown.getSelected();
+		this.characterDropdown.style.set("--headshot", typeof character !== "number" ? "" : `url("${Projects.current!.getPath("character", character)}")`);
 		this.event.emit("captureChange");
 	}
 
@@ -204,6 +205,9 @@ export default class Capture extends Component {
 
 	@Bound private async onCharacterDropdownClick (event: MouseEvent) {
 		if (!event.ctrlKey) return;
+		this.characterDropdown.close();
 		this.capture.character = await CharacterEditor.chooseCharacter(this.capture.character);
+		const characters = Projects.current!.characters;
+		this.characterDropdown.select(characters.getId(this.capture.character !== undefined ? this.capture.character : BasicCharacter.Unknown));
 	}
 }

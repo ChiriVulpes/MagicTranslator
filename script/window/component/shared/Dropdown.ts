@@ -102,7 +102,7 @@ export default class Dropdown<O> extends Component {
 		return this;
 	}
 
-	private refresh () {
+	public refresh () {
 		this.wrapper.dump();
 		const options = this.optionsGenerator();
 		this.options = Stream.from(options)
@@ -121,7 +121,7 @@ export default class Dropdown<O> extends Component {
 		this.select(this.selected === undefined ? this.options.keyStream().first()! : this.selected);
 	}
 
-	private close () {
+	public close () {
 		if (!this.classes.has("open")) return;
 
 		this.classes.remove("open")
@@ -136,7 +136,10 @@ export default class Dropdown<O> extends Component {
 		this.event.emit("close");
 	}
 
-	@Bound private onClick () {
+	@Bound private onClick (event: MouseEvent) {
+		if (event.ctrlKey)
+			return;
+
 		const box = this.box();
 
 		const goingUp = this.dropdownDirectionHandler ? this.dropdownDirectionHandler(this, this.wrapper) === "up"
