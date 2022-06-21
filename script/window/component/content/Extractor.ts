@@ -347,10 +347,12 @@ export default class Extractor extends Component {
 			return;
 		}
 
-		const [character, text] = await Promise.all([
-			CharacterEditor.chooseCharacter(),
-			this.saveCapture(`cap${pad(this.captures.captureId, 3)}.png`, canvas, size),
-		]);
+		const character = await CharacterEditor.chooseCharacter(-1);
+		if (character === -1)
+			// cancel
+			return;
+
+		const text = await this.saveCapture(`cap${pad(this.captures.captureId, 3)}.png`, canvas, size);
 
 		await this.addCapture({
 			version: 2,
