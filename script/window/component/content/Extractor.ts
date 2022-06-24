@@ -158,8 +158,13 @@ export default class Extractor extends Component {
 	public async initialize () {
 		this.captures = await Projects.current!.getPage(this.volume, this.chapter, this.page).captures.load();
 		if(!this.captures.rawSize) {
-			const dims = await this.getImgDimensions(Projects.current!.getPath("raw", this.volume, this.chapter, this.page));
-			this.captures.rawSize = { x: dims.x, y: dims.y };
+			try {
+				const dims = await this.getImgDimensions(Projects.current!.getPath("raw", this.volume, this.chapter, this.page));
+				this.captures.rawSize = { x: dims.x, y: dims.y };
+			}
+			catch {
+				this.captures.rawSize = undefined;
+			}
 		}
 
 		for (const capture of this.captures.captures) {
