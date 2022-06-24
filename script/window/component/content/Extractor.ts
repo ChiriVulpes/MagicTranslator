@@ -232,6 +232,21 @@ export default class Extractor extends Component {
 		this.pageImage.style.set("--zoom", Math.max(0, zoom - 0.1));
 	}
 
+	private scaleVectorForRendering(sourceImageSize: Vector, vec: Vector, scale: Vector, version: number | undefined) : Vector {
+		if(version === 2) {
+			return vec.times(sourceImageSize).times(scale);
+		} else {
+			return vec.times(sourceImageSize.over(this.captures.rawSize ?? sourceImageSize)).times(scale);
+		}
+	}
+
+	private scaleCaptureHighlightForRendering(sourceImageSize: Vector, capture: CaptureData, scale: Vector): [position: Vector, size: Vector] {
+		return [
+			this.scaleVectorForRendering(sourceImageSize, new Vector(capture.position || 0), scale, capture.version),
+			this.scaleVectorForRendering(sourceImageSize, new Vector(capture.size || 0), scale, capture.version),
+		]
+	}
+
 	@Bound private mouseEnterCapture (eventOrCaptureComponent: MouseEvent | Capture) {
 		const component = eventOrCaptureComponent instanceof Capture ? eventOrCaptureComponent :
 			Component.get<Capture>(eventOrCaptureComponent).listeners.add<MouseEvent>("mouseleave", this.mouseLeaveCapture);
@@ -242,20 +257,7 @@ export default class Extractor extends Component {
 		const scale = this.pageImage.box().size().over(naturalSize);
 
 		const capture = component.getData();
-		const position = (() => {
-			if(capture.version === 2) {
-				return new Vector(capture.position || 0).times(naturalSize).times(scale);
-			} else {
-				return new Vector(capture.position || 0).times(naturalSize.over(this.captures.rawSize ?? naturalSize)).times(scale);
-			}
-		})();
-		const size = (() => {
-			if(capture.version === 2) {
-				return new Vector(capture.size || 0).times(naturalSize).times(scale);
-			} else {
-				return new Vector(capture.size || 0).times(naturalSize.over(this.captures.rawSize ?? naturalSize)).times(scale);
-			}
-		})();
+		const [position, size] = this.scaleCaptureHighlightForRendering(naturalSize, capture, scale);
 
 		this.style.set("--capture-offset-x", this.pageImage.box().left);
 		this.style.set("--capture-offset-y", this.pageImage.box().top);
