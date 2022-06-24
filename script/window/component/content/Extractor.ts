@@ -241,14 +241,14 @@ export default class Extractor extends Component {
 			if(capture.version === 2) {
 				return new Vector(capture.position || 0).times(naturalSize).times(scale);
 			} else {
-				return new Vector(capture.position || 0).times(naturalSize.over(this.captures.rawSize ?? new Vector(1, 1))).times(scale);
+				return new Vector(capture.position || 0).times(naturalSize.over(this.captures.rawSize ?? naturalSize)).times(scale);
 			}
 		})();
 		const size = (() => {
 			if(capture.version === 2) {
 				return new Vector(capture.size || 0).times(naturalSize).times(scale);
 			} else {
-				return new Vector(capture.size || 0).times(naturalSize.over(this.captures.rawSize ?? new Vector(1, 1))).times(scale);
+				return new Vector(capture.size || 0).times(naturalSize.over(this.captures.rawSize ?? naturalSize)).times(scale);
 			}
 		})();
 
