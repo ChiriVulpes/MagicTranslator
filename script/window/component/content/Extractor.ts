@@ -232,19 +232,22 @@ export default class Extractor extends Component {
 		this.pageImage.style.set("--zoom", Math.max(0, zoom - 0.1));
 	}
 
-	private scaleVectorForRendering(sourceImageSize: Vector, vec: Vector, scale: Vector, version: number | undefined) : Vector {
-		if(version === 2) {
-			return vec.times(sourceImageSize).times(scale);
+	private scaleVectorForRendering(sourceImageSize: Vector, vec: Vector, userZoom: Vector, version: number | undefined) : Vector {
+		if (version === 2) {
+			return vec.times(sourceImageSize).times(userZoom);
 		} else {
-			return vec.times(sourceImageSize.over(this.captures.rawSize ?? sourceImageSize)).times(scale);
+			const rawOrTranslatedSize = sourceImageSize;
+			const rawSize = this.captures.rawSize ?? sourceImageSize;
+			const scale = rawOrTranslatedSize.over(rawSize);
+			return vec.times(scale).times(userZoom);
 		}
 	}
 
-	private scaleCaptureHighlightForRendering(sourceImageSize: Vector, capture: CaptureData, scale: Vector): [position: Vector, size: Vector] {
+	private scaleCaptureHighlightForRendering(sourceImageSize: Vector, capture: CaptureData, userZoom: Vector): [position: Vector, size: Vector] {
 		return [
-			this.scaleVectorForRendering(sourceImageSize, new Vector(capture.position || 0), scale, capture.version),
-			this.scaleVectorForRendering(sourceImageSize, new Vector(capture.size || 0), scale, capture.version),
-		]
+			this.scaleVectorForRendering(sourceImageSize, new Vector(capture.position || 0), userZoom, capture.version),
+			this.scaleVectorForRendering(sourceImageSize, new Vector(capture.size || 0), userZoom, capture.version),
+		];
 	}
 
 	@Bound private mouseEnterCapture (eventOrCaptureComponent: MouseEvent | Capture) {
