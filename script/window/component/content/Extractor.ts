@@ -232,22 +232,18 @@ export default class Extractor extends Component {
 		this.pageImage.style.set("--zoom", Math.max(0, zoom - 0.1));
 	}
 
-	private scaleVectorForRendering(sourceImageSize: Vector, vec: Vector, userZoom: Vector, version: number | undefined) : Vector {
-		if (version === 2) {
-			return vec.times(sourceImageSize).times(userZoom);
-		} else {
-			const rawOrTranslatedSize = sourceImageSize;
-			const rawSize = this.captures.rawSize ?? sourceImageSize;
-			const scale = rawOrTranslatedSize.over(rawSize);
-			return vec.times(scale).times(userZoom);
-		}
-	}
+	private scaleCaptureHighlightForRendering(capture: CaptureData): [position: Vector, size: Vector] {
+		const naturalSize = Vector.getNaturalSize(this.pageImage.element<HTMLImageElement>());
+		const userZoom = this.pageImage.box().size().over(naturalSize);
 
-	private scaleCaptureHighlightForRendering(sourceImageSize: Vector, capture: CaptureData, userZoom: Vector): [position: Vector, size: Vector] {
-		return [
-			this.scaleVectorForRendering(sourceImageSize, new Vector(capture.position || 0), userZoom, capture.version),
-			this.scaleVectorForRendering(sourceImageSize, new Vector(capture.size || 0), userZoom, capture.version),
-		];
+		const naturalScale = naturalSize
+			.over(capture.version === 1 ? this.captures.rawSize ?? naturalSize : 1)
+			.times(userZoom);
+
+		const position = new Vector(capture.position || 0).times(naturalScale);
+		const size = new Vector(capture.size || 0).times(naturalScale);
+
+		return [position, size];
 	}
 
 	@Bound private mouseEnterCapture (eventOrCaptureComponent: MouseEvent | Capture) {
@@ -256,11 +252,8 @@ export default class Extractor extends Component {
 
 		this.classes.add("selecting");
 
-		const naturalSize = Vector.getNaturalSize(this.pageImage.element<HTMLImageElement>());
-		const scale = this.pageImage.box().size().over(naturalSize);
-
 		const capture = component.getData();
-		const [position, size] = this.scaleCaptureHighlightForRendering(naturalSize, capture, scale);
+		const [position, size] = this.scaleCaptureHighlightForRendering(capture);
 
 		this.style.set("--capture-offset-x", this.pageImage.box().left);
 		this.style.set("--capture-offset-y", this.pageImage.box().top);
