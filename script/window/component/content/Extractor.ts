@@ -237,8 +237,20 @@ export default class Extractor extends Component {
 		const scale = this.pageImage.box().size().over(naturalSize);
 
 		const capture = component.getData();
-		const position = new Vector(capture.position || 0).times(capture.version === 2 ? naturalSize : 1).times(scale);
-		const size = new Vector(capture.size || 0).times(capture.version === 2 ? naturalSize : 1).times(scale);
+		const position = (() => {
+			if(capture.version === 2) {
+				return new Vector(capture.position || 0).times(naturalSize).times(scale);
+			} else {
+				return new Vector(capture.position || 0).times(naturalSize.over(this.captures.rawSize ?? new Vector(1, 1))).times(scale);
+			}
+		})();
+		const size = (() => {
+			if(capture.version === 2) {
+				return new Vector(capture.size || 0).times(naturalSize).times(scale);
+			} else {
+				return new Vector(capture.size || 0).times(naturalSize.over(this.captures.rawSize ?? new Vector(1, 1))).times(scale);
+			}
+		})();
 
 		this.style.set("--capture-offset-x", this.pageImage.box().left);
 		this.style.set("--capture-offset-y", this.pageImage.box().top);
