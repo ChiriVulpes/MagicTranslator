@@ -22,7 +22,8 @@ export default class Captures extends Serializable {
 
 	@Serialized public captureId = 0;
 	@Serialized public captures: CaptureData[] = [];
-
+	@Serialized public rawSize?: { x: number; y: number }
+	
 	public constructor (path: string) {
 		super(`${path}.json`);
 	}
