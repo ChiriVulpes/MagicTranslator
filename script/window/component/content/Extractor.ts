@@ -146,26 +146,18 @@ export default class Extractor extends Component {
 			.toArray();
 	}
 
-	private getImgDimensions(path: string) {
-		return new Promise<Vector>((resolve, reject) => {
+	private getImgDimensions (path: string) {
+		return new Promise<Vector | undefined>((resolve, reject) => {
 			const img = document.createElement("img");
 			img.onload = () => resolve(Vector.getNaturalSize(img));
-			img.onerror = reject;
+			img.onerror = () => resolve(undefined);
 			img.src = path;
 		});
 	}
 
 	public async initialize () {
 		this.captures = await Projects.current!.getPage(this.volume, this.chapter, this.page).captures.load();
-		if(!this.captures.rawSize) {
-			try {
-				const dims = await this.getImgDimensions(Projects.current!.getPath("raw", this.volume, this.chapter, this.page));
-				this.captures.rawSize = { x: dims.x, y: dims.y };
-			}
-			catch {
-				this.captures.rawSize = undefined;
-			}
-		}
+		this.captures.rawSize ??= await this.getImgDimensions(Projects.current!.getPath("raw", this.volume, this.chapter, this.page));
 
 		for (const capture of this.captures.captures) {
 			await this.addCapture(capture);
@@ -232,7 +224,7 @@ export default class Extractor extends Component {
 		this.pageImage.style.set("--zoom", Math.max(0, zoom - 0.1));
 	}
 
-	private scaleCaptureHighlightForRendering(capture: CaptureData): [position: Vector, size: Vector] {
+	private scaleCaptureHighlightForRendering (capture: CaptureData): [position: Vector, size: Vector] {
 		const naturalSize = Vector.getNaturalSize(this.pageImage.element<HTMLImageElement>());
 		const userZoom = this.pageImage.box().size().over(naturalSize);
 
