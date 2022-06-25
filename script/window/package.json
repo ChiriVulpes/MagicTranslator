@@ -6,6 +6,6 @@
 		"@wayward/goodstream": "0.7.1"
 	},
 	"devDependencies": {
-		"typescript": "^4.5.5"
+		"typescript": "4.7.4"
 	}
 }
