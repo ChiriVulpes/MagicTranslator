@@ -146,8 +146,18 @@ export default class Extractor extends Component {
 			.toArray();
 	}
 
+	private getImgDimensions (path: string) {
+		return new Promise<Vector | undefined>((resolve, reject) => {
+			const img = document.createElement("img");
+			img.onload = () => resolve(Vector.getNaturalSize(img));
+			img.onerror = () => resolve(undefined);
+			img.src = path;
+		});
+	}
+
 	public async initialize () {
 		this.captures = await Projects.current!.getPage(this.volume, this.chapter, this.page).captures.load();
+		this.captures.rawSize ??= await this.getImgDimensions(Projects.current!.getPath("raw", this.volume, this.chapter, this.page));
 
 		for (const capture of this.captures.captures) {
 			await this.addCapture(capture);
@@ -214,18 +224,29 @@ export default class Extractor extends Component {
 		this.pageImage.style.set("--zoom", Math.max(0, zoom - 0.1));
 	}
 
+	private scaleCaptureHighlightForRendering (capture: CaptureData): [position: Vector, size: Vector] {
+		const naturalSize = Vector.getNaturalSize(this.pageImage.element<HTMLImageElement>());
+		const userZoom = this.pageImage.box().size().over(naturalSize);
+
+		const version = capture.version ?? 1;
+		const naturalScale = naturalSize
+			.over(version === 1 ? this.captures.rawSize ?? naturalSize : 1)
+			.times(userZoom);
+
+		const position = new Vector(capture.position || 0).times(naturalScale);
+		const size = new Vector(capture.size || 0).times(naturalScale);
+
+		return [position, size];
+	}
+
 	@Bound private mouseEnterCapture (eventOrCaptureComponent: MouseEvent | Capture) {
 		const component = eventOrCaptureComponent instanceof Capture ? eventOrCaptureComponent :
 			Component.get<Capture>(eventOrCaptureComponent).listeners.add<MouseEvent>("mouseleave", this.mouseLeaveCapture);
 
 		this.classes.add("selecting");
 
-		const naturalSize = Vector.getNaturalSize(this.pageImage.element<HTMLImageElement>());
-		const scale = this.pageImage.box().size().over(naturalSize);
-
 		const capture = component.getData();
-		const position = new Vector(capture.position || 0).times(capture.version === 2 ? naturalSize : 1).times(scale);
-		const size = new Vector(capture.size || 0).times(capture.version === 2 ? naturalSize : 1).times(scale);
+		const [position, size] = this.scaleCaptureHighlightForRendering(capture);
 
 		this.style.set("--capture-offset-x", this.pageImage.box().left);
 		this.style.set("--capture-offset-y", this.pageImage.box().top);
