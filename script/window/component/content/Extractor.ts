@@ -236,8 +236,9 @@ export default class Extractor extends Component {
 		const naturalSize = Vector.getNaturalSize(this.pageImage.element<HTMLImageElement>());
 		const userZoom = this.pageImage.box().size().over(naturalSize);
 
+		const version = capture.version ?? 1;
 		const naturalScale = naturalSize
-			.over(capture.version === 1 ? this.captures.rawSize ?? naturalSize : 1)
+			.over(version === 1 ? this.captures.rawSize ?? naturalSize : 1)
 			.times(userZoom);
 
 		const position = new Vector(capture.position || 0).times(naturalScale);
