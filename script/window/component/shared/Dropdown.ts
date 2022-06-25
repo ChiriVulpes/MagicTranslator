@@ -1,7 +1,7 @@
 import Component from "component/Component";
 import { tuple } from "util/Arrays";
 import { sleep } from "util/Async";
-import { Events, IEventEmitter } from "util/EventEmitter";
+import type { Events, IEventEmitter } from "util/EventEmitter";
 import Translation from "util/string/Translation";
 
 interface DropdownEvents<O> extends Events<Component> {
@@ -51,7 +51,7 @@ export default class Dropdown<O> extends Component {
 	/**
 	 * @deprecated Use `setTitle`
 	 */
-	@Override public setText (): this {
+	public override setText (): this {
 		throw new Error("Cannot use 'setText' on a Dropdown, see 'setTitle'");
 	}
 
@@ -93,6 +93,7 @@ export default class Dropdown<O> extends Component {
 
 	public setOptionInitializer (initializer: (option: Component, id: O) => any) {
 		this.optionInitializer = initializer;
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		this.options.entries().forEach(([id, option]) => initializer(option, id));
 		return this;
 	}
@@ -111,10 +112,12 @@ export default class Dropdown<O> extends Component {
 				.setDisabled()
 				.setText(() => this.translationHandler ? this.translationHandler(option) :
 					typeof option === "string" && Translation.exists(option) ? new Translation(option).get() :
+						// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 						`${option}`)
 				.listeners.add("click", this.onDropdownMemberActivate)
 				.listeners.add("blur", this.onBlur)
-				.schedule(button => this.optionInitializer && this.optionInitializer(button, option))
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-return
+				.schedule(button => this.optionInitializer?.(button, option))
 				.appendTo(this.wrapper)))
 			.toMap();
 
@@ -164,7 +167,7 @@ export default class Dropdown<O> extends Component {
 		if (scrollWidth > box.width) {
 			this.style.set("width", scrollWidth);
 			this.wrapper.style.set("width", scrollWidth);
-			sleep(0).then(() => {
+			void sleep(0).then(() => {
 				this.wrapper.style.set("left", this.box().left);
 			});
 		}

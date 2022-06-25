@@ -32,16 +32,20 @@ export abstract class Manipulator<T, U extends Until<T> | undefined = undefined>
 	public until (promise: Promise<any>): EmptyIfUndefined<U>;
 	public until (s: number): EmptyIfUndefined<U>;
 	public until (s: number | Promise<any>): EmptyIfUndefined<U> {
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		if (!this.untilHandler) return {} as any;
 
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		return new Proxy({}, {
 			get: (_, k: any) => (...args: any[]) => {
 				const key = k as keyof EmptyIfUndefined<U>;
 				const { start, end } = this.untilHandler![key] as any as Until<T>;
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 				start(...args);
 
 				const promise = typeof s === "number" ? sleep(s) : s;
-				promise.then(() => end(...args));
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+				void promise.then(() => end(...args));
 
 				return this.host;
 			},
@@ -58,7 +62,7 @@ export interface ComponentEvent<T = any> extends Event {
 }
 
 export class EventListenerManipulator<T> extends Manipulator<T, ListenUntil<T>> {
-	@Override protected untilHandler = {
+	protected override untilHandler = {
 		add: {
 			start: <E extends Event = ComponentEvent> (events: string | string[], callback: (event: E) => any) => this.add(events, callback),
 			end: <E extends Event = ComponentEvent> (events: string | string[], callback: (event: E) => any) => this.remove(events, callback),
@@ -66,22 +70,26 @@ export class EventListenerManipulator<T> extends Manipulator<T, ListenUntil<T>> 
 	};
 
 	public constructor (host: T, element: () => EventEmitter) {
-		super(host, element as any);
+		super(host, element);
 	}
 
-	public until (event: string): EmptyIfUndefined<ListenUntil<T>>;
-	public until (promise: Promise<any>): EmptyIfUndefined<ListenUntil<T>>;
-	public until (s: number): EmptyIfUndefined<ListenUntil<T>>;
-	@Override public until (s: number | string | Promise<any>): EmptyIfUndefined<ListenUntil<T>> {
+	public override until (event: string): EmptyIfUndefined<ListenUntil<T>>;
+	public override until (promise: Promise<any>): EmptyIfUndefined<ListenUntil<T>>;
+	public override until (s: number): EmptyIfUndefined<ListenUntil<T>>;
+	public override until (s: number | string | Promise<any>): EmptyIfUndefined<ListenUntil<T>> {
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		if (!this.untilHandler) return {} as any;
 
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		return new Proxy({}, {
 			get: (_, key: keyof EventListenerManipulator<T>["untilHandler"]) => (...args: any[]) => {
-				const { start, end } = this.untilHandler![key] as any as Until<T>;
+				const { start, end } = this.untilHandler[key] as any as Until<T>;
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 				start(...args);
 
 				const promise = typeof s === "number" ? sleep(s) : typeof s === "string" ? this.waitFor(s) : s;
-				promise.then(() => end(...args));
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+				void promise.then(() => end(...args));
 
 				return this.host;
 			},
@@ -92,7 +100,7 @@ export class EventListenerManipulator<T> extends Manipulator<T, ListenUntil<T>> 
 		if (!Array.isArray(events)) events = [events];
 
 		for (const event of events) {
-			this.element().addEventListener(event, callback as any);
+			this.element().addEventListener(event, callback as (event: Event) => any);
 		}
 
 		return this.host;
@@ -102,7 +110,7 @@ export class EventListenerManipulator<T> extends Manipulator<T, ListenUntil<T>> 
 		if (!Array.isArray(events)) events = [events];
 
 		for (const event of events) {
-			this.element().removeEventListener(event, callback as any);
+			this.element().removeEventListener(event, callback as (event: Event) => any);
 		}
 
 		return this.host;

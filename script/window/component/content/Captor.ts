@@ -1,6 +1,7 @@
-import { getValidPath, PlatformCLIPaths } from "Options";
+import type { PlatformCLIPaths } from "Options";
+import { getValidPath } from "Options";
 import ChildProcess from "util/ChildProcess";
-import { Objects } from "util/Objects";
+import Objects from "util/Objects";
 import Path from "util/string/Path";
 
 export default abstract class Captor {
@@ -50,18 +51,18 @@ export default abstract class Captor {
 //
 
 export class Capture2TextCaptor extends Captor {
-	@Override public getValidPaths () {
+	public getValidPaths () {
 		return {
 			win32: ["Capture2Text_CLI.exe"],
 		};
 	}
-	@Override public getCaptureExecPath (captureImagePath: string, vertical: boolean) {
+	public getCaptureExecPath (captureImagePath: string, vertical: boolean) {
 		return `"${this.path}" --language Japanese --image "${captureImagePath}" --line-breaks${vertical ? " --vertical" : ""}`;
 	}
 }
 
 export class TesseractCaptor extends Captor {
-	@Override public getValidPaths () {
+	public getValidPaths () {
 		return {
 			win32: ["tesseract.exe"],
 			linux: ["tesseract"],
@@ -72,7 +73,7 @@ export class TesseractCaptor extends Captor {
 			sunos: ["tesseract"],
 		};
 	}
-	@Override public getCaptureExecPath (captureImagePath: string, vertical: boolean) {
+	public getCaptureExecPath (captureImagePath: string, vertical: boolean) {
 		return `"${this.path}" "${captureImagePath}" stdout -l jpn+jpn_vert --psm ${vertical ? "5" : "6"}`;
 	}
 }

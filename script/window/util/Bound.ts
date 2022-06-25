@@ -3,6 +3,7 @@ declare global {
 }
 
 export default function ApplyBound () {
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 	(window as any).Bound = BoundFn;
 }
 
@@ -14,6 +15,7 @@ function BoundFn<T extends (...args: any[]) => any>
 	return {
 		configurable: true,
 		get () {
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, no-prototype-builtins
 			if (!this || this === target.prototype || this.hasOwnProperty(key) || typeof fn !== "function") {
 				// console.log(target, key, descriptor, "early return");
 				return fn!;
@@ -26,7 +28,9 @@ function BoundFn<T extends (...args: any[]) => any>
 					return boundFn;
 				},
 				set (value) {
+					// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 					fn = value;
+					// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 					delete this[key];
 				},
 			});

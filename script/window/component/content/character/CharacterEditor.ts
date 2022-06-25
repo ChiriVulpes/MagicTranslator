@@ -3,11 +3,13 @@ import Character from "component/content/character/Character";
 import Button from "component/shared/Button";
 import Interrupt from "component/shared/Interrupt";
 import SortableTiles from "component/shared/SortableTiles";
-import Characters, { BasicCharacter, CharacterData } from "data/Characters";
+import type Characters from "data/Characters";
+import type { CharacterData } from "data/Characters";
+import { BasicCharacter } from "data/Characters";
 import Projects from "data/Projects";
 import Options from "Options";
 import Enums from "util/Enums";
-import { Events, IEventEmitter } from "util/EventEmitter";
+import type { Events, IEventEmitter } from "util/EventEmitter";
 import FileSystem from "util/FileSystem";
 import { pad } from "util/string/String";
 import Translation from "util/string/Translation";
@@ -25,7 +27,7 @@ export default class CharacterEditor extends Component {
 		if (startingCharacter !== undefined) editor.select(editor.startingCharacter = startingCharacter);
 
 		return new Promise<number | BasicCharacter>(resolve => {
-			editor.event.waitFor("choose")
+			void editor.event.waitFor("choose")
 				.then(([choice]) => {
 					editor.hide();
 					resolve(choice);
@@ -126,7 +128,7 @@ export default class CharacterEditor extends Component {
 
 		const buffer = await new Promise<Buffer>(resolve => {
 			const reader = new FileReader();
-			reader.onload = async () => {
+			reader.onload = () => {
 				if (reader.readyState === 2) {
 					resolve(Buffer.from(reader.result as ArrayBuffer));
 				}
@@ -148,7 +150,7 @@ export default class CharacterEditor extends Component {
 		return id;
 	}
 
-	@Override public show () {
+	public override show () {
 		super.show();
 		this.getSelected().focus();
 		return this;
@@ -226,7 +228,7 @@ export default class CharacterEditor extends Component {
 			.catch(() => { });
 	}
 
-	@Bound private async updateJson () {
+	@Bound private updateJson () {
 		this.characters.characters = this.characterWrapper.tiles()
 			.map(button => button.character)
 			.filter<BasicCharacter>(character => typeof character === "object")
@@ -285,7 +287,7 @@ export default class CharacterEditor extends Component {
 		if (event.code === "Escape") this.cancel();
 
 		if (event.code === "Delete" && event.ctrlKey && typeof this.getSelected() !== "string") {
-			this.removeSelectedCharacter();
+			void this.removeSelectedCharacter();
 		}
 	}
 

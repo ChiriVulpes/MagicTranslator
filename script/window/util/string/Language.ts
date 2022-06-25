@@ -1,5 +1,5 @@
-import Translations from "util/string/Translations";
 import FileSystem from "util/FileSystem";
+import type Translations from "util/string/Translations";
 
 export default class Language {
 	public static current: Language;

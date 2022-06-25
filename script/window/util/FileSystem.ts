@@ -1,8 +1,10 @@
-import { Stats } from "fs";
+import type * as fsType from "fs";
+import type { Stats } from "fs";
+import type * as pathType from "path";
 import Concurrency from "util/Concurrency";
 
-let nodefs: typeof import("fs");
-let path: typeof import("path");
+let nodefs: typeof fsType;
+let path: typeof pathType;
 let Dialog: typeof Electron.dialog;
 
 const fileWriteLocks = new Map<string, Promise<void>>();
@@ -101,7 +103,7 @@ class FileSystemMethods {
 	public async writeToUserChoice (data: string, defaultPath?: string) {
 		const dialog = await Dialog.showSaveDialog({ defaultPath });
 		if (!dialog.filePath) return;
-		this.writeFile(dialog.filePath, data);
+		void this.writeFile(dialog.filePath, data);
 	}
 
 	private async mkdirp (filepath: string) {
@@ -131,8 +133,8 @@ class FileSystem extends FileSystemMethods {
 	public priority = new FileSystemMethods(Infinity);
 
 	public initialize (
-		nodefs_: typeof import("fs"),
-		path_: typeof import("path"),
+		nodefs_: typeof fsType,
+		path_: typeof pathType,
 		dialog: typeof Electron.dialog,
 	) {
 		nodefs = nodefs_;

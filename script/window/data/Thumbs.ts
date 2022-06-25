@@ -1,7 +1,8 @@
 import Serializable, { Serialized } from "data/Serialized";
 import { sleep } from "util/Async";
 import Canvas from "util/Canvas";
-import Concurrency, { CancellablePromise } from "util/Concurrency";
+import type { CancellablePromise } from "util/Concurrency";
+import Concurrency from "util/Concurrency";
 import FileSystem from "util/FileSystem";
 import Path from "util/string/Path";
 
@@ -35,7 +36,7 @@ export default class Thumbs extends Serializable {
 	private getThumbFilename (filenameOrId: string | number): string;
 	private getThumbFilename (filenameOrId?: string | number) {
 		if (typeof filenameOrId === "string") filenameOrId = this.thumbs[filenameOrId] && this.thumbs[filenameOrId]!.id;
-		return typeof filenameOrId === undefined ? undefined : Path.join(this.root, `${filenameOrId}.png`);
+		return filenameOrId === undefined ? undefined : Path.join(this.root, `${filenameOrId}.png`);
 	}
 
 	private async update (filename: string) {
@@ -98,7 +99,7 @@ function downScaleImage (filename: string, scale: number) {
 		imgCV.height = img.height;
 		const imgCtx = imgCV.getContext("2d")!;
 		imgCtx.drawImage(img, 0, 0);
-		downScaleCanvas(imgCV, scale).then(resolve);
+		void downScaleCanvas(imgCV, scale).then(resolve);
 	});
 }
 

@@ -14,7 +14,7 @@ export default class SettingsInterrupt extends Interrupt<InterruptChoice.Done> {
 		this.show();
 	}
 
-	@Bound @Override protected keyup (event: KeyboardEvent) {
+	@Bound protected override keyup (event: KeyboardEvent) {
 		if (this.descendants(".error").first()) return;
 		super.keyup(event);
 	}

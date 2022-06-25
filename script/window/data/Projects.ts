@@ -44,17 +44,17 @@ function stringTuple<A extends string[]> (...args: A): A { return args; }
 
 export const pathSegments = stringTuple("volume", "chapter", "page");
 export type PagePathSegment = (typeof pathSegments)[number];
-export module PagePathSegment {
+export namespace PagePathSegment {
 	export function is (value: unknown): value is PagePathSegment {
-		return pathSegments.includes(value as any);
+		return pathSegments.includes(value as PagePathSegment);
 	}
 }
 
 export const pathTypes = stringTuple("raw", "translated", "capture", "save");
 export type PagePathType = (typeof pathTypes)[number];
-export module PagePathType {
+export namespace PagePathType {
 	export function is (value: unknown): value is PagePathType {
-		return pathTypes.includes(value as any);
+		return pathTypes.includes(value as PagePathType);
 	}
 }
 
@@ -91,7 +91,7 @@ export class Project extends Serializable {
 		return this.name || Path.basename(this.root);
 	}
 
-	@Override public async load () {
+	public override async load () {
 		await super.load();
 		this.canSave = false;
 
@@ -115,16 +115,17 @@ export class Project extends Serializable {
 	public getPath (pathType: PagePathType | "character" | "thumb", volume?: string | number, chapter?: string | number, page?: string | number) {
 		const pathTypeSetting = this.structure[pathType];
 		switch (pathType) {
-			case "character":
+			case "character": {
 				const character = volume;
 				const charactersPath = Path.join(this.root, pathTypeSetting);
 				return character === undefined ? charactersPath : Path.join(charactersPath, `${pad(character, 3)}.png`);
-
-			default:
+			}
+			default: {
 				[volume, chapter, page] = this.getSegmentNumbers(volume as number, chapter as number, page as number);
 				return Path.join(this.root, interpolate(pathTypeSetting, Stream.entries({ volume, chapter, page })
 					.map(([name, value]) => tuple(name, this.getSegment(name, value)))
 					.toObject()));
+			}
 		}
 	}
 
@@ -165,10 +166,10 @@ export class Project extends Serializable {
 		}
 
 		return [
-			parseFloat(mask(this.structure.volume.replace(/[^#]/g, " "), volume as string || "")),
+			parseFloat(mask(this.structure.volume.replace(/[^#]/g, " "), volume || "")),
 			parseFloat(mask(this.structure.chapter.replace("#", "###").replace(/[^#]/g, " "), chapter as string || "")),
 			parseFloat(mask(this.structure.page.replace(/[^#]/g, " "), page as string || "")),
-		] as any;
+		];
 	}
 
 	public getVolumeDirectory (type: keyof ProjectStructure) {

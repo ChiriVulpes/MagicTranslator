@@ -10,6 +10,7 @@ export default class Concurrency {
 	public promise<T> (initializer: (resolve: (value: T) => any, reject: (error: any) => any) => any): Promise<T>;
 	public promise<T> (cancellable: true, initializer: (resolve: (value: T) => any, reject: (error: any) => any) => any): CancellablePromise<T>;
 	public promise<T> (cancellable: any, initializer?: (resolve: (v?: any) => any, reject: (error: any) => any) => any): CancellablePromise<T> {
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		if (!initializer) initializer = cancellable, cancellable = true;
 		return new CancellablePromise<T>(async (resolve, reject, isCancelled) => {
 			if (this.concurrentCount >= this.maxConcurrent) await new Promise<void>(res => this.waiting.push(res));
@@ -19,6 +20,7 @@ export default class Concurrency {
 
 			if (!isCancelled()) {
 				this.concurrentCount++;
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return
 				result = await new Promise(initializer!).catch(e => err = e);
 				this.concurrentCount--;
 			}

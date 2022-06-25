@@ -47,7 +47,7 @@ export class Random<G extends RandomGenerator = RandomGenerator> {
 	 * Get a percentage for something
 	 * Returns a number between 1 and 100 (inclusive)
 	 */
-	public percent (minChance: number = 0, chanceOutOf: number = 100, ceil: boolean = true) {
+	public percent (minChance = 0, chanceOutOf = 100, ceil = true) {
 		return ceil ? Math.ceil(this.generator.get() * chanceOutOf) - minChance : this.generator.get() * chanceOutOf - minChance;
 	}
 
@@ -64,6 +64,7 @@ export class Random<G extends RandomGenerator = RandomGenerator> {
 	 * Chooses a random entry in an array and returns it
 	 */
 	public choice<A extends any[]> (...from: A): A[number] {
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		return from[this.int(from.length)];
 	}
 

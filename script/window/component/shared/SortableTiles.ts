@@ -1,6 +1,6 @@
 import Component from "component/Component";
 import { sleep } from "util/Async";
-import { Events, IEventEmitter } from "util/EventEmitter";
+import type { Events, IEventEmitter } from "util/EventEmitter";
 import { Vector } from "util/math/Geometry";
 
 interface SortableTilesEvents extends Events<Component> {
@@ -127,7 +127,7 @@ class SortableTile<T extends Component> extends Component {
 				[pivot]: hoveredTile,
 			};
 
-			this.appendTo(this.parent!, move as any);
+			this.appendTo(this.parent!, move as { before: Element } | { after: Element });
 			this.lastMove = move;
 		}
 	}

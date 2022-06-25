@@ -13,7 +13,7 @@ export function tuple<T extends any[]> (...items: T): T {
 	return items;
 }
 
-module Arrays {
+namespace Arrays {
 
 	/**
 	 * Shuffles the contents of the given array using the Fisher-Yates Shuffle: https://bost.ocks.org/mike/shuffle/

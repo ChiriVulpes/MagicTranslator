@@ -15,13 +15,17 @@ class EventEmitter<H, E> implements IEventEmitter<H, E> {
 	private readonly subscriptions = new Map<keyof E, PriorityMap<Set<IterableOr<Handler<any, any>>>>>();
 
 	public constructor (private readonly host: H) {
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		const h = host as any;
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
 		this.hostClass = h.constructor;
 		if (!(SYMBOL_SUBSCRIPTIONS in this.hostClass)) {
 			this.hostClass[SYMBOL_SUBSCRIPTIONS] = new Map();
 		}
 
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 		if ("event" in host && h.event instanceof EventEmitter) {
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
 			this.copyFrom(h.event);
 		}
 
@@ -29,10 +33,12 @@ class EventEmitter<H, E> implements IEventEmitter<H, E> {
 			const subscriptions = (h as SelfSubscribedEmitter<E>)[SYMBOL_SUBSCRIPTIONS];
 			for (const [selfSubscribedHost, event, handlerMethodName, priority] of subscriptions) {
 				if (h instanceof selfSubscribedHost.constructor) {
+					// eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
 					this.subscribe(event, (_: any, ...args: any[]) => (h as any)[handlerMethodName](...args), priority);
 				}
 			}
 
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 			delete h[SYMBOL_SUBSCRIPTIONS];
 		}
 	}
@@ -51,20 +57,24 @@ class EventEmitter<H, E> implements IEventEmitter<H, E> {
 	}
 
 	public emitStream<K extends keyof E> (event: K, ...args: ArgsOf<E[K]>): Stream<ReturnOf<E[K]>> {
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		return Stream.of(this.subscriptions, this.hostClass[SYMBOL_SUBSCRIPTIONS])
 			.map(subscriptionMap => subscriptionMap.getOrDefault(event, () => new PriorityMap()))
 			.splat(PriorityMap.streamAll)
 			.flatMap()
 			.flatMap()
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 			.map(subscriber => subscriber(this.host, ...args));
 	}
 
 	public emitReduce<K extends keyof E, A extends ReturnOf<E[K]> & Head<ArgsOf<E[K]>>> (event: K, arg: A, ...args: Tail<ArgsOf<E[K]>>): Extract<ReturnOf<E[K]> & Head<ArgsOf<E[K]>>, undefined> extends undefined ? (undefined extends A ? ReturnOf<E[K]> : A) : ReturnOf<E[K]> {
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		return Stream.of(this.subscriptions, this.hostClass[SYMBOL_SUBSCRIPTIONS])
 			.map(subscriptionMap => subscriptionMap.getOrDefault(event, () => new PriorityMap()))
 			.splat(PriorityMap.streamAll)
 			.flatMap()
 			.flatMap()
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 			.fold(arg, (current, handler) => handler(current, ...args)) as any;
 		// we have to cast to any because typescript updated and decided that `A` was no longer good enough here~
 	}
@@ -93,6 +103,7 @@ class EventEmitter<H, E> implements IEventEmitter<H, E> {
 	}
 
 	public async waitFor<K extends ArrayOr<keyof E>> (events: K, priority = 0): Promise<ArgsOf<K extends any[] ? E[K[number]] : E[Extract<K, keyof E>]>> {
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		return new Promise<any>(resolve => {
 			const realHandler: AnyFunction = (host: any, ...args: any[]) => {
 				this.unsubscribe(events, realHandler, priority);
@@ -113,10 +124,10 @@ class EventEmitter<H, E> implements IEventEmitter<H, E> {
 		}
 
 		return {
-			subscribe: <K extends ArrayOr<keyof E>> (event: K, handler: IterableOr<Handler<H, K extends any[] ? E[K[number]] : E[Extract<K, keyof E>]>>, priority: number = 0) => {
+			subscribe: <K extends ArrayOr<keyof E>> (event: K, handler: IterableOr<Handler<H, K extends any[] ? E[K[number]] : E[Extract<K, keyof E>]>>, priority = 0) => {
 				this.subscribe(event, handler, priority);
 
-				(promiseOrEmitter as Promise<any>).then(() => {
+				void (promiseOrEmitter as Promise<any>).then(() => {
 					this.unsubscribe(event, handler, priority);
 				});
 
@@ -126,7 +137,7 @@ class EventEmitter<H, E> implements IEventEmitter<H, E> {
 	}
 }
 
-module EventEmitter {
+namespace EventEmitter {
 	export class Host<E> implements EventEmitterHost<E> {
 		public readonly event: IEventEmitter<this, E> = new EventEmitter<this, E>(this);
 	}
@@ -186,6 +197,7 @@ export function EventHandler (injectInto: "self" | AnyClass<EventEmitterHost<any
 			} else {
 				const hostClass = host.constructor as EventSubscriberClass;
 				const eventHandlers = hostClass[SYMBOL_EVENT_HANDLERS] = hostClass[SYMBOL_EVENT_HANDLERS] || [];
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 				eventHandlers.push([injectInto as any, property, priority, hostClass, property2]);
 
 			}

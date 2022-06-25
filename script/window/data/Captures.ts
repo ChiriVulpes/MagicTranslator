@@ -1,4 +1,4 @@
-import { BasicCharacter } from "data/Characters";
+import type { BasicCharacter } from "data/Characters";
 import Serializable, { Serialized } from "data/Serialized";
 
 export interface CaptureData {
@@ -23,7 +23,7 @@ export default class Captures extends Serializable {
 	@Serialized public captureId = 0;
 	@Serialized public captures: CaptureData[] = [];
 	@Serialized public rawSize?: { x: number; y: number }
-	
+
 	public constructor (path: string) {
 		super(`${path}.json`);
 	}
@@ -33,7 +33,7 @@ export default class Captures extends Serializable {
 			.filter(capture => !capture.translation);
 	}
 
-	@Override protected shouldSaveFileExist () {
+	protected override shouldSaveFileExist () {
 		return !!this.captures.length;
 	}
 }

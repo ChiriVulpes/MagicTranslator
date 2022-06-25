@@ -25,6 +25,7 @@ export class Graceful<T> {
 	public execute<T1 = any> (functionToCallGracefully: (arg1: T1, ...args: any[]) => T) {
 		return (...args: any[]) => {
 			try {
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-return,  @typescript-eslint/no-unsafe-call
 				return (functionToCallGracefully as any)(...args);
 			} catch (err) {
 				console.error(`[${this.sources.join(", ")}]`, this.errorMessage, err);

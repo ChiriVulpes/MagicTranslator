@@ -1,6 +1,7 @@
-import Component, { TextGenerator } from "component/Component";
+import type { TextGenerator } from "component/Component";
+import Component from "component/Component";
 import Button from "component/shared/Button";
-import { Events, IEventEmitter } from "util/EventEmitter";
+import type { Events, IEventEmitter } from "util/EventEmitter";
 
 export enum InterruptChoice {
 	No = "no",
@@ -40,6 +41,7 @@ export default class Interrupt<O extends string = string> extends Component {
 	}
 
 	public static choice<O extends string = InterruptChoice> (initializer: (interruptScreen: Interrupt<O>) => any) {
+		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		return new Promise<O>(resolve => new Interrupt<O>()
 			.classes.add("center")
 			.appendTo(Component.get("#content"))
@@ -60,7 +62,7 @@ export default class Interrupt<O extends string = string> extends Component {
 
 		const hidden = Component.all(".interrupt:not(.hidden)").toArray();
 		hidden.forEach(c => c.hide());
-		this.event.waitFor("remove")
+		void this.event.waitFor("remove")
 			.then(() => hidden.forEach(c => c.show()));
 
 		this.classes.add("interrupt");

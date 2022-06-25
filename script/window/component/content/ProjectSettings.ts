@@ -5,10 +5,11 @@ import Input from "component/shared/Input";
 import Interrupt from "component/shared/Interrupt";
 import LabelledRow from "component/shared/LabelledRow";
 import Tooltip from "component/shared/Tooltip";
-import Projects, { PagePathSegment, PagePathType, pathSegments, pathTypes, ProjectStructure } from "data/Projects";
+import type { ProjectStructure } from "data/Projects";
+import Projects, { PagePathSegment, PagePathType, pathSegments, pathTypes } from "data/Projects";
 import Options from "Options";
 import { tuple } from "util/Arrays";
-import { Events, IEventEmitter } from "util/EventEmitter";
+import type { Events, IEventEmitter } from "util/EventEmitter";
 import { generalRandom } from "util/Random";
 import { interpolate } from "util/string/Interpolator";
 import Path from "util/string/Path";
@@ -20,8 +21,7 @@ interface ProjectSettingsEvents extends Events<SettingsInterrupt> {
 
 export default class ProjectSettings extends SettingsInterrupt {
 
-	// @ts-ignore
-	@Override public readonly event: IEventEmitter<this, ProjectSettingsEvents>;
+	declare event: IEventEmitter<this, ProjectSettingsEvents>;
 
 	private restoreButton?: Component;
 	private changedFileStructure = false;
@@ -130,7 +130,7 @@ export default class ProjectSettings extends SettingsInterrupt {
 
 	@Bound private async onRestore () {
 		this.classes.remove("removed");
-		Projects.addProject(this.root);
+		await Projects.addProject(this.root);
 		options.projectFolders.push(this.root);
 		this.restoreButton!.remove();
 	}

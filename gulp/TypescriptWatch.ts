@@ -1,8 +1,9 @@
 import chalk from "chalk";
-import { ChildProcess, exec } from "child_process";
+import type { ChildProcess } from "child_process";
+import { exec } from "child_process";
 import * as path from "path";
 import Bound from "./Bound";
-import { getTimeString, getElapsedString } from "./Util";
+import { getElapsedString, getTimeString } from "./Util";
 
 export default class TypescriptWatch {
 	private onDataHandler: (data: string) => any;
@@ -47,17 +48,20 @@ export default class TypescriptWatch {
 		this.task = exec(command);
 		process.chdir(ocwd);
 
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 		this.task.stderr!.on("data", data => process.stderr.write(data));
 
 		let start: number;
 		this.task.stdout!.on("data", data => {
-			if (this.onDataHandler && this.onDataHandler(data.toString()) === false)
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+			const dataString = data.toString() as string;
+			if (this.onDataHandler && this.onDataHandler(dataString) === false)
 				return;
 
-			if (/\bincremental compilation|in watch mode\b/.test(data.toString()))
+			if (/\bincremental compilation|in watch mode\b/.test(dataString))
 				start = Date.now();
 
-			if (/Watching for file changes./.test(data.toString()) && this.initialized) {
+			if (/Watching for file changes./.test(dataString) && this.initialized) {
 				if (typeof this.initialized === "function") {
 					this.initialized();
 					this.initialized = true;
@@ -67,7 +71,7 @@ export default class TypescriptWatch {
 				}
 			}
 
-			process.stdout.write(handleTscOut(start, data, `${path.relative(ocwd, this.inDir).replace(/\\/g, "/")}/`));
+			process.stdout.write(handleTscOut(start, dataString, `${path.relative(ocwd, this.inDir).replace(/\\/g, "/")}/`));
 		});
 
 		return this;
@@ -89,10 +93,13 @@ function handleTscOut (startTime: number, data: string | Buffer, prefix?: string
 		.replace(/(incremental compilation...|in watch mode...)\r\n/g, "$1")
 		.replace(/( TS\d{4}: [^\r\n]*?\r\n)\r\n/g, "$1")
 		.replace(/(~+[^\r\n]*?\r\n)\r\n\r\n/g, "$1")
+		// eslint-disable-next-line no-control-regex
 		.replace(/(?=\[30;47m(\d+| +)\u001b\[0m)/g, "\t")
+		// eslint-disable-next-line no-control-regex
 		.replace(/\[\u001b\[90m\d{1,2}:\d{2}:\d{2} [AP]M\u001b\[0m\]/g, `[${getTimeString()}]`);
 
 	if (prefix) {
+		// eslint-disable-next-line no-control-regex
 		data = data.replace(/(\u001b\[96m.*?\u001b\[0m:\u001b\[93m)/g, chalk.cyan(`${prefix}$1`));
 	}
 

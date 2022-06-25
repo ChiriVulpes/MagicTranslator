@@ -1,5 +1,6 @@
-import Component, { TextGenerator } from "component/Component";
-import { Events, IEventEmitter } from "util/EventEmitter";
+import type { TextGenerator } from "component/Component";
+import Component from "component/Component";
+import type { Events, IEventEmitter } from "util/EventEmitter";
 import Translation from "util/string/Translation";
 
 interface TextareaEvents extends Events<Component> {
@@ -39,7 +40,7 @@ export default class Textarea extends Component {
 		return this;
 	}
 
-	@Override @Bound public refreshText () {
+	@Bound public override refreshText () {
 		this.textarea.element<HTMLTextAreaElement>().value = this.textGenerator ? `${this.textGenerator(this)}` : "";
 		this.setHiddenTextareaText();
 		this.attributes.set("placeholder", this.placeholderTextGenerator ? `${this.placeholderTextGenerator(this)}` : "");

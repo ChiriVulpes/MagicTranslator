@@ -7,13 +7,13 @@ import Dropdown from "component/shared/Dropdown";
 import Img from "component/shared/Img";
 import SortableTiles from "component/shared/SortableTiles";
 import Textarea from "component/shared/Textarea";
-import { CaptureData } from "data/Captures";
+import type { CaptureData } from "data/Captures";
 import { BasicCharacter } from "data/Characters";
 import Projects from "data/Projects";
 import Gloss from "util/api/Gloss";
 import { tuple } from "util/Arrays";
 import Enums from "util/Enums";
-import { Events, IEventEmitter } from "util/EventEmitter";
+import type { Events, IEventEmitter } from "util/EventEmitter";
 import { pad } from "util/string/String";
 
 interface CaptureEvents extends Events<Component> {
@@ -124,7 +124,7 @@ export default class Capture extends Component {
 		this.img.setSrc(`${this.captureRoot}/cap${pad(this.capture.id!, 3)}.png?cachebuster${Math.random()}`);
 	}
 
-	@Bound private async changeCharacter () {
+	@Bound private changeCharacter () {
 		const character = this.capture.character = this.characterDropdown.getSelected();
 		this.characterDropdown.style.set("--headshot", typeof character !== "number" ? "" : `url("${Projects.current!.getPath("character", character)}")`);
 		this.event.emit("captureChange");
@@ -150,7 +150,7 @@ export default class Capture extends Component {
 		this.event.emit("captureChange");
 	}
 
-	@Bound private async insertNotes (type: NoteType, text: string) {
+	@Bound private insertNotes (type: NoteType, text: string) {
 		for (const [, note, translation] of (/- (.*?):((?:.|\r|\n)*)(?!\n- )/g).matches(text)) {
 			this.addNote(type, [note.trim(), translation.trim()]);
 		}
@@ -181,7 +181,7 @@ export default class Capture extends Component {
 		this.event.emit("captureChange");
 	}
 
-	@Bound private async noteBlur () {
+	@Bound private noteBlur () {
 		const activeComponent = Component.get(document.activeElement!);
 
 		this.notesWrappers.values()

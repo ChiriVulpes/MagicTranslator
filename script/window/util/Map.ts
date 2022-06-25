@@ -8,6 +8,7 @@ export default class IndexedMap<K, V> extends Map<K, V> {
 	}
 
 	public static createAsync<K, V> (entriesIterable: AsyncIterable<[K, V]>) {
+		// eslint-disable-next-line @typescript-eslint/no-misused-promises, no-async-promise-executor
 		return new Promise<IndexedMap<K, V>>(async resolve => {
 			const result = new IndexedMap<K, V>();
 			await result.addAllAsync(entriesIterable);
@@ -24,7 +25,7 @@ export default class IndexedMap<K, V> extends Map<K, V> {
 		}
 	}
 
-	@Override @Bound public get (key: K) {
+	@Bound public override get (key: K) {
 		return super.get(key);
 	}
 
@@ -38,14 +39,14 @@ export default class IndexedMap<K, V> extends Map<K, V> {
 		return super.get(this.indexMap[index]) || (orElse ? orElse() : undefined);
 	}
 
-	@Override @Bound public set (key: K, value: V) {
+	@Bound public override set (key: K, value: V) {
 		super.set(key, value);
 		this.indexMap.push(key);
 
 		return this;
 	}
 
-	@Override @Bound public delete (key: K) {
+	@Bound public override delete (key: K) {
 		const result = super.delete(key);
 		const index = this.indexMap.indexOf(key);
 		if (index >= 0) this.indexMap.splice(index, 1);
@@ -53,7 +54,7 @@ export default class IndexedMap<K, V> extends Map<K, V> {
 		return result;
 	}
 
-	@Override @Bound public clear () {
+	@Bound public override clear () {
 		this.indexMap.splice(0, Infinity);
 	}
 

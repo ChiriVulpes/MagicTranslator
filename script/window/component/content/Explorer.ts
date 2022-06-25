@@ -1,4 +1,5 @@
-import Component, { TextGenerator } from "component/Component";
+import type { TextGenerator } from "component/Component";
+import Component from "component/Component";
 import GlobalSettings from "component/content/GlobalSettings";
 import ProjectSettings from "component/content/ProjectSettings";
 import Header from "component/header/Header";
@@ -6,13 +7,14 @@ import Button from "component/shared/Button";
 import ButtonBar from "component/shared/ButtonBar";
 import SortableTiles from "component/shared/SortableTiles";
 import Tooltip from "component/shared/Tooltip";
-import { CaptureData } from "data/Captures";
+import type { CaptureData } from "data/Captures";
 import Dialog from "data/Dialog";
-import Projects, { PagePathSegment, Project } from "data/Projects";
+import type { PagePathSegment, Project } from "data/Projects";
+import Projects from "data/Projects";
 import Options from "Options";
 import { tuple } from "util/Arrays";
 import { sleep } from "util/Async";
-import { Events, IEventEmitter } from "util/EventEmitter";
+import type { Events, IEventEmitter } from "util/EventEmitter";
 import IndexedMap from "util/Map";
 import Translation from "util/string/Translation";
 
@@ -40,7 +42,7 @@ export default class Explorer extends Component {
 				.classes.add("explorer-links"))
 			.appendTo(this);
 
-		this.initialize();
+		void this.initialize();
 	}
 
 	private async initialize () {
@@ -86,7 +88,7 @@ export default class Explorer extends Component {
 		Header.setBreadcrumbs(["title"]);
 	}
 
-	private async showVolumes (root: string) {
+	private showVolumes (root: string) {
 		this.actionWrapper.dump();
 		this.explorerWrapper.dump();
 
@@ -122,6 +124,7 @@ export default class Explorer extends Component {
 
 		const project = Projects.current!;
 
+		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		this.addBackButton(() => this.showVolumes(project.root));
 
 		new Button()
@@ -237,8 +240,8 @@ export default class Explorer extends Component {
 
 		return new ImageButton(project.root, project.getPath("raw", volume, chapter, page))
 			.setText(() => type === "root" ? project.getDisplayName() :
-				type === "volume" ? new Translation(type!).get(volumeNumber) :
-					type === "chapter" ? new Translation(type!).get(chapterNumber) :
+				type === "volume" ? new Translation(type).get(volumeNumber) :
+					type === "chapter" ? new Translation(type).get(chapterNumber) :
 						new Translation(type!).get(pageNumber))
 			.append(!missingTranslations ? undefined : new Component()
 				.classes.add("missing-translations")
@@ -259,7 +262,7 @@ export default class Explorer extends Component {
 
 		type = type || "page";
 
-		return tuple(type, volume!, chapter!, page!);
+		return tuple(type, volume!, chapter!, page);
 	}
 
 	private getMissingTranslations (root: string, volume?: number, chapter?: number, page?: number): Stream<CaptureData> {
@@ -291,7 +294,7 @@ export default class Explorer extends Component {
 		Component.window.listeners.until(this.event.waitFor(["back", "remove"]))
 			.add("keyup", this.keyup, true);
 
-		this.event.waitFor("back")
+		void this.event.waitFor("back")
 			.then(() => sleep(0.001))
 			.then(handler);
 	}
@@ -367,23 +370,23 @@ class ImageButton extends Component {
 		super("a");
 		this.classes.add("image-button", "loading");
 		this.attributes.set("href", "#");
-		this.loadPreview();
+		void this.loadPreview();
 		this.listeners.add("click", () => this.event.emit("click"));
 	}
 
-	@Override public setText (text?: TextGenerator<Component>) {
+	public override setText (text?: TextGenerator<Component>) {
 		super.setText(text);
 		this.title.setText(text);
 		return this;
 	}
 
-	@Override public refreshText () {
+	public override refreshText () {
 		this.title.refreshText();
 		return this;
 	}
 
 	private async loadPreview () {
-		this.event.waitFor("remove")
+		void this.event.waitFor("remove")
 			.then(() => Projects.get(this.root)!.thumbs.cancel(this.imagePath));
 
 		const thumbnail = await Projects.get(this.root)!.thumbs.get(this.imagePath);

@@ -1,7 +1,7 @@
 import { tuple } from "util/Arrays";
 import { TriggerHandler, Triggers } from "util/FieldSetTriggers";
 import FileSystem from "util/FileSystem";
-import { Objects } from "util/Objects";
+import Objects from "util/Objects";
 import Path from "util/string/Path";
 
 export { Triggers as Serialized };
@@ -14,14 +14,16 @@ export default class Serializable {
 	private readonly filesystem: typeof FileSystem;
 
 	public constructor (private readonly path: string, priority = false) {
-		this.filesystem = priority ? FileSystem.priority as any : FileSystem;
+		this.filesystem = priority ? FileSystem.priority as typeof this.filesystem : FileSystem;
 	}
 
 	public async load () {
 		this.canSave = false;
 
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		const translationData = await this.loadInternal();
 		for (const field of Triggers.get(this)) {
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
 			this[field] = field in translationData ? translationData[field] : this[field];
 		}
 
@@ -48,6 +50,7 @@ export default class Serializable {
 			.catch(() => { });
 
 		if (jsonData) try {
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 			return JSON.parse(jsonData);
 		} catch (err) {
 			const ext = Path.extname(this.path);
@@ -63,6 +66,7 @@ export default class Serializable {
 
 		await this.filesystem.mkdir(Path.dirname(this.path));
 
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 		const translationData = await this.loadInternal();
 		const newTranslationData = Triggers.get(this).stream()
 			.map(field => tuple(field, Triggers.getNonProxyValue(this, field)))

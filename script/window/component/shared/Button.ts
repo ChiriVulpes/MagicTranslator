@@ -1,6 +1,6 @@
 import Component from "component/Component";
 import Tooltip from "component/shared/Tooltip";
-import { Events, IEventEmitter } from "util/EventEmitter";
+import type { Events, IEventEmitter } from "util/EventEmitter";
 
 export enum ButtonDisplayMode {
 	Normal = "normal",
@@ -25,7 +25,7 @@ export default class Button extends Component {
 	}
 
 	public static getDisplayMode () {
-		return Component.document.attributes.get("button-display-mode") as ButtonDisplayMode;
+		return Component.document.attributes.get("button-display-mode");
 	}
 
 	declare event: IEventEmitter<this, ButtonEvents>;
@@ -41,8 +41,8 @@ export default class Button extends Component {
 		return this;
 	}
 
-	@Override @Bound public refreshText () {
-		let text = this.textGenerator ? this.textGenerator(this) as any : "";
+	@Bound public override refreshText () {
+		let text = this.textGenerator ? this.textGenerator(this) : "";
 		if (Component.document.attributes.get("button-display-mode") === ButtonDisplayMode.IconOnly && this.attributes.has("icon"))
 			text = "";
 		this.element().textContent = text === null || text === undefined ? "" : `${text}`;

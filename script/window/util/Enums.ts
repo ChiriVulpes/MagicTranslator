@@ -1,11 +1,12 @@
 import { tuple } from "util/Arrays";
 
-module Enums {
+namespace Enums {
 
 	/**
 	 * Iterate over the names of the entries in an enum.
 	 */
 	export function keys<T> (enumObject: T): Stream<keyof T> {
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		return Stream.keys(enumObject)
 			.filter(key => isNaN(+key)) as any;
 	}

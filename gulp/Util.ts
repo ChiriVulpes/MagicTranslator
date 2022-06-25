@@ -5,6 +5,7 @@ export async function sleep (ms: number) {
 }
 
 export function nameFunction<F extends Function> (name: string, fn: F) {
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 	(fn as any).displayName = name;
 	return fn;
 }

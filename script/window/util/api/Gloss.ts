@@ -97,7 +97,7 @@ const fullWidthToHalfWidthNumber = {
 	"９": "9",
 };
 
-module Gloss {
+namespace Gloss {
 
 	export async function gloss (phrase: string) {
 		return (await getWords(phrase))
@@ -399,6 +399,7 @@ interface Sense {
 //
 
 async function concurrentFetchJson<T> (path: string, defaultValue: T): Promise<T> {
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 	return concurrentFetch(path)
 		.then(response => response.json())
 		.catch(err => {

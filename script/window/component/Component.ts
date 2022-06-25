@@ -1,4 +1,5 @@
-import { AttributeManipulator, ClassManipulator, ComponentEvent, DataManipulator, EventListenerManipulator, StyleManipulator } from "component/ComponentManipulator";
+import type { ComponentEvent } from "component/ComponentManipulator";
+import { AttributeManipulator, ClassManipulator, DataManipulator, EventListenerManipulator, StyleManipulator } from "component/ComponentManipulator";
 import { sleep } from "util/Async";
 import EventEmitter from "util/EventEmitter";
 import { Box } from "util/math/Geometry";
@@ -9,7 +10,7 @@ import Translation from "util/string/Translation";
  * If a function, not used as a key.
  */
 export type TextGenerator<C> = string | Translation<string> | ((component: C) => string | number);
-export module TextGenerator {
+export namespace TextGenerator {
 	export function resolve<C> (textGenerator: TextGenerator<C>, component: C | null = null) {
 		if (textGenerator instanceof Translation) textGenerator = textGenerator.get;
 		const text = typeof textGenerator === "function" ? textGenerator(component!) : "";
@@ -36,7 +37,7 @@ export default class Component extends EventEmitter.Host<ComponentEvents> {
 		},
 		emit<D = any> (event: string | Event, manipulator?: (event: ComponentEvent<D>) => any) {
 			event = typeof event === "string" ? new Event(event) : event;
-			if (manipulator) manipulator(event as ComponentEvent);
+			if (manipulator) manipulator(event as ComponentEvent<D>);
 			return window.dispatchEvent(event);
 		},
 	};
@@ -55,7 +56,7 @@ export default class Component extends EventEmitter.Host<ComponentEvents> {
 			element = element.target as Element;
 		}
 
-		return (Component.map.get(element as any) || new Component(element as any)) as C;
+		return (Component.map.get(element as Element) || new Component(element as Element)) as C;
 	}
 
 	public static all<C extends Component = Component> (selector: string) {
@@ -141,7 +142,7 @@ export default class Component extends EventEmitter.Host<ComponentEvents> {
 	}
 
 	@Bound public refreshText () {
-		const text = this.textGenerator ? this.textGenerator(this) as any : "";
+		const text = this.textGenerator ? this.textGenerator(this) : "";
 		this.element().textContent = text === null || text === undefined ? "" : `${text}`;
 		return this;
 	}
@@ -294,7 +295,7 @@ export default class Component extends EventEmitter.Host<ComponentEvents> {
 	}
 
 	public matches (selector: string) {
-		return this.internalElement!.matches(selector);
+		return this.internalElement.matches(selector);
 	}
 
 	public getIndex () {
@@ -351,9 +352,11 @@ export default class Component extends EventEmitter.Host<ComponentEvents> {
 	public schedule<_A, _B, _C, _D> (s: number, handler: (component: this, _1: _A, _2: _B, _3: _C, _4: _D) => any, _1: _A, _2: _B, _3: _C, _4: _D): this;
 	public schedule<_A, _B, _C, _D, _E> (s: number, handler: (component: this, _1: _A, _2: _B, _3: _C, _4: _D, _5: _E) => any, _1: _A, _2: _B, _3: _C, _4: _D, _5: _E): this;
 	// public schedule (s: number, handler: (component: this, ...args: any[]) => any, ...args: any[]): this;
-	public schedule (s?: ((component: this, ...args: any[]) => any) | number, handler?: any, ...args: any[]) {
+	public schedule (s?: ((component: this, ...args: any[]) => any) | number, handler?: (...args: any[]) => any, ...args: any[]) {
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 		if (typeof s !== "number") args.unshift(handler), s && s(this, ...args);
-		else sleep(s).then(() => handler && handler(this, ...args));
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-argument
+		else void sleep(s).then(() => handler?.(this, ...args));
 		return this;
 	}
 }

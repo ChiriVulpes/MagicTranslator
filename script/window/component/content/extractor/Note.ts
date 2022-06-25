@@ -1,7 +1,7 @@
 import Component from "component/Component";
 import Textarea from "component/shared/Textarea";
 import { sleep } from "util/Async";
-import { Events, IEventEmitter } from "util/EventEmitter";
+import type { Events, IEventEmitter } from "util/EventEmitter";
 
 interface NoteEvents extends Events<Component> {
 	change (): any;
@@ -57,7 +57,7 @@ export default class Note extends Component {
 
 	@Bound private blurTextarea (textarea: Textarea) {
 		this.noteData[textarea.classes.has("japanese") ? 0 : 1] = textarea.getText();
-		sleep(0.01).then(() => this.event.emit("blur"));
+		void sleep(0.01).then(() => this.event.emit("blur"));
 		this.classes.toggle(this.isBlank(), "empty");
 	}
 }

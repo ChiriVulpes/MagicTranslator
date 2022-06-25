@@ -3,7 +3,7 @@ import electron from "electron";
 import path from "path";
 import { nameFunction, stringifyCall } from "./Util";
 
-module Electron {
+namespace Electron {
 	let p = ".";
 	let child: proc.ChildProcess;
 	let _args: string[];
@@ -19,7 +19,8 @@ module Electron {
 	}
 	nameFunction(stringifyCall("Electron.restart", p), restart);
 
-	async function spawn () {
+	// eslint-disable-next-line no-inner-declarations
+	function spawn () {
 		// if (child) child.kill();
 
 		// brutally murder any electron.exe processes lol
@@ -30,11 +31,14 @@ module Electron {
 			});
 		} catch (err) { }
 
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 		child = proc.spawn(electron as any, _args, { cwd: p });
 
 		child.on("error", err => console.error(err));
 
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
 		child.stdout!.on("data", data => process.stdout.write(data.toString().trim()));
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
 		child.stderr!.on("data", data => process.stdout.write(data.toString().trim()));
 	}
 }

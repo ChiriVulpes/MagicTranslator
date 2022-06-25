@@ -1,8 +1,9 @@
 import Component from "component/Component";
 import Input from "component/shared/Input";
-import { BasicCharacter, CharacterData } from "data/Characters";
+import type { CharacterData } from "data/Characters";
+import { BasicCharacter } from "data/Characters";
 import Projects from "data/Projects";
-import { Events, IEventEmitter } from "util/EventEmitter";
+import type { Events, IEventEmitter } from "util/EventEmitter";
 import Translation from "util/string/Translation";
 
 interface CharacterEvents extends Events<Component> {
@@ -59,7 +60,7 @@ export default class Character extends Component {
 		}
 	}
 
-	@Override public focus () {
+	public override focus () {
 		if (this.name) this.name.focus();
 		else super.focus();
 		return this;

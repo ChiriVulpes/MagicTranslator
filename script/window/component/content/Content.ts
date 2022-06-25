@@ -18,7 +18,7 @@ export default class Content extends Component {
 
 		// window.send("window-toggle-devtools");
 
-		this.initialize();
+		void this.initialize();
 	}
 
 	public async initialize () {
@@ -56,6 +56,7 @@ export default class Content extends Component {
 		if (page === undefined) {
 			page = chapter;
 			chapter = volume;
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 			volume = explorer;
 		}
 
@@ -85,8 +86,8 @@ export default class Content extends Component {
 
 		Component.window.listeners.until(extractor.event.waitFor("remove"))
 			.add<MouseEvent>("mouseup", event => {
-				if (event.button === 3 && page! - 1 >= 0) extractPrevious();
-				if (event.button === 4 && page! + 1 < pages.length) extractNext();
+				if (event.button === 3 && page! - 1 >= 0) void extractPrevious();
+				if (event.button === 4 && page! + 1 < pages.length) void extractNext();
 			});
 
 		return extractor.initialize();
@@ -111,8 +112,8 @@ export default class Content extends Component {
 	}
 
 	@Bound private keyup (event: KeyboardEvent) {
-		if (event.code === "F12") window.send("window-toggle-devtools");
-		if (event.code === "F11") window.send("window-toggle-fullscreen");
+		if (event.code === "F12") void window.send("window-toggle-devtools");
+		if (event.code === "F11") void window.send("window-toggle-fullscreen");
 	}
 
 }

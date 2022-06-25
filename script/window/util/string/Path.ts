@@ -1,10 +1,10 @@
-// @ts-ignore inconsistent file casing (we just want the types from node's path module)
-let nodePath: typeof import("path");
+import type * as pathType from "path";
 
-module Path {
+let nodePath: typeof pathType;
 
-	// @ts-ignore
-	export function initialize (_nodePath: typeof import("path")) {
+namespace Path {
+
+	export function initialize (_nodePath: typeof pathType) {
 		nodePath = _nodePath;
 	}
 

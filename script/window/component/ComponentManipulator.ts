@@ -27,16 +27,20 @@ export abstract class Manipulator<T, U extends Until<T> | undefined = undefined>
 	public until (promise: Promise<any>): EmptyIfUndefined<U>;
 	public until (s: number): EmptyIfUndefined<U>;
 	public until (s: number | Promise<any>): EmptyIfUndefined<U> {
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		if (!this.untilHandler) return {} as any;
 
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		return new Proxy({}, {
 			get: (_, k) => (...args: any[]) => {
 				const key = k as keyof EmptyIfUndefined<U>;
 				const { start, end } = this.untilHandler![key] as any as Until<T>;
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 				start(...args);
 
 				const promise = typeof s === "number" ? sleep(s) : s;
-				promise.then(() => end(...args));
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+				void promise.then(() => end(...args));
 
 				return this.host;
 			},
@@ -51,7 +55,7 @@ export interface ClassUntil<T> extends Until<T> {
 }
 
 export class ClassManipulator<T> extends Manipulator<T, ClassUntil<T>> {
-	@Override protected untilHandler = {
+	protected override untilHandler = {
 		add: {
 			start: (...classes: string[]) => this.add(...classes),
 			end: (...classes: string[]) => this.remove(...classes),
@@ -115,7 +119,7 @@ export interface AttributeUntil<T> extends Until<T> {
 }
 
 export class AttributeManipulator<T> extends Manipulator<T, AttributeUntil<T>> {
-	@Override protected untilHandler = {
+	protected override untilHandler = {
 		set: {
 			start: (attribute: string, value: string) => this.set(attribute, value),
 			end: (attribute: string) => this.remove(attribute),
@@ -167,7 +171,7 @@ export interface StyleUntil<T> extends Until<T> {
 }
 
 export class StyleManipulator<T> extends Manipulator<T, StyleUntil<T>> {
-	@Override protected untilHandler = {
+	protected override untilHandler = {
 		set: {
 			start: (rule: string, value: string | number) => this.set(rule, value),
 			end: (rule: string) => this.remove(rule),
@@ -198,7 +202,7 @@ export interface ComponentEvent<T = any> extends Event {
 }
 
 export class EventListenerManipulator<T> extends Manipulator<T, ListenUntil<T>> {
-	@Override protected untilHandler = {
+	protected override untilHandler = {
 		add: {
 			start: <E extends Event = ComponentEvent> (events: string | string[], callback: (event: E) => any) => this.add(events, callback),
 			end: <E extends Event = ComponentEvent> (events: string | string[], callback: (event: E) => any) => this.remove(events, callback),
@@ -206,22 +210,26 @@ export class EventListenerManipulator<T> extends Manipulator<T, ListenUntil<T>> 
 	};
 
 	public constructor (host: T, element: () => EventTarget) {
-		super(host, element as any);
+		super(host, element as () => HTMLElement);
 	}
 
-	public until (event: string): EmptyIfUndefined<ListenUntil<T>>;
-	public until (promise: Promise<any>): EmptyIfUndefined<ListenUntil<T>>;
-	public until (s: number): EmptyIfUndefined<ListenUntil<T>>;
-	@Override public until (s: number | string | Promise<any>): EmptyIfUndefined<ListenUntil<T>> {
+	public override until (event: string): EmptyIfUndefined<ListenUntil<T>>;
+	public override until (promise: Promise<any>): EmptyIfUndefined<ListenUntil<T>>;
+	public override until (s: number): EmptyIfUndefined<ListenUntil<T>>;
+	public override until (s: number | string | Promise<any>): EmptyIfUndefined<ListenUntil<T>> {
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		if (!this.untilHandler) return {} as any;
 
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		return new Proxy({}, {
 			get: (_, key: keyof EventListenerManipulator<T>["untilHandler"]) => (...args: any[]) => {
 				const { start, end } = this.untilHandler[key] as any as Until<T>;
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 				start(...args);
 
 				const promise = typeof s === "number" ? sleep(s) : typeof s === "string" ? this.waitFor(s) : s;
-				promise.then(() => end(...args));
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+				void promise.then(() => end(...args));
 
 				return this.host;
 			},
@@ -232,7 +240,7 @@ export class EventListenerManipulator<T> extends Manipulator<T, ListenUntil<T>> 
 		if (!Array.isArray(events)) events = [events];
 
 		for (const event of events) {
-			this.element().addEventListener(event, callback as any, always);
+			this.element().addEventListener(event, callback as (event: Event) => any, always);
 		}
 
 		return this.host;
@@ -242,7 +250,7 @@ export class EventListenerManipulator<T> extends Manipulator<T, ListenUntil<T>> 
 		if (!Array.isArray(events)) events = [events];
 
 		for (const event of events) {
-			this.element().removeEventListener(event, callback as any);
+			this.element().removeEventListener(event, callback as (event: Event) => any);
 		}
 
 		return this.host;

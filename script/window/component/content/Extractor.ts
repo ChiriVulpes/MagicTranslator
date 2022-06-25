@@ -8,8 +8,9 @@ import Dropdown from "component/shared/Dropdown";
 import Img from "component/shared/Img";
 import Interrupt from "component/shared/Interrupt";
 import SortableTiles from "component/shared/SortableTiles";
-import Captures, { CaptureData } from "data/Captures";
-import { BasicCharacter } from "data/Characters";
+import type Captures from "data/Captures";
+import type { CaptureData } from "data/Captures";
+import type { BasicCharacter } from "data/Characters";
 import Dialog from "data/Dialog";
 import Projects from "data/Projects";
 import Options from "Options";
@@ -17,7 +18,7 @@ import { tuple } from "util/Arrays";
 import Canvas from "util/Canvas";
 import ChildProcess from "util/ChildProcess";
 import Enums from "util/Enums";
-import { Events, IEventEmitter } from "util/EventEmitter";
+import type { Events, IEventEmitter } from "util/EventEmitter";
 import FileSystem from "util/FileSystem";
 import { Vector } from "util/math/Geometry";
 import Path from "util/string/Path";
@@ -70,7 +71,7 @@ export default class Extractor extends Component {
 					})))
 			.appendTo(this);
 
-		this.setPageImage();
+		void this.setPageImage();
 
 		new Component()
 			.classes.add("extraction-drawer")
@@ -139,7 +140,7 @@ export default class Extractor extends Component {
 		captureComponent.refreshImage();
 	}
 
-	@Bound public async updateJSON () {
+	@Bound public updateJSON () {
 		if (this.isRemoved) return;
 		this.captures.captures = this.capturesWrapper.tiles()
 			.map(component => component.getData())
@@ -192,7 +193,7 @@ export default class Extractor extends Component {
 		if (!confirm) return;
 
 		component.remove();
-		FileSystem.unlink(`${this.getCapturePagePath()}/cap${pad(capture.id!, 3)}.png`);
+		await FileSystem.unlink(`${this.getCapturePagePath()}/cap${pad(capture.id!, 3)}.png`);
 
 		// we were just hovering over a capture, but now it's gone, so the "leave" event will never fire
 		this.classes.remove("selecting");
@@ -409,7 +410,7 @@ export default class Extractor extends Component {
 		// 	}
 		// }
 
-		this.setPageImage();
+		void this.setPageImage();
 	}
 
 	private async setPageImage () {
@@ -443,6 +444,7 @@ export default class Extractor extends Component {
 			await ChildProcess.exec(`"${options.imageMagickCLIPath}" "${savePath}[0]" "${translatedPath}"`)
 				.catch(async err => Interrupt.info(screen => screen
 					.setTitle("imagemagick-unsupported")
+					// eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
 					.setDescription(() => err.message.replace(/^Command failed: .*?\n/, ""))));
 		}
 	}
@@ -465,7 +467,8 @@ export default class Extractor extends Component {
 		let path = project.getPath("save", this.volume, this.chapter, this.page);
 		if (!await FileSystem.exists(path)) path = project.getPath("raw", this.volume, this.chapter, this.page);
 
-		ChildProcess.exec(`"${project.externalEditorCLIPath || options.externalEditorCLIPath}" "${path}"`);
+		// we ignore the result of this cuz we don't want errors in opening the program to crash here or something
+		void ChildProcess.exec(`"${project.externalEditorCLIPath || options.externalEditorCLIPath}" "${path}"`);
 	}
 
 	private async saveImage (capturePath: string, canvas: HTMLCanvasElement) {

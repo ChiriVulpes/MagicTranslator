@@ -1,4 +1,5 @@
-import Component, { TextGenerator } from "component/Component";
+import type { TextGenerator } from "component/Component";
+import Component from "component/Component";
 import WindowControls from "component/header/WindowControls";
 
 export default class Header extends Component {

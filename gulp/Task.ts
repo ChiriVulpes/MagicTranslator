@@ -1,6 +1,7 @@
-import del, { Options } from "del";
+import type { Options } from "del";
+import del from "del";
 import * as Gulp from "gulp";
-import { Task as UndertakerTask } from "undertaker";
+import type { Task as UndertakerTask } from "undertaker";
 import { nameFunction, sleep, stringifyCall } from "./Util";
 
 export type Tasks = (UndertakerTask | Series | Pipe)[];
@@ -39,7 +40,7 @@ export default class Task extends Series {
 		super(...parallel);
 		this.name = name;
 
-		sleep(1000).then(() => {
+		void sleep(1000).then(() => {
 			if (!this.created) {
 				throw new Error("Task was named but not created.");
 			}
@@ -80,7 +81,7 @@ export class Pipe {
 }
 
 export function watch (watches: Gulp.Globs, ...parallel: Tasks) {
-	return nameFunction(stringifyCall("watch", watches), async () => {
+	return nameFunction(stringifyCall("watch", watches), () => {
 		Gulp.watch(watches, Series.parallel(...parallel));
 	});
 }

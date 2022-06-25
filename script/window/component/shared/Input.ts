@@ -1,5 +1,6 @@
-import Component, { TextGenerator } from "component/Component";
-import { Events, IEventEmitter } from "util/EventEmitter";
+import type { TextGenerator } from "component/Component";
+import Component from "component/Component";
+import type { Events, IEventEmitter } from "util/EventEmitter";
 import Translation from "util/string/Translation";
 
 interface InputEvents extends Events<Component> {
@@ -29,7 +30,7 @@ export default class Input extends Component {
 		return this;
 	}
 
-	@Override @Bound public refreshText () {
+	@Bound public override refreshText () {
 		this.element<HTMLInputElement>().value = this.textGenerator ? `${this.textGenerator(this)}` : "";
 		this.attributes.set("placeholder", this.placeholderTextGenerator ? `${this.placeholderTextGenerator(this)}` : "");
 		this.event.emit("change");

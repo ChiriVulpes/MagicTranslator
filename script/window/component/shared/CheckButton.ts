@@ -1,5 +1,5 @@
 import Component from "component/Component";
-import { Events, IEventEmitter } from "util/EventEmitter";
+import type { Events, IEventEmitter } from "util/EventEmitter";
 
 interface CheckButtonEvents extends Events<Component> {
 	toggle (enabled: boolean): any;

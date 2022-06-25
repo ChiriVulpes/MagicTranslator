@@ -1,6 +1,7 @@
 import CharacterEditor from "component/content/character/CharacterEditor";
-import Extractor from "component/content/Extractor";
-import { BasicCharacter, CharacterData } from "data/Characters";
+import type Extractor from "component/content/Extractor";
+import type { CharacterData } from "data/Characters";
+import { BasicCharacter } from "data/Characters";
 import Projects from "data/Projects";
 import Options from "Options";
 import { tuple } from "util/Arrays";
@@ -24,7 +25,7 @@ export class DialogImpl {
 		}
 
 		const directory = project.getChapterDirectory("raw", volumeNumber, chapterNumber);
-		FileSystem.writeToUserChoice(result, `${directory}/dialog-${volumeString}-${chapterString}${page === undefined ? "" : `-${pageNumber}`}.md`);
+		await FileSystem.writeToUserChoice(result, `${directory}/dialog-${volumeString}-${chapterString}${page === undefined ? "" : `-${pageNumber!}`}.md`);
 	}
 
 	public async import (volume: number, chapter: number) {

@@ -40,7 +40,7 @@ export default class Tooltip extends Component {
 
 		Tooltip.registry.set(component, tooltipRegistration);
 
-		Tooltip.onDeregister(component).then(() => {
+		void Tooltip.onDeregister(component).then(() => {
 			Tooltip.registry.delete(component);
 			if (!tooltipRegistration.tooltip) return;
 			tooltipRegistration.tooltip.remove();

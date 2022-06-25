@@ -25,30 +25,31 @@ export default class WindowControls extends Component {
 			.listeners.add("click", this.close)
 			.appendTo(this);
 
+		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		window.addEventListener("resize", this.onResize);
-		this.onResize();
+		void this.onResize();
 	}
 
 	@Bound private minimize () {
-		window.send("window-minimize");
+		void window.send("window-minimize");
 	}
 
 	@Bound private async maximize () {
 		const action = this.maximizeButton.attributes.get("action");
-		await window.send(`window-${action}` as WindowEvent);
+		await window.send(`window-${action!}` as WindowEvent);
 		const maximized = await window.send<boolean>("window-is-maximized");
 		this.maximizeButton.attributes.set("action", maximized ? "restore" : "maximize");
 	}
 
 	@Bound private close () {
-		window.send("window-close");
+		void window.send("window-close");
 	}
 
 	@Bound private async onResize () {
 		const maximized = await window.send<boolean>("window-is-maximized");
 		const fullscreen = await window.send<boolean>("window-is-fullscreen");
 		this.maximizeButton.attributes.set("action", maximized ? "restore" : fullscreen ? "toggle-fullscreen" : "maximize");
-		Component.get(document.documentElement!).classes.toggle(maximized, "is-maximized");
-		Component.get(document.documentElement!).classes.toggle(fullscreen, "is-fullscreen");
+		Component.get(document.documentElement).classes.toggle(maximized, "is-maximized");
+		Component.get(document.documentElement).classes.toggle(fullscreen, "is-fullscreen");
 	}
 }

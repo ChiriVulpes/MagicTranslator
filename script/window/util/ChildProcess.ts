@@ -1,8 +1,10 @@
-let nodeChildProcess: typeof import("child_process");
+import type * as child_processType from "child_process";
 
-module ChildProcess {
+let nodeChildProcess: typeof child_processType;
 
-	export function initialize (_nodeChildProcess: typeof import("child_process")) {
+namespace ChildProcess {
+
+	export function initialize (_nodeChildProcess: typeof child_processType) {
 		nodeChildProcess = _nodeChildProcess;
 	}
 

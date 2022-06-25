@@ -137,6 +137,7 @@ class Interpolator {
 				matched = true;
 
 				// this segment matched, so we let it handle it
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 				let result = handle(match, segment, this, ...args);
 
 				// process its result (can be a string, a section, or a list of sections)
@@ -196,7 +197,7 @@ class Interpolator {
 	}
 }
 
-module Interpolator {
+namespace Interpolator {
 	export function getArgument (keyMap: string, ...args: any[]) {
 		const keys = keyMap.split(".");
 		if (isNaN(+keys[0])) {
@@ -239,7 +240,9 @@ export default Interpolator;
 export const argumentSegment: Segment = {
 	regex: /^[a-zA-Z0-9_-]+(?:\.[a-zA-Z0-9_-]+)*$/,
 	handle: (_, segment, api, ...args) => {
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 		const result = Interpolator.getArgument(segment, ...args);
+		// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 		return result === undefined ? "" : isIterable(result) ? result : `${result}`;
 	},
 };
@@ -249,7 +252,9 @@ export const conditionalSegment: Segment = {
 	handle: ([, argument], segment, api, ...args) => {
 		let colonIndex = Interpolator.getIndexOfTopLevel(":", segment);
 		colonIndex = colonIndex === -1 ? Infinity : colonIndex;
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 		const result = Interpolator.getArgument(argument, ...args) ? segment.slice(argument.length + 1, colonIndex) : segment.slice(colonIndex + 1);
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 		return api.interpolate(result, ...args);
 	},
 };
@@ -257,11 +262,13 @@ export const conditionalSegment: Segment = {
 export const padSegment: Segment = {
 	regex: /^pad\((\d+):(.*?)\):(.*?)$/,
 	handle: ([, padToLength, padWith, toPad], segment, api, ...args) => {
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 		const sections = api.interpolate(toPad, ...args);
 		const len = sections.reduce((l, section) => l + section.content.length, 0);
 		if (len >= +padToLength) return sections;
 
 		const padLength = +padToLength - len;
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 		const padWithSections = api.interpolate(padWith, ...args);
 		const padWithLength = padWithSections.reduce((l, section) => l + section.content.length, 0);
 		for (let totalLength = 0; totalLength < padLength; totalLength += padWithLength) {
@@ -275,9 +282,11 @@ export const padSegment: Segment = {
 export const basicInterpolator = new Interpolator(argumentSegment, conditionalSegment, padSegment);
 
 export function interpolateSectioned (str: string, ...args: any[]) {
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 	return basicInterpolator.interpolate(str, ...args);
 }
 
 export function interpolate (str: string, ...args: any[]) {
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 	return basicInterpolator.interpolate(str, ...args).map(section => section.content).join("");
 }

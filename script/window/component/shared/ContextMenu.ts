@@ -41,7 +41,7 @@ export default class ContextMenu extends Component {
 		const listenersUntil = component.listeners.until(onDeregister);
 		listenersUntil.add("contextmenu", ContextMenu.show(component));
 
-		onDeregister.then(() => {
+		void onDeregister.then(() => {
 			if (!registration.contextMenu) return;
 			registration.contextMenu.remove();
 		});
@@ -109,7 +109,7 @@ export default class ContextMenu extends Component {
 		this.classes.add("context-menu");
 	}
 
-	@Override public show () {
+	public override show () {
 		const listenUntil = Component.window.listeners.until(this.event.waitFor("hide"));
 		listenUntil.add("mousedown", ContextMenu.hide(this.host));
 		listenUntil.add("keydown", ContextMenu.hide(this.host));

@@ -78,6 +78,6 @@ export default class GlobalSettings extends SettingsInterrupt {
 			.setTitle("requires-restart")
 			.setDescription("requires-restart-description"))) return;
 
-		window.send("window-restart");
+		void window.send("window-restart");
 	}
 }

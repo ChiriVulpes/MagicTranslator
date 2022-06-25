@@ -6,6 +6,7 @@ export default function Bound<T extends (...args: any[]) => any>
 	return {
 		configurable: true,
 		get () {
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, no-prototype-builtins
 			if (!this || this === target.prototype || this.hasOwnProperty(key) || typeof fn !== "function") {
 				return fn!;
 			}
@@ -17,7 +18,9 @@ export default function Bound<T extends (...args: any[]) => any>
 					return boundFn;
 				},
 				set (value) {
+					// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 					fn = value;
+					// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 					delete this[key];
 				},
 			});

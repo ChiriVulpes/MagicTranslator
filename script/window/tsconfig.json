@@ -15,15 +15,11 @@
         "strict": true,
         "strictPropertyInitialization": false,
         "experimentalDecorators": true,
+        "noImplicitOverride": true,
         "target": "es2020",
         "sourceMap": true,
         "lib": [
             "dom", "dom.iterable", "es2018", "es2018.promise"
-        ],
-        "plugins": [
-            {
-                "name": "typescript-tslint-plugin"
-            }
         ]
     },
     "include": [

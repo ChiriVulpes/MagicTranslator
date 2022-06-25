@@ -1,5 +1,6 @@
-import Component, { TextGenerator } from "component/Component";
-import { Events, IEventEmitter } from "util/EventEmitter";
+import type { TextGenerator } from "component/Component";
+import Component from "component/Component";
+import type { Events, IEventEmitter } from "util/EventEmitter";
 import Translation from "util/string/Translation";
 
 interface ImgEvents extends Events<Component> {
@@ -30,9 +31,9 @@ export default class Img extends Component {
 		return this;
 	}
 
-	@Bound @Override public refreshText () {
+	@Bound public override refreshText () {
 		super.refreshText();
-		const text = this.altGenerator ? this.altGenerator(this) as any : "";
+		const text = this.altGenerator ? this.altGenerator(this) : "";
 		this.attributes.set("alt", text === null || text === undefined ? "" : `${text}`);
 		return this;
 	}
