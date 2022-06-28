@@ -1,5 +1,5 @@
 /// <reference path="../Common.d.ts" />
-import { app, BrowserWindow, ipcMain, Menu, screen, WebContents } from "electron";
+import { app, BrowserWindow, dialog, ipcMain, Menu, screen, WebContents } from "electron";
 // tslint:disable-next-line
 const Store = require("electron-store") as StoreModule;
 
@@ -8,8 +8,8 @@ let mainWindow: BrowserWindow;
 
 
 function on (windowEvent: WindowEvent, listener: (event: IpcEvent, ...args: any[]) => any) {
-	ipcMain.on(windowEvent, (event: IpcEvent, ...args: any[]) => {
-		const result = listener(event, ...args);
+	ipcMain.on(windowEvent, async (event: IpcEvent, ...args: any[]) => {
+		const result = await listener(event, ...args);
 		if (!(event.sender as WebContents).isDestroyed()) {
 			event.sender.send(windowEvent, result);
 		}
@@ -105,6 +105,12 @@ async function init () {
 		createWindow();
 		oldWindow.close();
 	});
+
+	on("dialog-show-save", async (event, options: Electron.SaveDialogOptions) =>
+		dialog.showSaveDialog(options));
+
+	on("dialog-show-open", async (event, options: Electron.OpenDialogOptions) =>
+		dialog.showOpenDialog(options));
 }
 
 init();

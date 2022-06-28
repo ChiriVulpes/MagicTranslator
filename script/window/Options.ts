@@ -4,7 +4,6 @@ import FileSystem from "util/FileSystem";
 import Language from "util/string/Language";
 import Translation from "util/string/Translation";
 
-let Dialog: typeof Electron.dialog;
 let Store: StoreModule;
 
 interface StoredData extends MagicalData {
@@ -36,8 +35,6 @@ export default class Options {
 
 	public static async initialize (req: RequireFunction) {
 		Store = req<StoreModule>("electron-store");
-		const electron = req<typeof Electron>("electron");
-		Dialog = electron.dialog;
 
 		const store = new Store<StoredData>();
 
@@ -115,10 +112,10 @@ export default class Options {
 		while (true) {
 			file = undefined;
 
-			const dialog = await Dialog.showOpenDialog({
+			const dialog = await window.send<Electron.OpenDialogReturnValue>("dialog-show-open", {
 				properties: ["openFile"],
 				title: new Translation(title).get(...args),
-			});
+			} as Electron.OpenDialogOptions);
 
 			if (!dialog.filePaths || !dialog.filePaths.length) {
 				if (retryOnCancel) continue;
@@ -140,10 +137,10 @@ export default class Options {
 		while (true) {
 			folder = undefined;
 
-			const dialog = await Dialog.showOpenDialog({
+			const dialog = await window.send<Electron.OpenDialogReturnValue>("dialog-show-open", {
 				properties: ["openDirectory"],
 				title: new Translation(title).get(),
-			});
+			} as Electron.OpenDialogOptions);
 
 			if (!dialog.filePaths || !dialog.filePaths.length) {
 				if (retryOnCancel) continue;
@@ -198,10 +195,10 @@ export default class Options {
 	public projectFolders: string[] = [];
 
 	// other programs
-	public OCRApplicationPath: string = "";
-	public imageMagickCLIPath: string = "";
-	public externalEditorCLIPath: string = "";
-	public glosserCLIPath: string = "";
+	public OCRApplicationPath = "";
+	public imageMagickCLIPath = "";
+	public externalEditorCLIPath = "";
+	public glosserCLIPath = "";
 
 	// appearance
 	public customTitleBar = process.platform === "win32";

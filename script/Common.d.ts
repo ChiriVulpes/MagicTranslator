@@ -1,17 +1,19 @@
 type WindowEvent =
-	"window-is-maximized" |
-	"window-is-fullscreen" |
-	"window-toggle-fullscreen" |
-	"window-minimize" |
-	"window-maximize" |
-	"window-restore" |
-	"window-close" |
-	"window-back" |
-	"window-forward" |
-	"window-get-position" |
-	"window-toggle-devtools" |
-	"window-restart" |
-	"get-locale";
+	| "window-is-maximized"
+	| "window-is-fullscreen"
+	| "window-toggle-fullscreen"
+	| "window-minimize"
+	| "window-maximize"
+	| "window-restore"
+	| "window-close"
+	| "window-back"
+	| "window-forward"
+	| "window-get-position"
+	| "window-toggle-devtools"
+	| "window-restart"
+	| "get-locale"
+	| "dialog-show-save"
+	| "dialog-show-open"
 
 interface IpcEvent {
 	returnValue: any;

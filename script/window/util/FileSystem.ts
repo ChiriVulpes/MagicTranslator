@@ -5,7 +5,6 @@ import Concurrency from "util/Concurrency";
 
 let nodefs: typeof fsType;
 let path: typeof pathType;
-let Dialog: typeof Electron.dialog;
 
 const fileWriteLocks = new Map<string, Promise<void>>();
 
@@ -101,7 +100,7 @@ class FileSystemMethods {
 	}
 
 	public async writeToUserChoice (data: string, defaultPath?: string) {
-		const dialog = await Dialog.showSaveDialog({ defaultPath });
+		const dialog = await window.send<Electron.SaveDialogReturnValue>("dialog-show-save", { defaultPath } as Electron.SaveDialogOptions);
 		if (!dialog.filePath) return;
 		void this.writeFile(dialog.filePath, data);
 	}
@@ -135,11 +134,9 @@ class FileSystem extends FileSystemMethods {
 	public initialize (
 		nodefs_: typeof fsType,
 		path_: typeof pathType,
-		dialog: typeof Electron.dialog,
 	) {
 		nodefs = nodefs_;
 		path = path_;
-		Dialog = dialog;
 	}
 }
 
