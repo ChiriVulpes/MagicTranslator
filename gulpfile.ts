@@ -36,6 +36,9 @@ const statik = new Pipe("static", ["static/**/*", "!static/node_modules/**/*"])
 const nodeModules = new Pipe("node-modules", "script/window/node_modules")
 	.pipe(symlink("out"));
 
+const nodeModulesCopy = new Pipe("node-modules", "script/window/node_modules/**/*")
+	.pipe("out/node_modules");
+
 ////////////////////////////////////
 // Tasks
 //
@@ -49,19 +52,20 @@ new Task("watch", remove("out"))
 	.create();
 
 new Task("build", remove(["dist", "out"]))
-	.then(scriptWindow.compile, scriptApp.compile, style, statik, nodeModules)
+	.then(scriptWindow.compile, scriptApp.compile, style, statik, nodeModulesCopy)
 	.then(() => build({
 		targets: Platform.WINDOWS.createTarget(),
 		config: {
-			appId: "yuudaari.magictranslator",
+			appId: "chirivulpes.magictranslator",
 			productName: "MagicTranslator",
-			copyright: "Copyright © 2019 Yuudaari",
+			copyright: "Copyright © 2022 Chiri Vulpes",
 			directories: {
 				app: "out",
 			},
 			win: {
 				target: "portable",
 			},
+			includeSubNodeModules: true,
 		},
 	}))
 	.create();

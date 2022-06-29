@@ -1,4 +1,3 @@
-import FileSystem from "util/FileSystem";
 import type Translations from "util/string/Translations";
 
 export default class Language {
@@ -9,10 +8,10 @@ export default class Language {
 	public static async initialize () {
 		const locale = await window.send<string>("get-locale");
 
-		const fallbackResponse = await FileSystem.readFile("./lang/en-US.quilt", "utf8");
+		const fallbackResponse = await fetch("lang/en-US.quilt").then(response => response.text());
 		Language.fallback = new Language("en-US", fallbackResponse);
 
-		const response = await FileSystem.readFile(`./lang/${locale}.quilt`, "utf8").catch(() => {
+		const response = await fetch(`lang/${locale}.quilt`).then(response => response.text()).catch(() => {
 			console.warn(`The locale ${locale} is not supported. =(`);
 		});
 		Language.current = response ? new Language(locale, response) : Language.fallback;

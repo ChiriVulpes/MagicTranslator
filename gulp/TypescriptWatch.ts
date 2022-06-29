@@ -1,6 +1,6 @@
 import chalk from "chalk";
 import type { ChildProcess } from "child_process";
-import { exec } from "child_process";
+import { exec, spawn } from "child_process";
 import * as path from "path";
 import Bound from "./Bound";
 import { getElapsedString, getTimeString } from "./Util";
@@ -37,15 +37,17 @@ export default class TypescriptWatch {
 	@Bound
 	public async compile () {
 		await this.watch().waitForInitial();
-		this.task.kill();
+		if (/^win/.test(process.platform))
+			exec(`taskkill /f /t /pid ${this.task.pid}`);
+		else
+			this.task.kill();
 	}
 
 	public watch () {
 		const ocwd = process.cwd();
 		process.chdir(this.inDir);
-		const declaration = this.declaration ? `--declaration --declarationDir "${this.declaration}"` : "";
-		const command = `npx tsc --outDir "${this.outDir}" --pretty --watch ${declaration}`;
-		this.task = exec(command);
+		const declaration = this.declaration ? ["--declaration", "--declarationDir", this.declaration] : [];
+		this.task = spawn(/^win/.test(process.platform) ? "npx.cmd" : "npx", ["tsc", "--outDir", this.outDir, "--pretty", "--watch", ...declaration]);
 		process.chdir(ocwd);
 
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
@@ -61,10 +63,11 @@ export default class TypescriptWatch {
 			if (/\bincremental compilation|in watch mode\b/.test(dataString))
 				start = Date.now();
 
-			if (/Watching for file changes./.test(dataString) && this.initialized) {
+			if (/Watching for file changes./.test(dataString)) {
 				if (typeof this.initialized === "function") {
 					this.initialized();
 					this.initialized = true;
+					console.log("initialized");
 
 				} else {
 					this.onCompleteHandler();
