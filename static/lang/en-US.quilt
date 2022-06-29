@@ -1,6 +1,8 @@
 add-project: Add Project
 app-settings: App Settings
 appearance: Appearance
+auto-text: Detect text
+auto-text-in-progress: In progress
 back: Back
 breadcrumb-separator:  — 
 button-display-mode: Button Appearance
@@ -47,6 +49,8 @@ imagemagick-path: ImageMagick Path
 imagemagick-unsupported: ImageMagick can't convert the save file. Error:
 import: Import
 info-error-on-gloss: There was an error glossing\nthis phrase with the custom glosser.
+info-error-on-auto-text: There was an error while running\nthe text detection.
+info-missing-ocr-aggregator-server: The URL was not configured.
 jisho: Jisho.org
 main: Main
 missing-translations: Missing Translations
@@ -61,6 +65,7 @@ no: No
 normal: Normal
 note-placeholder: Note
 notes: Notes
+ocr-aggregator-server-url: OCR Aggregator Server URL
 open: Open
 page-path: Page Name
 page: Page {0}

@@ -2,6 +2,7 @@ import SettingsInterrupt from "component/content/settings/SettingsInterrupt";
 import Button, { ButtonDisplayMode } from "component/shared/Button";
 import CheckButton from "component/shared/CheckButton";
 import Dropdown from "component/shared/Dropdown";
+import Input from "component/shared/Input";
 import Interrupt from "component/shared/Interrupt";
 import LabelledRow from "component/shared/LabelledRow";
 import Options from "Options";
@@ -42,7 +43,15 @@ export default class GlobalSettings extends SettingsInterrupt {
 			.append(new LabelledRow("glosser")
 				.append(new Button()
 					.setText(() => options.glosserCLIPath || new Translation("jisho").get())
-					.event.subscribe("click", this.changeGlosserCLIPath)));
+					.event.subscribe("click", this.changeGlosserCLIPath)))
+			.append(new LabelledRow("ocr-aggregator-server-url")
+				.append(new Input()
+					.setText(() => options.OCRAggregatorServerURL || "")
+					.event.subscribe("change", this.changeOCRAggregatorServerUrl)));
+	}
+
+	@Bound private changeOCRAggregatorServerUrl (input: Input) {
+		Options.setOCRAggregatorServerUrl(input.getText());
 	}
 
 	@Bound private async changeOCRApplicationPath (button: Button) {

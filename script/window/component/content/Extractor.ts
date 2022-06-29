@@ -10,7 +10,7 @@ import Interrupt from "component/shared/Interrupt";
 import SortableTiles from "component/shared/SortableTiles";
 import type Captures from "data/Captures";
 import type { CaptureData } from "data/Captures";
-import type { BasicCharacter } from "data/Characters";
+import { BasicCharacter } from "data/Characters";
 import Dialog from "data/Dialog";
 import Projects from "data/Projects";
 import Options from "Options";
@@ -46,6 +46,7 @@ export default class Extractor extends Component {
 	private readonly pageImage: Img;
 	private readonly capturesWrapper: SortableTiles<Capture>;
 	private readonly displayModeDropdown: Dropdown<DisplayMode>;
+	private readonly autoTextButton: Button;
 
 	private captures: Captures;
 	private captureStart: Vector;
@@ -102,6 +103,10 @@ export default class Extractor extends Component {
 				.append(this.displayModeDropdown = Dropdown.from(Enums.values(DisplayMode))
 					.classes.add("float-right")
 					.event.subscribe("select", this.changeDisplayMode))
+				.append(this.autoTextButton = new Button()
+					.classes.add("float-right")
+					.setText("auto-text")
+					.event.subscribe("click", this.autoText))
 				.append(new Button()
 					.setIcon("\uE70F")
 					.classes.add("float-right")
@@ -118,6 +123,75 @@ export default class Extractor extends Component {
 					.classes.add("loading", "extraction-captures")
 					.event.subscribe("sort", this.onSortComplete)))
 			.appendTo(this);
+	}
+
+	@Bound public async autoText() {
+		if(!options.OCRAggregatorServerURL) {
+			await Interrupt.info(interrupt => interrupt
+				.setTitle("info-error-on-auto-text")
+				.setDescription("info-missing-ocr-aggregator-server"));
+			return;
+		}
+
+		try {
+			this.autoTextButton.setText("auto-text-in-progress");
+			this.autoTextButton.setDisabled(true);
+			const rawPath = Projects.current!.getPath("raw", this.volume, this.chapter, this.page);
+			const file = await FileSystem.readFile(rawPath);
+
+			const formData = new FormData();
+			formData.append('input_image', new Blob([file.buffer]));
+
+			const result = await fetch(new URL("/detect_ocr", options.OCRAggregatorServerURL).toString(), {
+				method: "POST",
+				body: formData
+			});
+
+			const captures = (await result.json()) as [{ rect: [number, number, number, number], text: string }];
+
+			for (const capture of captures) {
+				const position = {
+					x: capture.rect[0],
+					y: capture.rect[1]
+				};
+				const size = Vector.size(
+					{
+						x: capture.rect[0],
+						y: capture.rect[1]
+					},
+					{
+						x: capture.rect[2],
+						y: capture.rect[3]
+					});
+				
+				const canvas = document.createElement("canvas");
+				canvas.width = size.x;
+				canvas.height = size.y;
+				const context = canvas.getContext("2d")!;
+				context.drawImage(this.pageImage.element<HTMLImageElement>(), -position.x, -position.y);			
+
+				await this.saveImage(`cap${pad(this.captures.captureId, 3)}.png`, canvas);
+				await this.addCapture({
+					position: position,
+					size: size,
+					text: capture.text,
+					translation: "",
+					notes: [],
+					character: BasicCharacter.Unknown,
+				});
+			}
+
+			await this.updateJSON();
+		}
+		catch(err: any) {
+			await Interrupt.info(interrupt => interrupt
+				.setTitle("info-error-on-auto-text")
+				.setDescription(() => err?.message));
+		}
+		finally {
+			this.autoTextButton.setText("auto-text");
+			this.autoTextButton.setDisabled(false);
+		}
 	}
 
 	public async addCapture (capture: CaptureData) {

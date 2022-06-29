@@ -1,4 +1,4 @@
-import Captor from "component/content/Captor";
+import Captor, { OCRAggregatorServerCaptor } from "component/content/Captor";
 import Button, { ButtonDisplayMode } from "component/shared/Button";
 import FileSystem from "util/FileSystem";
 import Language from "util/string/Language";
@@ -23,7 +23,6 @@ const imageMagickCLIPaths: PlatformCLIPaths = {
 };
 
 export default class Options {
-
 	private static captor?: Captor;
 	private static readonly INSTANCE = new Options();
 
@@ -97,7 +96,7 @@ export default class Options {
 		if (!await FileSystem.exists(options.OCRApplicationPath)) options.OCRApplicationPath = "";
 		if (!await FileSystem.exists(options.imageMagickCLIPath)) options.imageMagickCLIPath = "";
 		Button.setDisplayMode(options.buttonDisplayMode);
-		Options.captor = await Captor.get(options.OCRApplicationPath);
+		this.setOCRAggregatorServerUrl(options.OCRAggregatorServerURL);
 	}
 
 	public static async waitForOptions () {
@@ -176,6 +175,27 @@ export default class Options {
 		if (path) options.glosserCLIPath = path;
 	}
 
+	public static setOCRAggregatorServerUrl(inputUrl: string) {
+		async function setFallbackCaptor() {
+			Options.captor = await Captor.get(options.OCRApplicationPath);
+			options.OCRAggregatorServerURL = "";
+		}
+
+		if(inputUrl) {
+			try {
+				const url = new URL(inputUrl);
+				Options.captor = new OCRAggregatorServerCaptor(url);
+				options.OCRAggregatorServerURL = inputUrl;
+			}
+			catch {
+				setFallbackCaptor();
+			}
+		}
+		else {
+			setFallbackCaptor();
+		}
+	}
+
 	private static async chooseCLIFolder (prompt: string, paths: PlatformCLIPaths) {
 		let file: string | undefined;
 		const folder = await this.chooseFolder(prompt, async result => {
@@ -199,6 +219,9 @@ export default class Options {
 	public imageMagickCLIPath = "";
 	public externalEditorCLIPath = "";
 	public glosserCLIPath = "";
+
+	// external services
+	public OCRAggregatorServerURL: string = "";
 
 	// appearance
 	public customTitleBar = process.platform === "win32";
