@@ -31,7 +31,7 @@ declare global {
 (window as any).send = async (event: WindowEvent, ...args: any[]) => {
 	return new Promise(resolve => {
 		ipcRenderer.once(event, (_: any, result: any) => resolve(result));
-		ipcRenderer.send(event);
+		ipcRenderer.send(event, ...args);
 	});
 };
 
