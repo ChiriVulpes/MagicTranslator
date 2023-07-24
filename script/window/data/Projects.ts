@@ -122,9 +122,7 @@ export class Project extends Serializable {
 			}
 			default: {
 				[volume, chapter, page] = this.getSegmentNumbers(volume as number, chapter as number, page as number);
-				return Path.join(this.root, interpolate(pathTypeSetting, Stream.entries({ volume, chapter, page })
-					.map(([name, value]) => tuple(name, this.getSegment(name, value)))
-					.toObject()));
+				return this.interpolate(pathTypeSetting, volume, chapter, page);
 			}
 		}
 	}
@@ -166,42 +164,35 @@ export class Project extends Serializable {
 		}
 
 		return [
-			parseFloat(mask(this.structure.volume.replace(/[^#]/g, " "), volume || "")),
-			parseFloat(mask(this.structure.chapter.replace("#", "###").replace(/[^#]/g, " "), chapter as string || "")),
-			parseFloat(mask(this.structure.page.replace(/[^#]/g, " "), page as string || "")),
+			parseFloat(mask(this.getBaseFileName("raw", "volume", "~").replace(/[^#]/g, " "), volume || "")),
+			parseFloat(mask(this.getBaseFileName("raw", "chapter", "~").replace("#", "###").replace(/[^#]/g, " "), chapter as string || "")),
+			parseFloat(mask(this.getBaseFileName("raw", "page", "~").replace(/[^#]/g, " "), page as string || "")),
 		];
 	}
 
-	public getVolumeDirectory (type: keyof ProjectStructure) {
-		const [, match] = this.structure[type].match(/^([^{}]*?){volume}/) || [];
-		return Path.join(this.root, match);
+	public getVolumeDirectory (type: keyof ProjectStructure, volume?: string | number) {
+		const directory = this.directories(type)[volume === undefined ? "volumes" : "volume"];
+		return this.interpolate(directory, volume);
 	}
 
 	public getChapterDirectory (type: keyof ProjectStructure, volume: string | number, chapter?: string | number) {
-		if (chapter) {
-			const [, match] = this.structure[type].match(/^([^{}]*?{volume}[^{}]*?{chapter})/) || [];
-			return Path.join(this.root, interpolate(match, {
-				volume: this.getSegment("volume", volume),
-				chapter: chapter === undefined ? undefined : this.getSegment("chapter", chapter),
-			}));
-
-		} else {
-			const [, match] = this.structure[type].match(/^([^{}]*?{volume}[^{}]*?){chapter}/) || [];
-			return Path.join(this.root, interpolate(match, { volume: this.getSegment("volume", volume) }));
-		}
+		const directory = this.directories(type)[chapter === undefined ? "chapters" : "chapter"];
+		return this.interpolate(directory, volume, chapter);
 	}
 
-	public getPageDirectory (type: keyof ProjectStructure, volume: string | number, chapter: string | number) {
-		const [, match] = this.structure[type].match(/^([^{}]*?{volume}[^{}]*?{chapter}[^{}]*?){page}/) || [];
-		return Path.join(this.root, interpolate(match, {
-			volume: this.getSegment("volume", volume),
-			chapter: this.getSegment("chapter", chapter),
-		}));
+	public getPageDirectory (type: keyof ProjectStructure, volume: string | number, chapter: string | number, page?: string | number) {
+		const directory = this.directories(type)[page === undefined ? "pages" : "page"];
+		return this.interpolate(directory, volume, chapter, page);
+	}
+
+	private directories (type: keyof ProjectStructure) {
+		const [page, pages, chapter, chapters, volume, volumes] = this.structure[type].match(/^(((((.*?)[^/]*{volume}[^/]*?)\/(?:.*?\/)*?)[^/]*?{chapter}[^/]*?)\/(?:.*?\/)*?)[^/]*?{page}.*$/) || ["", "", "", ""];
+		return { page, pages, chapter, chapters, volume, volumes };
 	}
 
 	private async getVolumes () {
 		return (await FileSystem.readdir(this.getVolumeDirectory("raw")))
-			.filter(volume => this.getRegex("volume").test(volume))
+			.filter(volume => this.getRegex("raw", "volume").test(volume))
 			.sort()
 			.map(async volume => tuple(volume, await this.getChapters(volume)))
 			.stream()
@@ -210,7 +201,7 @@ export class Project extends Serializable {
 
 	private async getChapters (volume: string) {
 		return (await FileSystem.readdir(this.getChapterDirectory("raw", volume)))
-			.filter(chapter => this.getRegex("chapter", rs => rs.replace("$", "(\\.\\d)?$")).test(chapter))
+			.filter(chapter => this.getRegex("raw", "chapter", rs => rs.replace("$", "(\\.\\d)?$")).test(chapter))
 			.sort()
 			.map(async chapter => tuple(chapter, await this.getPages(volume, chapter)))
 			.stream()
@@ -219,7 +210,7 @@ export class Project extends Serializable {
 
 	private async getPages (volume: string, chapter: string) {
 		return (await (await FileSystem.readdir(this.getPageDirectory("raw", volume, chapter)))
-			.filter(page => this.getRegex("page", rs => rs.replace("$", ".(png|jpe?g|bmp|gif)$")).test(page))
+			.filter(page => this.getRegex("raw", "page").test(page))
 			.sort()
 			.map(async (page): Promise<Page> => ({
 				filename: page,
@@ -229,8 +220,41 @@ export class Project extends Serializable {
 			.toArray();
 	}
 
-	private getRegex (key: keyof ProjectStructure, post: (rs: string) => string = rs => rs) {
-		return RegExp(post(`^${this.structure[key]}$`.replace(/#/g, "\\d")));
+	private interpolate (directory: string, volume?: string | number, chapter?: string | number, page?: string | number) {
+		const volName = volume === undefined ? undefined : this.getSegment("volume", volume);
+		const chName = chapter === undefined ? undefined : this.getSegment("chapter", chapter);
+		const pageName = page === undefined ? undefined : this.getSegment("page", page);
+		const d = {
+			volume: volName,
+			volumeDigits: volName?.replace(/[^\d]/g, ""),
+			chapter: chName,
+			chapterDigits: chName?.replace(/[^\d]/g, ""),
+			page: pageName,
+			pageDigits: pageName?.replace(/[^\d]/g, ""),
+		};
+		return Path.join(this.root, interpolate(interpolate(directory, d), d));
+	}
+
+	private getRegex (type: PagePathType, segment: PagePathSegment, post: (rs: string) => string = rs => rs) {
+		return RegExp(post(`^${this.getBaseFileName(type, segment)}$`.replace(/#/g, "\\d")));
+	}
+
+	private getBaseFileName (type: PagePathType, segment: PagePathSegment, digitsVarsAs = "#") {
+		const configuredPath = this.structure[type];
+		const directories = this.directories(type);
+		const self = directories[segment];
+		const directory = directories[`${segment}s`];
+		const configuredBaseName = configuredPath.slice(directory.length, self.length);
+		const o = {
+			volume: this.structure.volume,
+			volumeDigits: digitsVarsAs.repeat(this.structure.volume.replace(/[^#]/g, "").length),
+			chapter: this.structure.chapter,
+			chapterDigits: digitsVarsAs.repeat(this.structure.chapter.replace(/[^#]/g, "").length),
+			page: this.structure.page,
+			pageDigits: digitsVarsAs.repeat(this.structure.page.replace(/[^#]/g, "").length),
+		};
+		const interpolatedBase = interpolate(interpolate(configuredBaseName, o), o);
+		return interpolatedBase;
 	}
 
 	private getSegment (name: PagePathSegment, value: number | string) {
