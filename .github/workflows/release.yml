@@ -1,0 +1,81 @@
+name: Publish Release
+
+jobs:
+  release:
+    name: Publish Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        id: build
+        run: npm run build
+        outputs:
+          version:
+            description: The package version
+          name:
+            description: The name of the release (package version + commit hash)
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: ${{ steps.build.outputs.name }}
+          draft: false
+          prerelease: true
+
+      - name: Upload assets (win zip)
+        id: upload_assets_win_zip
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./dist/MagicTranslator-${{ steps.build.outputs.version }}-win.zip
+          asset_name: MagicTranslator-${{ steps.build.outputs.version }}-win.zip
+          asset_content_type: application/zip
+
+      - name: Upload assets (win exe)
+        id: upload_assets_win_exe
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./dist/MagicTranslator ${{ steps.build.outputs.version }}.exe
+          asset_name: MagicTranslator ${{ steps.build.outputs.version }}.exe
+          asset_content_type: application/zip
+
+      - name: Upload assets (linux zip)
+        id: upload_assets_linux_zip
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./dist/MagicTranslator-${{ steps.build.outputs.version }}.zip
+          asset_name: MagicTranslator-${{ steps.build.outputs.version }}-linux.zip
+          asset_content_type: application/zip
+
+      - name: Upload assets (linux AppImage)
+        id: upload_assets_linux_appimage
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./dist/MagicTranslator-${{ steps.build.outputs.version }}.AppImage
+          asset_name: MagicTranslator-${{ steps.build.outputs.version }}.AppImage
+          asset_content_type: application/zip
