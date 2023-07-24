@@ -21,11 +21,6 @@ jobs:
       - name: Build
         id: build
         run: npm run build
-        outputs:
-          version:
-            description: The package version
-          name:
-            description: The name of the release (package version + commit hash)
 
       - name: Create Release
         id: create_release
