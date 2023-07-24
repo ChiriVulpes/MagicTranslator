@@ -1,4 +1,4 @@
-import core from "@actions/core";
+import * as core from "@actions/core";
 import { build, Platform } from "electron-builder";
 import gulpSass from "gulp-sass";
 import fs from "mz/fs";
