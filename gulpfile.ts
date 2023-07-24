@@ -99,5 +99,6 @@ new Task("build", remove(["dist", "out"]))
 			includeSubNodeModules: true,
 			buildVersion: `${versionObject!.version}-${versionObject!.commit}`,
 		},
+		publish: "never",
 	}))
 	.create();
