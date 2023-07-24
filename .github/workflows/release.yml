@@ -16,7 +16,12 @@ jobs:
           node-version: '18'
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --ignore-scripts
+
+      - name: Install dependencies (script/window)
+        run: |
+          cd script/window
+          npm ci --ignore-scripts
 
       - name: Build
         id: build
