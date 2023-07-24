@@ -15,6 +15,10 @@ jobs:
         with:
           node-version: '18'
 
+      - name: Set up Wine
+        run: |
+          sudo apt-get install wine-stable-amd64
+
       - name: Install dependencies
         run: npm ci
 
