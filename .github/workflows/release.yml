@@ -17,7 +17,7 @@ jobs:
 
       - name: Set up Wine
         run: |
-          sudo apt-get install -y wine
+          sudo apt-get install -y wine32 wine64
 
       - name: Install dependencies
         run: npm ci
