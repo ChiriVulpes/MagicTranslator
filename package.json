@@ -26,7 +26,6 @@
 		"@actions/core": "1.10.0"
 	},
 	"scripts": {
-		"install": "cd script/window & npm install",
 		"app": "npx electron .",
 		"build": "npx gulp build"
 	}
