@@ -32,6 +32,14 @@ jobs:
       - name: Build
         id: build
         run: npm run build
+        
+      - name: Tag
+        id: tag
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git tag -a ${{ steps.build.outputs.name }} -m "Add tag ${{ steps.build.outputs.name }}"
+          git push origin ${{ steps.build.outputs.name }}
 
       - name: Create Release
         id: create_release
@@ -45,3 +53,4 @@ jobs:
             dist/MagicTranslator ${{ steps.build.outputs.version }}.exe
             dist/MagicTranslator-${{ steps.build.outputs.version }}.zip
             dist/MagicTranslator-${{ steps.build.outputs.version }}.AppImage
+          tag_name: ${{ steps.build.outputs.name }}
