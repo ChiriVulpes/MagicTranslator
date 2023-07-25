@@ -1,6 +1,6 @@
 import chalk from "chalk";
 import type { ChildProcess } from "child_process";
-import { exec, spawn } from "child_process";
+import { spawn } from "child_process";
 import * as path from "path";
 import Bound from "./Bound";
 import { getElapsedString, getTimeString } from "./Util";
@@ -36,18 +36,23 @@ export default class TypescriptWatch {
 
 	@Bound
 	public async compile () {
-		await this.watch().waitForInitial();
-		if (/^win/.test(process.platform))
-			exec(`taskkill /f /t /pid ${this.task.pid}`);
-		else
-			this.task.kill();
+		return new Promise((resolve, reject) => {
+			this.build();
+			this.task.on("error", reject);
+			this.task.on("exit", resolve);
+		});
 	}
 
 	public watch () {
+		return this.build("--watch");
+	}
+
+	private build (...args: string[]) {
 		const ocwd = process.cwd();
 		process.chdir(this.inDir);
 		const declaration = this.declaration ? ["--declaration", "--declarationDir", this.declaration] : [];
-		this.task = spawn(/^win/.test(process.platform) ? "npx.cmd" : "npx", ["tsc", "--outDir", this.outDir, "--pretty", "--watch", ...declaration]);
+
+		this.task = spawn(/^win/.test(process.platform) ? "npx.cmd" : "npx", ["tsc", "--outDir", this.outDir, "--pretty", ...declaration, ...args]);
 		process.chdir(ocwd);
 
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
