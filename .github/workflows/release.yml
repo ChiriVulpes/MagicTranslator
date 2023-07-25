@@ -51,6 +51,6 @@ jobs:
           files: |
             dist/MagicTranslator-${{ steps.build.outputs.version }}-win.zip
             dist/MagicTranslator ${{ steps.build.outputs.version }}.exe
-            dist/MagicTranslator-${{ steps.build.outputs.version }}.zip
+            dist/magic-translator-${{ steps.build.outputs.version }}.zip
             dist/MagicTranslator-${{ steps.build.outputs.version }}.AppImage
           tag_name: ${{ steps.build.outputs.name }}
