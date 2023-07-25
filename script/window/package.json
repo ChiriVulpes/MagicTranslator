@@ -1,11 +1,9 @@
 {
+	"private": true,
 	"name": "window-deps",
 	"version": "0.0.1",
 	"dependencies": {
 		"electron-store": "8.0.1",
 		"@wayward/goodstream": "0.7.1"
-	},
-	"devDependencies": {
-		"typescript": "4.7.4"
 	}
 }

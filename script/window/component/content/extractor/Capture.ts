@@ -18,7 +18,7 @@ import { pad } from "util/string/String";
 
 interface CaptureEvents extends Events<Component> {
 	captureChange (): any;
-	removeCapture (): any;
+	removeCapture (activeInput?: "source" | "translation"): any;
 }
 
 enum NoteType {
@@ -33,6 +33,8 @@ export default class Capture extends Component {
 	private readonly img: Img;
 	private readonly characterDropdown: Dropdown<number | BasicCharacter>;
 	private readonly notesWrappers = new Map<NoteType, SortableTiles<Note>>();
+	private readonly textareaSource: Textarea;
+	private readonly textareaTranslation: Textarea;
 
 	public constructor (private readonly captureRoot: string, private readonly capture: CaptureData) {
 		super();
@@ -47,19 +49,21 @@ export default class Capture extends Component {
 		new Component()
 			.append(new Component()
 				.classes.add("japanese-wrapper")
-				.append(new Textarea()
+				.append(this.textareaSource = new Textarea()
 					.classes.add("japanese")
 					.event.subscribe(["change", "blur"], this.changeTextarea)
+					.event.subscribe("keydown", this.keydownTextarea)
 					.setText(() => capture.text)
 					.setPlaceholder("source-placeholder"))
 				.append(new Button()
 					.setIcon("\uE164")
 					.setText("gloss")
 					.event.subscribe("click", this.gloss)))
-			.append(new Textarea()
+			.append(this.textareaTranslation = new Textarea()
 				.classes.add("translation")
 				.setText(() => capture.translation || "")
 				.setPlaceholder("translation-placeholder")
+				.event.subscribe("keydown", this.keydownTextarea)
 				.event.subscribe(["change", "blur"], this.changeTextarea))
 			.append(Enums.values(NoteType)
 				.map(noteType => new Component()
@@ -124,6 +128,11 @@ export default class Capture extends Component {
 		this.img.setSrc(`${this.captureRoot}/cap${pad(this.capture.id!, 3)}.png?cachebuster${Math.random()}`);
 	}
 
+	public override focus (which?: "source" | "translation") {
+		(which === "source" ? this.textareaSource : this.textareaTranslation).selectContents();
+		return this;
+	}
+
 	@Bound private changeCharacter () {
 		const character = this.capture.character = this.characterDropdown.getSelected();
 		this.characterDropdown.style.set("--headshot", typeof character !== "number" ? "" : `url("${Projects.current!.getPath("character", character)}")`);
@@ -165,6 +174,13 @@ export default class Capture extends Component {
 			.attributes.set("type", type)
 			.event.subscribe("change", this.noteChange)
 			.event.subscribe("blur", this.noteBlur)
+			.event.subscribe("removeNote", (_, which) => {
+				const notes = [...wrapper.tiles()];
+				const index = notes.indexOf(note);
+				notes.splice(index, 1);
+				note.remove();
+				(notes[index] ?? notes[index - 1])?.focus(which);
+			})
 			.schedule(wrapper.addTile);
 
 		if (!note.isBlank()) wrapper.parent!.classes.remove("empty");
@@ -172,6 +188,10 @@ export default class Capture extends Component {
 
 	@Bound private noteChange (note: Note) {
 		if (!note.isBlank()) {
+			this.notesWrappers.values()
+				.find(wrapper => wrapper.element().contains(note.element()))
+				?.parent!.classes.remove("empty");
+
 			const noteType = note.attributes.get<NoteType>("type");
 			if (note.isDescendantOf(this.notesWrappers.get(noteType)!.child(-1)!)) {
 				this.addNote(noteType);
@@ -203,11 +223,18 @@ export default class Capture extends Component {
 		this.event.emit("captureChange");
 	}
 
+	@Bound private keydownTextarea (textarea: Textarea, key: string, event: KeyboardEvent) {
+		if (key === "Delete" && event.altKey) {
+			this.event.emit("removeCapture", textarea === this.textareaTranslation ? "translation" : "source");
+		}
+	}
+
 	@Bound private async onCharacterDropdownClick (event: MouseEvent) {
 		if (!event.ctrlKey) return;
 		this.characterDropdown.close();
 		this.capture.character = await CharacterEditor.chooseCharacter(this.capture.character);
 		const characters = Projects.current!.characters;
 		this.characterDropdown.select(characters.getId(this.capture.character !== undefined ? this.capture.character : BasicCharacter.Unknown));
+		this.characterDropdown.focus();
 	}
 }

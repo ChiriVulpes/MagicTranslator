@@ -5,7 +5,7 @@ import Input from "component/shared/Input";
 import Interrupt from "component/shared/Interrupt";
 import LabelledRow from "component/shared/LabelledRow";
 import Tooltip from "component/shared/Tooltip";
-import type { ProjectStructure } from "data/Projects";
+import type { Project, ProjectStructure } from "data/Projects";
 import Projects, { PagePathSegment, PagePathType, pathSegments, pathTypes } from "data/Projects";
 import Options from "Options";
 import { tuple } from "util/Arrays";
@@ -13,6 +13,7 @@ import type { Events, IEventEmitter } from "util/EventEmitter";
 import { generalRandom } from "util/Random";
 import { interpolate } from "util/string/Interpolator";
 import Path from "util/string/Path";
+import { pad } from "util/string/String";
 import Translation from "util/string/Translation";
 
 interface ProjectSettingsEvents extends Events<SettingsInterrupt> {
@@ -91,7 +92,9 @@ export default class ProjectSettings extends SettingsInterrupt {
 			error = (/#[^#]+#/.test(inputText) || /[\\/]/.test(inputText)) &&
 				new Translation("path-segment-input-error").get(pathType);
 		} else if (PagePathType.is(pathType)) {
-			const match = inputText.match(RegExp(`^[^{}]*?${pathSegments.map(segment => `{${segment}}`).join("[^{}]*?/[^{}]*?")}[^{}]*?$`));
+			const match = inputText.match(RegExp(`^.*?${pathSegments
+				.map(segment => `{${segment}}`)
+				.join("/.*?/?(?<=/)")}.*?$`));
 			if (!match) error = new Translation("path-full-input-error").get(pathType);
 		}
 
@@ -145,14 +148,21 @@ export default class ProjectSettings extends SettingsInterrupt {
 		return () => {
 			const project = Projects.get(this.root)!;
 			const root = Path.basename(this.root);
-			const examplePath = Path.join(root, interpolate(project.structure[pathType], Stream.from(pathSegments)
-				.map(segment => tuple(segment, project.structure[segment]))
-				.toObject()))
-				.replace(/\\/g, "/");
+			const i = Stream.from(pathSegments)
+				.flatMap((segment, _, value = this.getSegment(project, segment, generalRandom.int(10000))) => [
+					tuple(segment, value),
+					tuple(`${segment}Digits`, value.replace(/[^\d]/g, "")),
+				])
+				.toObject();
 
-			// we need to apply the "#"->number replacement twice, since the # character matches overlap each other
-			return Stream.range(2)
-				.fold(examplePath, current => current.replace(/[^\\]#/g, ([c]) => `${c}${generalRandom.int(10)}`));
+			return Path.join(root, interpolate(interpolate(project.structure[pathType], i), i))
+				.replace(/\\/g, "/");
 		};
+	}
+
+	private getSegment (project: Project, name: PagePathSegment, value: number | string) {
+		let segment = project.structure[name];
+		if (name === "chapter" && !Number.isInteger(parseFloat(`${value}`))) segment = segment.replace("#", "###");
+		return segment.replace(/#+/, match => pad(`${value}`.slice(0, match.length), match.length));
 	}
 }

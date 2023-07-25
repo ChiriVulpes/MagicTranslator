@@ -60,15 +60,30 @@ export default class Extractor extends Component {
 
 		const project = Projects.current!;
 
+		let imageErrorWrapper: Component;
+
 		new Component()
 			.classes.add("page-wrapper")
 			.append(new Component()
 				.append(this.pageImage = new Img()
 					.setAlt("no-translated-image")
 					.event.subscribe("load", () => {
+						imageErrorWrapper!.hide();
 						const image = this.pageImage.element<HTMLImageElement>();
 						this.style.set("--natural-width", `${image.naturalWidth}`);
 						this.style.set("--natural-height", `${image.naturalHeight}`);
+					})
+					.event.subscribe("error", () => imageErrorWrapper!.show())))
+			.append(imageErrorWrapper = new Component()
+				.classes.add("extractor-prompt-imagemagick")
+				.hide()
+				.append(new Component()
+					.setText("prompt-select-imagemagick"))
+				.append(new Button()
+					.setText("prompt-select-imagemagick-button")
+					.event.subscribe("click", async () => {
+						await new GlobalSettings().event.waitFor("remove");
+						await this.setPageImage();
 					})))
 			.appendTo(this);
 
@@ -255,19 +270,29 @@ export default class Extractor extends Component {
 	@Bound private onSortComplete () {
 		this.mouseLeaveCapture();
 		this.updateJSON();
+		this.updateRepeatedCharacters();
 	}
 
-	@Bound private async removeCapture (component: Capture) {
+	@Bound private async removeCapture (component: Capture, activeTextarea?: "source" | "translation") {
+		const captures = [...this.capturesWrapper.tiles()];
+		const index = captures.indexOf(component);
+		captures.splice(index, 1);
+
 		const capture = component.getData();
 
 		const confirm = await Interrupt.remove(interrupt => interrupt
 			.setTitle("confirm-remove-capture")
 			.setDescription(() => new Translation("confirm-remove-capture-description").get(capture.translation.replace(/\n/g, ""), capture.text.replace(/\n/g, ""))));
 
-		if (!confirm) return;
+		if (!confirm) {
+			component.focus(activeTextarea);
+			return;
+		}
 
 		component.remove();
 		await FileSystem.unlink(`${this.getCapturePagePath()}/cap${pad(capture.id!, 3)}.png`);
+
+		(captures[index] ?? captures[index - 1])?.focus(activeTextarea);
 
 		// we were just hovering over a capture, but now it's gone, so the "leave" event will never fire
 		this.classes.remove("selecting");
@@ -292,11 +317,13 @@ export default class Extractor extends Component {
 	private zoomIn () {
 		const zoom = +this.pageImage.style.get("--zoom");
 		this.pageImage.style.set("--zoom", Math.min(1, zoom + 0.1));
+		this.mouseEnterCapture();
 	}
 
 	private zoomOut () {
 		const zoom = +this.pageImage.style.get("--zoom");
 		this.pageImage.style.set("--zoom", Math.max(0, zoom - 0.1));
+		this.mouseEnterCapture();
 	}
 
 	private scaleCaptureHighlightForRendering (capture: CaptureData): [position: Vector, size: Vector] {
@@ -314,11 +341,16 @@ export default class Extractor extends Component {
 		return [position, size];
 	}
 
-	@Bound private mouseEnterCapture (eventOrCaptureComponent: MouseEvent | Capture) {
+	private mouseCapture?: Capture;
+	@Bound private mouseEnterCapture (eventOrCaptureComponent: MouseEvent | Capture | undefined = this.mouseCapture) {
+		if (!eventOrCaptureComponent)
+			return;
+
 		const component = eventOrCaptureComponent instanceof Capture ? eventOrCaptureComponent :
 			Component.get<Capture>(eventOrCaptureComponent).listeners.add<MouseEvent>("mouseleave", this.mouseLeaveCapture);
 
 		this.classes.add("selecting");
+		this.mouseCapture = component;
 
 		const capture = component.getData();
 		const [position, size] = this.scaleCaptureHighlightForRendering(capture);
@@ -334,6 +366,8 @@ export default class Extractor extends Component {
 	@Bound private mouseLeaveCapture (event?: MouseEvent) {
 		if (event) Component.get(event).listeners.remove<MouseEvent>("mouseleave", this.mouseLeaveCapture);
 		this.classes.remove("selecting");
+
+		delete this.mouseCapture;
 
 		if (this.capturesWrapper.isSorting()) {
 			this.capturesWrapper.descendants<Capture>(".moving > .capture")
@@ -388,12 +422,16 @@ export default class Extractor extends Component {
 		const naturalSize = Vector.getNaturalSize(this.pageImage.element<HTMLImageElement>());
 		const scale = this.pageImage.box().size().over(naturalSize);
 
-		const size = Vector.size(this.captureStart, this.captureEnd).over(scale);
+		const rawTopLeft = Vector.min(this.captureStart, this.captureEnd).minus(this.pageImage.box().position()).over(scale);
+		const rawBottomRight = Vector.max(this.captureStart, this.captureEnd).minus(this.pageImage.box().position()).over(scale);
+
+		const position = Vector.max(Vector.ZERO, rawTopLeft);
+		const bottomRight = Vector.min(naturalSize, rawBottomRight);
+
+		const size = Vector.size(position, bottomRight);
 		if (size.x < 20 || size.y < 20) {
 			return;
 		}
-
-		const position = Vector.min(this.captureStart, this.captureEnd).minus(this.pageImage.box().position()).over(scale);
 
 		const canvas = document.createElement("canvas");
 		if (event.altKey) {
@@ -468,15 +506,7 @@ export default class Extractor extends Component {
 
 		const readMode = Extractor.displayMode === DisplayMode.Read || Extractor.displayMode === DisplayMode.Translated;
 		this.classes.toggle(readMode, "display-mode-read");
-
-		if (readMode) {
-			let lastCharacter: number | BasicCharacter | undefined;
-			for (const capture of this.capturesWrapper.tiles()) {
-				const thisCharacter = capture.getData().character;
-				capture.classes.toggle(thisCharacter === lastCharacter, "repeat-character");
-				lastCharacter = thisCharacter;
-			}
-		}
+		this.updateRepeatedCharacters();
 
 		// if (Extractor.displayMode === DisplayMode.Translate) {
 		// 	for (const textarea of this.capturesWrapper.descendants<Textarea>(".textarea")) {
@@ -485,6 +515,15 @@ export default class Extractor extends Component {
 		// }
 
 		void this.setPageImage();
+	}
+
+	private updateRepeatedCharacters () {
+		let lastCharacter: number | BasicCharacter | undefined;
+		for (const capture of this.capturesWrapper.tiles()) {
+			const thisCharacter = capture.getData().character;
+			capture.classes.toggle(thisCharacter === lastCharacter, "repeat-character");
+			lastCharacter = thisCharacter;
+		}
 	}
 
 	private async setPageImage () {
@@ -505,14 +544,8 @@ export default class Extractor extends Component {
 		const savePath = project.getPath("save", this.volume, this.chapter, this.page);
 		const [translatedStats, saveStats] = await Promise.all([FileSystem.stat(translatedPath), FileSystem.stat(savePath)]);
 		if (saveStats && (!translatedStats || translatedStats.mtime.getTime() < saveStats.mtime.getTime())) {
-			if (!options.imageMagickCLIPath) {
-				if (!await Interrupt.confirm(interrupt => interrupt
-					.setTitle("confirm-imagemagick-for-viewing-psd")
-					.setDescription("confirm-imagemagick-for-viewing-psd-description"))) return;
-
-				await new GlobalSettings().event.waitFor("remove");
-				if (!options.imageMagickCLIPath) return;
-			}
+			if (!options.imageMagickCLIPath)
+				return;
 
 			await FileSystem.mkdir(Path.dirname(translatedPath));
 			await ChildProcess.exec(`"${options.imageMagickCLIPath}" "${savePath}[0]" "${translatedPath}"`)

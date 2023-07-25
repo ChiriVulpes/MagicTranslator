@@ -5,6 +5,7 @@ import Translation from "util/string/Translation";
 
 interface ImgEvents extends Events<Component> {
 	load (): any;
+	error (): any;
 }
 
 export default class Img extends Component {
@@ -17,6 +18,7 @@ export default class Img extends Component {
 		super("img");
 		this.element<HTMLImageElement>().crossOrigin = "Anonymous";
 		this.listeners.add("load", () => this.event.emit("load"));
+		this.listeners.add("error", () => this.event.emit("error"));
 	}
 
 	public setSrc (src: string) {

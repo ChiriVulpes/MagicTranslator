@@ -333,6 +333,11 @@ export default class Component extends EventEmitter.Host<ComponentEvents> {
 		return this;
 	}
 
+	public selectContents () {
+		(this.element() as Partial<HTMLInputElement>).select?.();
+		return this;
+	}
+
 	public click () {
 		this.element().click();
 		return this;

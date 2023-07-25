@@ -13,6 +13,11 @@ namespace Path {
 			.replace(/\\/g, "/");
 	}
 
+	export function relative (from: string, ...paths: string[]) {
+		return nodePath.relative(from, nodePath.join(...paths))
+			.replace(/\\/g, "/");
+	}
+
 	export function basename (path: string) {
 		return nodePath.basename(path);
 	}

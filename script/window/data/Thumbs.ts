@@ -16,11 +16,12 @@ export default class Thumbs extends Serializable {
 	@Serialized private readonly thumbs: { [key: string]: Thumb | undefined } = {};
 	private readonly updates = new Map<string, CancellablePromise<any>>();
 
-	public constructor (private readonly root: string) {
-		super(`${root}.json`);
+	public constructor (private readonly root: string, private readonly thumbsDirectory: string) {
+		super(`${Path.join(root, thumbsDirectory)}.json`);
 	}
 
 	public async get (filename: string) {
+		filename = Path.relative(this.root, filename);
 		if (await this.needsUpdate(filename)) await this.update(filename);
 		return this.getThumbFilename(filename);
 	}
@@ -36,7 +37,7 @@ export default class Thumbs extends Serializable {
 	private getThumbFilename (filenameOrId: string | number): string;
 	private getThumbFilename (filenameOrId?: string | number) {
 		if (typeof filenameOrId === "string") filenameOrId = this.thumbs[filenameOrId] && this.thumbs[filenameOrId]!.id;
-		return filenameOrId === undefined ? undefined : Path.join(this.root, `${filenameOrId}.png`);
+		return filenameOrId === undefined ? undefined : Path.join(this.root, this.thumbsDirectory, `${filenameOrId}.png`);
 	}
 
 	private async update (filename: string) {
@@ -45,7 +46,7 @@ export default class Thumbs extends Serializable {
 		const id = this.thumbs[filename] ? this.thumbs[filename]!.id : this.thumbIndex++;
 		const thumbFilename = this.getThumbFilename(id)!;
 
-		const downscalingPromise = downScaleImage(filename, 350 / 1600);
+		const downscalingPromise = downScaleImage(Path.join(this.root, filename), 350 / 1600);
 		this.updates.set(filename, downscalingPromise);
 
 		const canvas = await downscalingPromise;
@@ -63,7 +64,7 @@ export default class Thumbs extends Serializable {
 		const thumb = this.thumbs[filename];
 		if (!thumb) return true;
 
-		const stats = await FileSystem.stat(filename);
+		const stats = await FileSystem.stat(this.getThumbFilename(filename));
 		if (!stats) {
 			await this.remove(filename);
 			return false;

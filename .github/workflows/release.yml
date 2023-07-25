@@ -1,0 +1,71 @@
+name: Publish Release
+on:
+  workflow_dispatch:
+    inputs:
+      release-type:
+        type: choice
+        required: true
+        description: Release type
+        options:
+        - Pre-release
+        - Stable
+      body:
+        type: string
+        description: Body text for the release
+
+jobs:
+  release:
+    name: Publish Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Set up Wine
+        run: |
+          sudo dpkg --add-architecture i386
+          sudo apt-get update
+          sudo apt-get install -y wine32 wine64
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install dependencies (script/window)
+        run: |
+          cd script/window
+          npm ci
+
+      - name: Build
+        id: build
+        run: npm run build
+        env:
+          MAGIC_TRANSLATOR_BUILD_WINDOWS: true
+          MAGIC_TRANSLATOR_BUILD_LINUX: true
+        
+      - name: Tag
+        id: tag
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git tag -a ${{ github.event.inputs.release-type == 'Pre-release' && steps.build.outputs.name || steps.build.outputs.version }} -m "Magic Translator v${{ steps.build.outputs.version }} ${{ github.event.inputs.release-type == 'Pre-release' && '[' || '' }}${{ github.event.inputs.release-type == 'Pre-release' && steps.build.outputs.commit || '' }}${{ github.event.inputs.release-type == 'Pre-release' && ']' || '' }}"
+          git push origin ${{ github.event.inputs.release-type == 'Pre-release' && steps.build.outputs.name || steps.build.outputs.version }}
+
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          prerelease: ${{ github.event.inputs.release-type == 'Pre-release' }}
+          body: ${{ github.event.inputs.body }}
+          files: |
+            dist/MagicTranslator-${{ steps.build.outputs.version }}-win.zip
+            dist/MagicTranslator ${{ steps.build.outputs.version }}.exe
+            dist/magic-translator-${{ steps.build.outputs.version }}.zip
+            dist/MagicTranslator-${{ steps.build.outputs.version }}.AppImage
+          tag_name: ${{ github.event.inputs.release-type == 'Pre-release' && steps.build.outputs.name || steps.build.outputs.version }}
