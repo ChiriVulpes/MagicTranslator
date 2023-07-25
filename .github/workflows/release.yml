@@ -38,7 +38,7 @@ jobs:
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git tag -a ${{ steps.build.outputs.name }} -m "Magic Translator v${{ steps.build.outputs.name }} [${{ steps.build.outputs.commit }}]"
+          git tag -a ${{ steps.build.outputs.name }} -m "Magic Translator v${{ steps.build.outputs.version }} [${{ steps.build.outputs.commit }}]"
           git push origin ${{ steps.build.outputs.name }}
 
       - name: Create Release
