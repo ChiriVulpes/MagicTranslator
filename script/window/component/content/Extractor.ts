@@ -330,12 +330,16 @@ export default class Extractor extends Component {
 		const naturalSize = Vector.getNaturalSize(this.pageImage.element<HTMLImageElement>());
 		const scale = this.pageImage.box().size().over(naturalSize);
 
-		const size = Vector.size(this.captureStart, this.captureEnd).over(scale);
+		const rawTopLeft = Vector.min(this.captureStart, this.captureEnd).minus(this.pageImage.box().position()).over(scale);
+		const rawBottomRight = Vector.max(this.captureStart, this.captureEnd).minus(this.pageImage.box().position()).over(scale);
+
+		const position = Vector.max(Vector.ZERO, rawTopLeft);
+		const bottomRight = Vector.min(naturalSize, rawBottomRight);
+
+		const size = Vector.size(position, bottomRight);
 		if (size.x < 20 || size.y < 20) {
 			return;
 		}
-
-		const position = Vector.min(this.captureStart, this.captureEnd).minus(this.pageImage.box().position()).over(scale);
 
 		const canvas = document.createElement("canvas");
 		if (event.altKey) {
