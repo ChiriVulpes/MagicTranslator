@@ -234,11 +234,13 @@ export default class Extractor extends Component {
 	private zoomIn () {
 		const zoom = +this.pageImage.style.get("--zoom");
 		this.pageImage.style.set("--zoom", Math.min(1, zoom + 0.1));
+		this.mouseEnterCapture();
 	}
 
 	private zoomOut () {
 		const zoom = +this.pageImage.style.get("--zoom");
 		this.pageImage.style.set("--zoom", Math.max(0, zoom - 0.1));
+		this.mouseEnterCapture();
 	}
 
 	private scaleCaptureHighlightForRendering (capture: CaptureData): [position: Vector, size: Vector] {
@@ -256,11 +258,16 @@ export default class Extractor extends Component {
 		return [position, size];
 	}
 
-	@Bound private mouseEnterCapture (eventOrCaptureComponent: MouseEvent | Capture) {
+	private mouseCapture?: Capture;
+	@Bound private mouseEnterCapture (eventOrCaptureComponent: MouseEvent | Capture | undefined = this.mouseCapture) {
+		if (!eventOrCaptureComponent)
+			return;
+
 		const component = eventOrCaptureComponent instanceof Capture ? eventOrCaptureComponent :
 			Component.get<Capture>(eventOrCaptureComponent).listeners.add<MouseEvent>("mouseleave", this.mouseLeaveCapture);
 
 		this.classes.add("selecting");
+		this.mouseCapture = component;
 
 		const capture = component.getData();
 		const [position, size] = this.scaleCaptureHighlightForRendering(capture);
@@ -276,6 +283,8 @@ export default class Extractor extends Component {
 	@Bound private mouseLeaveCapture (event?: MouseEvent) {
 		if (event) Component.get(event).listeners.remove<MouseEvent>("mouseleave", this.mouseLeaveCapture);
 		this.classes.remove("selecting");
+
+		delete this.mouseCapture;
 
 		if (this.capturesWrapper.isSorting()) {
 			this.capturesWrapper.descendants<Capture>(".moving > .capture")
