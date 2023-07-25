@@ -32,6 +32,9 @@ jobs:
       - name: Build
         id: build
         run: npm run build
+        env:
+          MAGIC_TRANSLATOR_BUILD_WINDOWS: true
+          MAGIC_TRANSLATOR_BUILD_LINUX: true
         
       - name: Tag
         id: tag

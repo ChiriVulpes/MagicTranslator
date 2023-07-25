@@ -1,4 +1,5 @@
 import * as core from "@actions/core";
+import dotenv from "dotenv";
 import { build, Platform } from "electron-builder";
 import gulpSass from "gulp-sass";
 import fs from "mz/fs";
@@ -6,6 +7,8 @@ import sass from "sass";
 import Electron from "./gulp/Electron";
 import Task, { Pipe, remove, Series, symlink, watch } from "./gulp/Task";
 import TypescriptWatch from "./gulp/TypescriptWatch";
+
+dotenv.config();
 
 const sassCompiler = gulpSass(sass);
 
@@ -81,25 +84,40 @@ async function version () {
 
 new Task("build", remove(["dist", "out"]))
 	.then(scriptWindow.compile, scriptApp.compile, style, statik, nodeModulesCopy, version)
-	.then(() => build({
-		targets: new Map([Platform.WINDOWS, Platform.LINUX]
-			.flatMap(platform => [...platform.createTarget().entries()])),
-		config: {
-			appId: "chirivulpes.magictranslator",
-			productName: "MagicTranslator",
-			copyright: `Copyright © ${new Date().getFullYear()} Chiri Vulpes`,
-			directories: {
-				app: "out",
+	.then(async () => {
+		const platforms = [];
+		if (process.env.MAGIC_TRANSLATOR_BUILD_WINDOWS)
+			platforms.push(Platform.WINDOWS);
+		if (process.env.MAGIC_TRANSLATOR_BUILD_LINUX)
+			platforms.push(Platform.LINUX);
+
+		if (!platforms.length) {
+			console.warn("No platforms to build electron for. To build electron, make a .env file and set one or more of:\n    MAGIC_TRANSLATOR_BUILD_WINDOWS=true\n    MAGIC_TRANSLATOR_BUILD_LINUX=true");
+			return;
+		}
+
+		console.log("Building for:", platforms.map(platform => platform.name).join(", "));
+
+		return build({
+			targets: new Map(platforms
+				.flatMap(platform => [...platform.createTarget().entries()])),
+			config: {
+				appId: "chirivulpes.magictranslator",
+				productName: "MagicTranslator",
+				copyright: `Copyright © ${new Date().getFullYear()} Chiri Vulpes`,
+				directories: {
+					app: "out",
+				},
+				win: {
+					target: ["portable", "zip"],
+				},
+				linux: {
+					target: ["AppImage", "zip"],
+				},
+				includeSubNodeModules: true,
+				buildVersion: `${versionObject!.version}-${versionObject!.commit}`,
 			},
-			win: {
-				target: ["portable", "zip"],
-			},
-			linux: {
-				target: ["AppImage", "zip"],
-			},
-			includeSubNodeModules: true,
-			buildVersion: `${versionObject!.version}-${versionObject!.commit}`,
-		},
-		publish: "never",
-	}))
+			publish: "never",
+		});
+	})
 	.create();
