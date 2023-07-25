@@ -213,5 +213,6 @@ export default class Capture extends Component {
 		this.capture.character = await CharacterEditor.chooseCharacter(this.capture.character);
 		const characters = Projects.current!.characters;
 		this.characterDropdown.select(characters.getId(this.capture.character !== undefined ? this.capture.character : BasicCharacter.Unknown));
+		this.characterDropdown.focus();
 	}
 }
