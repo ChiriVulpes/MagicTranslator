@@ -16,8 +16,8 @@ character-path: Character Folder
 character-sfx: SFX
 character-unknown: N/A
 choose: Choose
-confirm-imagemagick-for-viewing-psd-description: However, there's a save for this page.\nIf you install ImageMagick, this application will automatically\ncreate the translated version of this page upon viewing.\n\nWould you like to select the install path for ImageMagick?
-confirm-imagemagick-for-viewing-psd: There is no translated version of this page.
+prompt-select-imagemagick: However, there *is* a save for this page.\nIf you install ImageMagick, this application will automatically\ncreate the translated version of this page upon viewing.
+prompt-select-imagemagick-button: Set ImageMagick Install Path
 confirm-no-external-editor-description: Would you like to set one?
 confirm-no-external-editor: There is currently no external editor set.
 confirm-remove-capture-description: {0?Translation\: "{0}"\n}{1?Text\: "{1}"\n}There is no undo.

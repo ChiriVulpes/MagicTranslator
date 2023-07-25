@@ -59,15 +59,30 @@ export default class Extractor extends Component {
 
 		const project = Projects.current!;
 
+		let imageErrorWrapper: Component;
+
 		new Component()
 			.classes.add("page-wrapper")
 			.append(new Component()
 				.append(this.pageImage = new Img()
 					.setAlt("no-translated-image")
 					.event.subscribe("load", () => {
+						imageErrorWrapper!.hide();
 						const image = this.pageImage.element<HTMLImageElement>();
 						this.style.set("--natural-width", `${image.naturalWidth}`);
 						this.style.set("--natural-height", `${image.naturalHeight}`);
+					})
+					.event.subscribe("error", () => imageErrorWrapper!.show())))
+			.append(imageErrorWrapper = new Component()
+				.classes.add("extractor-prompt-imagemagick")
+				.hide()
+				.append(new Component()
+					.setText("prompt-select-imagemagick"))
+				.append(new Button()
+					.setText("prompt-select-imagemagick-button")
+					.event.subscribe("click", async () => {
+						await new GlobalSettings().event.waitFor("remove");
+						await this.setPageImage();
 					})))
 			.appendTo(this);
 
@@ -431,14 +446,8 @@ export default class Extractor extends Component {
 		const savePath = project.getPath("save", this.volume, this.chapter, this.page);
 		const [translatedStats, saveStats] = await Promise.all([FileSystem.stat(translatedPath), FileSystem.stat(savePath)]);
 		if (saveStats && (!translatedStats || translatedStats.mtime.getTime() < saveStats.mtime.getTime())) {
-			if (!options.imageMagickCLIPath) {
-				if (!await Interrupt.confirm(interrupt => interrupt
-					.setTitle("confirm-imagemagick-for-viewing-psd")
-					.setDescription("confirm-imagemagick-for-viewing-psd-description"))) return;
-
-				await new GlobalSettings().event.waitFor("remove");
-				if (!options.imageMagickCLIPath) return;
-			}
+			if (!options.imageMagickCLIPath)
+				return;
 
 			await FileSystem.mkdir(Path.dirname(translatedPath));
 			await ChildProcess.exec(`"${options.imageMagickCLIPath}" "${savePath}[0]" "${translatedPath}"`)
