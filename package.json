@@ -28,6 +28,7 @@
 	},
 	"scripts": {
 		"app": "npx electron .",
+		"watch": "npx gulp watch",
 		"build": "npx gulp build"
 	}
 }
