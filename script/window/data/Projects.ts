@@ -104,7 +104,7 @@ export class Project extends Serializable {
 		this.canSave = true;
 
 		this.characters = await new Characters(this.getPath("character")).load();
-		this.thumbs = await new Thumbs(Path.join(this.root, this.structure.thumb)).load();
+		this.thumbs = await new Thumbs(this.root, this.structure.thumb).load();
 		this.volumes = await this.getVolumes();
 		return this;
 	}
