@@ -6,6 +6,7 @@ import type { Events, IEventEmitter } from "util/EventEmitter";
 interface NoteEvents extends Events<Component> {
 	change (): any;
 	blur (): any;
+	removeNote (from: "left" | "right"): any;
 }
 
 export default class Note extends Component {
@@ -14,6 +15,7 @@ export default class Note extends Component {
 
 	protected readonly ja = new Textarea()
 		.classes.add("japanese")
+		.event.subscribe("keydown", this.keydownTextarea)
 		.event.subscribe("change", this.changeTextarea)
 		.event.subscribe("blur", this.blurTextarea)
 		// .setHandleHeight(false)
@@ -23,6 +25,7 @@ export default class Note extends Component {
 
 	protected readonly en = new Textarea()
 		.classes.add("translation")
+		.event.subscribe("keydown", this.keydownTextarea)
 		.event.subscribe("change", this.changeTextarea)
 		.event.subscribe("blur", this.blurTextarea)
 		// .setHandleHeight(false)
@@ -45,6 +48,11 @@ export default class Note extends Component {
 		return this.noteData[0] === "" && this.noteData[1] === "";
 	}
 
+	public override focus (which?: "left" | "right") {
+		(which === "right" ? this.en : this.ja).selectContents();
+		return this;
+	}
+
 	@Bound private changeTextarea (textarea: Textarea) {
 		const ja = textarea.classes.has("japanese");
 		this.noteData[ja ? 0 : 1] = textarea.getText();
@@ -59,5 +67,11 @@ export default class Note extends Component {
 		this.noteData[textarea.classes.has("japanese") ? 0 : 1] = textarea.getText();
 		void sleep(0.01).then(() => this.event.emit("blur"));
 		this.classes.toggle(this.isBlank(), "empty");
+	}
+
+	@Bound private keydownTextarea (textarea: Textarea, key: string, event: KeyboardEvent) {
+		if (key === "Delete" && event.altKey && !this.isBlank()) {
+			this.event.emit("removeNote", textarea === this.en ? "right" : "left");
+		}
 	}
 }

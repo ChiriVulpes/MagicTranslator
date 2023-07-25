@@ -199,17 +199,26 @@ export default class Extractor extends Component {
 		this.updateRepeatedCharacters();
 	}
 
-	@Bound private async removeCapture (component: Capture) {
+	@Bound private async removeCapture (component: Capture, activeTextarea?: "source" | "translation") {
+		const captures = [...this.capturesWrapper.tiles()];
+		const index = captures.indexOf(component);
+		captures.splice(index, 1);
+
 		const capture = component.getData();
 
 		const confirm = await Interrupt.remove(interrupt => interrupt
 			.setTitle("confirm-remove-capture")
 			.setDescription(() => new Translation("confirm-remove-capture-description").get(capture.translation.replace(/\n/g, ""), capture.text.replace(/\n/g, ""))));
 
-		if (!confirm) return;
+		if (!confirm) {
+			component.focus(activeTextarea);
+			return;
+		}
 
 		component.remove();
 		await FileSystem.unlink(`${this.getCapturePagePath()}/cap${pad(capture.id!, 3)}.png`);
+
+		(captures[index] ?? captures[index - 1])?.focus(activeTextarea);
 
 		// we were just hovering over a capture, but now it's gone, so the "leave" event will never fire
 		this.classes.remove("selecting");

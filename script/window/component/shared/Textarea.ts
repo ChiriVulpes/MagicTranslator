@@ -6,6 +6,10 @@ import Translation from "util/string/Translation";
 interface TextareaEvents extends Events<Component> {
 	change (): any;
 	blur (): any;
+	/**
+	 * @param key Letter keys use single letter format ie `a`. For more: https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key#result
+	 */
+	keydown (key: string, event: KeyboardEvent): any;
 }
 
 export default class Textarea extends Component {
@@ -16,6 +20,7 @@ export default class Textarea extends Component {
 		.listeners.add(["change", "keyup", "paste", "input", "focus"], this.onChange)
 		.listeners.add("blur", this.onBlur)
 		.listeners.add("contextmenu", this.onContextMenu)
+		.listeners.add("keydown", this.onKeydown)
 		.appendTo(this);
 
 	private hiddenTextarea = new Component()
@@ -27,6 +32,16 @@ export default class Textarea extends Component {
 	public constructor () {
 		super();
 		this.classes.add("textarea");
+	}
+
+	public override focus () {
+		this.textarea.focus();
+		return this;
+	}
+
+	public override selectContents () {
+		this.textarea.selectContents();
+		return this;
 	}
 
 	public getText () {
@@ -55,6 +70,10 @@ export default class Textarea extends Component {
 
 		this.setHiddenTextareaText();
 		this.event.emit("change");
+	}
+
+	@Bound private onKeydown (event: KeyboardEvent) {
+		this.event.emit("keydown", event.key, event);
 	}
 
 	private setHiddenTextareaText () {
