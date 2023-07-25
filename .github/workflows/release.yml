@@ -52,7 +52,7 @@ jobs:
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git tag -a ${{ github.event.inputs.release-type == 'Pre-release' && steps.build.outputs.name || steps.build.outputs.version }} -m "Magic Translator v${{ steps.build.outputs.version }} ${{ github.event.inputs.release-type == 'Pre-release' && "[${{ steps.build.outputs.commit }}]" }}"
+          git tag -a ${{ github.event.inputs.release-type == 'Pre-release' && steps.build.outputs.name || steps.build.outputs.version }} -m "Magic Translator v${{ steps.build.outputs.version }} ${{ github.event.inputs.release-type == 'Pre-release' && '[${{ steps.build.outputs.commit }}]' }}"
           git push origin ${{ github.event.inputs.release-type == 'Pre-release' && steps.build.outputs.name || steps.build.outputs.version }}
 
       - name: Create Release
