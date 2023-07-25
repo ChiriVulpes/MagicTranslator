@@ -172,6 +172,10 @@ export default class Capture extends Component {
 
 	@Bound private noteChange (note: Note) {
 		if (!note.isBlank()) {
+			this.notesWrappers.values()
+				.find(wrapper => wrapper.element().contains(note.element()))
+				?.parent!.classes.remove("empty");
+
 			const noteType = note.attributes.get<NoteType>("type");
 			if (note.isDescendantOf(this.notesWrappers.get(noteType)!.child(-1)!)) {
 				this.addNote(noteType);
