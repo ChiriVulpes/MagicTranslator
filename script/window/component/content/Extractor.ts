@@ -196,6 +196,7 @@ export default class Extractor extends Component {
 	@Bound private onSortComplete () {
 		this.mouseLeaveCapture();
 		this.updateJSON();
+		this.updateRepeatedCharacters();
 	}
 
 	@Bound private async removeCapture (component: Capture) {
@@ -409,15 +410,7 @@ export default class Extractor extends Component {
 
 		const readMode = Extractor.displayMode === DisplayMode.Read || Extractor.displayMode === DisplayMode.Translated;
 		this.classes.toggle(readMode, "display-mode-read");
-
-		if (readMode) {
-			let lastCharacter: number | BasicCharacter | undefined;
-			for (const capture of this.capturesWrapper.tiles()) {
-				const thisCharacter = capture.getData().character;
-				capture.classes.toggle(thisCharacter === lastCharacter, "repeat-character");
-				lastCharacter = thisCharacter;
-			}
-		}
+		this.updateRepeatedCharacters();
 
 		// if (Extractor.displayMode === DisplayMode.Translate) {
 		// 	for (const textarea of this.capturesWrapper.descendants<Textarea>(".textarea")) {
@@ -426,6 +419,15 @@ export default class Extractor extends Component {
 		// }
 
 		void this.setPageImage();
+	}
+
+	private updateRepeatedCharacters () {
+		let lastCharacter: number | BasicCharacter | undefined;
+		for (const capture of this.capturesWrapper.tiles()) {
+			const thisCharacter = capture.getData().character;
+			capture.classes.toggle(thisCharacter === lastCharacter, "repeat-character");
+			lastCharacter = thisCharacter;
+		}
 	}
 
 	private async setPageImage () {
