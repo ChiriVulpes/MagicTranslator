@@ -67,6 +67,11 @@ export class DialogImpl {
 			if (notes.length) result += "| Text | Note |\n| --- | --- |\n" + notes
 				.map(([f, n]) => `| ${f ? "`" : ""}${f.replace(/\s*\r?\n\s*/g, " ")}${f ? "`" : ""} | ${n.replace(/\s*\r?\n\s*/g, " ")} |`)
 				.join("\n") + "\n\n";
+
+			const gloss = capture.glossNotes?.filter(([f, n]) => f || n);
+			if (gloss?.length) result += "<details>\n<summary>Gloss</summary>\n\n| Source | Gloss |\n| --- | --- |\n" + gloss
+				.map(([f, n]) => `| ${f ? "`" : ""}${f.replace(/\s*\r?\n\s*/g, " ")}${f ? "`" : ""} | ${n.replace(/\s*\r?\n\s*/g, " ")} |`)
+				.join("\n") + "\n</details>\n\n";
 		}
 
 		return result;
