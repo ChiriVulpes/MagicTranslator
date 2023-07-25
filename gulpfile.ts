@@ -75,6 +75,7 @@ async function version () {
 	}));
 
 	core.setOutput("version", versionObject.version);
+	core.setOutput("commit", versionObject.commit);
 	core.setOutput("name", `${versionObject.version}-${versionObject.commit}`);
 }
 
