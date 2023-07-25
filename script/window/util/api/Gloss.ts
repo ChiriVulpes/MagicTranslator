@@ -206,7 +206,7 @@ async function getDefinitions (word: Word) {
 	let definitions: Definition[] | undefined;
 
 	for (const wordText of word.furigana ? [word.word, word.furigana] : [word.word]) {
-		const data = await concurrentFetchJson<PhraseSearchResult>(`${API_BASE_URI}?keyword="${wordText}"`, {});
+		const data = await concurrentFetchJson<PhraseSearchResult>(`${API_BASE_URI}?keyword="${encodeURIComponent(wordText)}"`, {});
 		if (!data.data) continue;
 
 		definitions = data.data;
@@ -315,7 +315,7 @@ function partsOfSpeechMatches (lookingFor: string, sense: Sense) {
  * Returns the morphologically-analyzed words for a Japanese phrase, retrieved by scraping the Jisho.org search page.
  */
 async function getMorphologicalWords (phrase: string) {
-	const xml = await concurrentFetchText(`${SCRAPE_BASE_URI}${phrase}`, "");
+	const xml = await concurrentFetchText(`${SCRAPE_BASE_URI}${encodeURIComponent(phrase)}`, "");
 	if (!xml) return Stream.empty<Word>();
 
 	const words = /<li\b.*?\bclass=".*?\bjapanese_word\b.*?>(.|\r|\n)*?<\/li>/g.matches(xml)
