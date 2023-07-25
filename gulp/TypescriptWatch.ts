@@ -48,12 +48,9 @@ export default class TypescriptWatch {
 	}
 
 	private build (...args: string[]) {
-		const ocwd = process.cwd();
-		process.chdir(this.inDir);
 		const declaration = this.declaration ? ["--declaration", "--declarationDir", this.declaration] : [];
 
-		this.task = spawn(/^win/.test(process.platform) ? "npx.cmd" : "npx", ["tsc", "--outDir", this.outDir, "--pretty", ...declaration, ...args]);
-		process.chdir(ocwd);
+		this.task = spawn(/^win/.test(process.platform) ? "npx.cmd" : "npx", ["tsc", "--project", path.join(this.inDir, "tsconfig.json"), "--outDir", this.outDir, "--pretty", ...declaration, ...args]);
 
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 		this.task.stderr!.on("data", data => process.stderr.write(data));
@@ -79,7 +76,7 @@ export default class TypescriptWatch {
 				}
 			}
 
-			process.stdout.write(handleTscOut(start, dataString, `${path.relative(ocwd, this.inDir).replace(/\\/g, "/")}/`));
+			process.stdout.write(handleTscOut(start, dataString));
 		});
 
 		return this;
