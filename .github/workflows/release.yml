@@ -1,6 +1,17 @@
 name: Publish Release
 on:
   workflow_dispatch:
+    inputs:
+      release-type:
+        type: choice
+        required: true
+        description: Release type
+        options:
+        - Pre-release
+        - Stable
+      body:
+        type: string
+        description: Body text for the release
 
 jobs:
   release:
@@ -41,8 +52,8 @@ jobs:
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git tag -a ${{ steps.build.outputs.name }} -m "Magic Translator v${{ steps.build.outputs.version }} [${{ steps.build.outputs.commit }}]"
-          git push origin ${{ steps.build.outputs.name }}
+          git tag -a ${{ github.event.inputs.release-type == 'Pre-release' && steps.build.outputs.name || steps.build.outputs.version }} -m "Magic Translator v${{ steps.build.outputs.version }} ${{ github.event.inputs.release-type == 'Pre-release' && "[${{ steps.build.outputs.commit }}]" }}"
+          git push origin ${{ github.event.inputs.release-type == 'Pre-release' && steps.build.outputs.name || steps.build.outputs.version }}
 
       - name: Create Release
         id: create_release
@@ -50,10 +61,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          prerelease: true
+          prerelease: ${{ github.event.inputs.release-type == 'Pre-release' }}
+          body: ${{ github.event.inputs.body }}
           files: |
             dist/MagicTranslator-${{ steps.build.outputs.version }}-win.zip
             dist/MagicTranslator ${{ steps.build.outputs.version }}.exe
             dist/magic-translator-${{ steps.build.outputs.version }}.zip
             dist/MagicTranslator-${{ steps.build.outputs.version }}.AppImage
-          tag_name: ${{ steps.build.outputs.name }}
+          tag_name: ${{ github.event.inputs.release-type == 'Pre-release' && steps.build.outputs.name || steps.build.outputs.version }}
