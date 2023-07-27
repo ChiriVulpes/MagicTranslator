@@ -91,7 +91,9 @@ export default class Thumbs extends Serializable {
 	private async downscaleImageMagickWithFallback (filename: string, targetThumbnailPath: string, scale: number): Promise<boolean> {
 		if (options.imageMagickCLIPath) {
 			const percentage = scale * 100;
-			await ChildProcess.exec(`"${options.imageMagickCLIPath}" -resize ${percentage}% "${Path.join(this.root, filename)}" "${targetThumbnailPath}"`);
+			await concurrent.promise(true, async resolve => {
+				ChildProcess.exec(`"${options.imageMagickCLIPath}" -resize ${percentage}% "${Path.join(this.root, filename)}" "${targetThumbnailPath}"`).then(resolve);
+			})
 			return true;
 		} else {
 			return await this.downscaleIntoThumbnailFile(filename, targetThumbnailPath, scale);
