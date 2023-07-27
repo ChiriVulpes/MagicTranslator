@@ -1,6 +1,7 @@
 import Serializable, { Serialized } from "data/Serialized";
 import { sleep } from "util/Async";
 import Canvas from "util/Canvas";
+import ChildProcess from "util/ChildProcess";
 import type { CancellablePromise } from "util/Concurrency";
 import Concurrency from "util/Concurrency";
 import FileSystem from "util/FileSystem";
@@ -46,18 +47,11 @@ export default class Thumbs extends Serializable {
 		const id = this.thumbs[filename] ? this.thumbs[filename]!.id : this.thumbIndex++;
 		const thumbFilename = this.getThumbFilename(id)!;
 
-		const downscalingPromise = downScaleImage(Path.join(this.root, filename), 350 / 1600);
-		this.updates.set(filename, downscalingPromise);
-
-		const canvas = await downscalingPromise;
-		this.updates.delete(filename);
-
-		if (!canvas) return;
-
 		await FileSystem.priority.mkdir(this.root);
-		await Canvas.saveToFile(thumbFilename, canvas);
 
-		this.thumbs[filename] = { modificationTime: Date.now(), id };
+		if(await this.downscaleImageMagickWithFallback(filename, thumbFilename, 350 / 1600)) {
+			this.thumbs[filename] = { modificationTime: Date.now(), id };
+		}
 	}
 
 	private async needsUpdate (filename: string) {
@@ -77,6 +71,31 @@ export default class Thumbs extends Serializable {
 		const thumb = this.getThumbFilename(filename);
 		if (thumb) await FileSystem.unlink(thumb);
 		delete this.thumbs[filename];
+	}
+
+	private async downscaleIntoThumbnailFile (filename: string, targetThumbnailPath: string, scale: number): Promise<boolean> {
+		const downscalingPromise = downScaleImage(Path.join(this.root, filename), 350 / 1600);
+		this.updates.set(filename, downscalingPromise);
+
+		const canvas = await downscalingPromise;
+		this.updates.delete(filename);
+
+		if (!canvas) return false;
+
+		await Canvas.saveToFile(targetThumbnailPath, canvas);
+
+		return true;
+	}
+
+
+	private async downscaleImageMagickWithFallback (filename: string, targetThumbnailPath: string, scale: number): Promise<boolean> {
+		if (options.imageMagickCLIPath) {
+			const percentage = scale * 100;
+			await ChildProcess.exec(`"${options.imageMagickCLIPath}" -resize ${percentage}% "${Path.join(this.root, filename)}" "${targetThumbnailPath}"`);
+			return true;
+		} else {
+			return await this.downscaleIntoThumbnailFile(filename, targetThumbnailPath, scale);
+		}
 	}
 }
 
