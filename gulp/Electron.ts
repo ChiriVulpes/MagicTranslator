@@ -20,7 +20,7 @@ namespace Electron {
 	nameFunction(stringifyCall("Electron.restart", p), restart);
 
 	// eslint-disable-next-line no-inner-declarations
-	function spawn () {
+	function spawn (cb?: () => void) {
 		// if (child) child.kill();
 
 		// brutally murder any electron.exe processes lol
@@ -40,6 +40,8 @@ namespace Electron {
 		child.stdout!.on("data", data => process.stdout.write(data.toString().trim()));
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
 		child.stderr!.on("data", data => process.stdout.write(data.toString().trim()));
+
+		cb?.();
 	}
 }
 
