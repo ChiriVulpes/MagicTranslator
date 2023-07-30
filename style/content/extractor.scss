@@ -130,6 +130,26 @@
 	> .sortable-tile {
 		width: 100%;
 	}
+
+	&-no-captures {
+		display: none;
+		position: absolute;
+		inset: 0;
+		flex-direction: column;
+		justify-content: center;
+		align-content: center;
+		align-items: center;
+		text-align: center;
+
+		&-auto-capture-button {
+			width: fit-content;
+			margin: 20px;
+		}
+
+		.extraction-captures:not(.loading):empty + & {
+			display: flex;
+		}
+	}
 }
 
 .capture {

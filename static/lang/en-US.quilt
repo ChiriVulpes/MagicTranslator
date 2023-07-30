@@ -1,8 +1,8 @@
 add-project: Add Project
 app-settings: App Settings
 appearance: Appearance
-auto-text: Detect text
-auto-text-in-progress: In progress
+no-captures-label: No text has been captured.
+auto-capture-button: Use OCR Aggregator to Auto-Capture
 back: Back
 breadcrumb-separator:  — 
 button-display-mode: Button Appearance

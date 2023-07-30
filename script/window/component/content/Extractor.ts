@@ -118,10 +118,6 @@ export default class Extractor extends Component {
 				.append(this.displayModeDropdown = Dropdown.from(Enums.values(DisplayMode))
 					.classes.add("float-right")
 					.event.subscribe("select", this.changeDisplayMode))
-				.append(this.autoTextButton = new Button()
-					.classes.add("float-right")
-					.setText("auto-text")
-					.event.subscribe("click", this.autoText))
 				.append(new Button()
 					.setIcon("\uE70F")
 					.classes.add("float-right")
@@ -136,7 +132,16 @@ export default class Extractor extends Component {
 				.classes.add("extraction-captures-wrapper")
 				.append(this.capturesWrapper = new SortableTiles<Capture>("vertical")
 					.classes.add("loading", "extraction-captures")
-					.event.subscribe("sort", this.onSortComplete)))
+					.event.subscribe("sort", this.onSortComplete))
+				.append(new Component()
+					.classes.add("extraction-captures-no-captures")
+					.append(new Component()
+						.classes.add("extraction-captures-no-captures-label")
+						.setText("no-captures-label"))
+					.append(this.autoTextButton = new Button()
+						.classes.add("extraction-captures-no-captures-auto-capture-button")
+						.setText("auto-capture-button")
+						.event.subscribe("click", this.autoText))))
 			.appendTo(this);
 	}
 
@@ -149,7 +154,7 @@ export default class Extractor extends Component {
 		}
 
 		try {
-			this.autoTextButton.setText("auto-text-in-progress");
+			this.capturesWrapper.classes.add("loading");
 			this.autoTextButton.setDisabled(true);
 			const rawPath = Projects.current!.getPath("raw", this.volume, this.chapter, this.page);
 			const file = await FileSystem.readFile(rawPath);
@@ -204,8 +209,7 @@ export default class Extractor extends Component {
 				.setDescription(() => err?.message));
 		}
 		finally {
-			this.autoTextButton.setText("auto-text");
-			this.autoTextButton.setDisabled(false);
+			this.capturesWrapper.classes.remove("loading");
 		}
 	}
 
