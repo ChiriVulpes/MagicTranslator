@@ -145,8 +145,8 @@ export default class Extractor extends Component {
 			.appendTo(this);
 	}
 
-	@Bound public async autoText() {
-		if(!options.OCRAggregatorServerURL) {
+	@Bound public async autoText () {
+		if (!options.OCRAggregatorServerURL) {
 			await Interrupt.info(interrupt => interrupt
 				.setTitle("info-error-on-auto-text")
 				.setDescription("info-missing-ocr-aggregator-server"));
@@ -160,11 +160,11 @@ export default class Extractor extends Component {
 			const file = await FileSystem.readFile(rawPath);
 
 			const formData = new FormData();
-			formData.append('input_image', new Blob([file.buffer]));
+			formData.append("input_image", new Blob([file.buffer]));
 
 			const result = await fetch(new URL("/detect_ocr", options.OCRAggregatorServerURL).toString(), {
 				method: "POST",
-				body: formData
+				body: formData,
 			});
 
 			const captures = (await result.json()) as [{ rect: [number, number, number, number], text: string }];
@@ -172,23 +172,23 @@ export default class Extractor extends Component {
 			for (const capture of captures) {
 				const position = {
 					x: capture.rect[0],
-					y: capture.rect[1]
+					y: capture.rect[1],
 				};
 				const size = Vector.size(
 					{
 						x: capture.rect[0],
-						y: capture.rect[1]
+						y: capture.rect[1],
 					},
 					{
 						x: capture.rect[2],
-						y: capture.rect[3]
+						y: capture.rect[3],
 					});
-				
+
 				const canvas = document.createElement("canvas");
 				canvas.width = size.x;
 				canvas.height = size.y;
 				const context = canvas.getContext("2d")!;
-				context.drawImage(this.pageImage.element<HTMLImageElement>(), -position.x, -position.y);			
+				context.drawImage(this.pageImage.element<HTMLImageElement>(), -position.x, -position.y);
 
 				await this.saveImage(`cap${pad(this.captures.captureId, 3)}.png`, canvas);
 				await this.addCapture({
@@ -203,7 +203,7 @@ export default class Extractor extends Component {
 
 			await this.updateJSON();
 		}
-		catch(err: any) {
+		catch (err: any) {
 			await Interrupt.info(interrupt => interrupt
 				.setTitle("info-error-on-auto-text")
 				.setDescription(() => err?.message));
