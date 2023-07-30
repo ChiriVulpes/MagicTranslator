@@ -46,6 +46,7 @@ export default class Extractor extends Component {
 	private readonly pageImage: Img;
 	private readonly capturesWrapper: SortableTiles<Capture>;
 	private readonly displayModeDropdown: Dropdown<DisplayMode>;
+	private readonly imageMagickPromptWrapper: Component;
 
 	private captures: Captures;
 	private captureStart: Vector;
@@ -59,21 +60,17 @@ export default class Extractor extends Component {
 
 		const project = Projects.current!;
 
-		let imageErrorWrapper: Component;
-
 		new Component()
 			.classes.add("page-wrapper")
 			.append(new Component()
 				.append(this.pageImage = new Img()
 					.setAlt("no-translated-image")
 					.event.subscribe("load", () => {
-						imageErrorWrapper!.hide();
 						const image = this.pageImage.element<HTMLImageElement>();
 						this.style.set("--natural-width", `${image.naturalWidth}`);
 						this.style.set("--natural-height", `${image.naturalHeight}`);
-					})
-					.event.subscribe("error", () => imageErrorWrapper!.show())))
-			.append(imageErrorWrapper = new Component()
+					})))
+			.append(this.imageMagickPromptWrapper = new Component()
 				.classes.add("extractor-prompt-imagemagick")
 				.hide()
 				.append(new Component()
@@ -459,6 +456,7 @@ export default class Extractor extends Component {
 
 		this.pageImage.parent!.classes.add("loading");
 
+		this.imageMagickPromptWrapper.hide();
 		if (translated) await this.initializePageImage(translatedPath);
 
 		this.pageImage.setSrc(`${translatedPath}?cachebuster${Math.random()}`);
@@ -470,8 +468,10 @@ export default class Extractor extends Component {
 		const savePath = project.getPath("save", this.volume, this.chapter, this.page);
 		const [translatedStats, saveStats] = await Promise.all([FileSystem.stat(translatedPath), FileSystem.stat(savePath)]);
 		if (saveStats && (!translatedStats || translatedStats.mtime.getTime() < saveStats.mtime.getTime())) {
-			if (!options.imageMagickCLIPath)
+			if (!options.imageMagickCLIPath) {
+				this.imageMagickPromptWrapper.show();
 				return;
+			}
 
 			await FileSystem.mkdir(Path.dirname(translatedPath));
 			await ChildProcess.exec(`"${options.imageMagickCLIPath}" "${savePath}[0]" "${translatedPath}"`)
