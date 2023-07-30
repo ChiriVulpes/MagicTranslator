@@ -32,6 +32,7 @@ export default class Interrupt<O extends string = string> extends Component {
 	public static async remove (initializer: (interruptScreen: Interrupt<InterruptChoice.Cancel | "remove">) => any) {
 		const confirm = await Interrupt.choice<InterruptChoice.Cancel | "remove">(interrupt => interrupt
 			.setActions(InterruptChoice.Cancel, "remove")
+			.setEnterAction("remove")
 			.schedule(i => i
 				.getAction("remove")!
 				.classes.add("warning")
@@ -66,6 +67,7 @@ export default class Interrupt<O extends string = string> extends Component {
 			.then(() => hidden.forEach(c => c.show()));
 
 		this.classes.add("interrupt");
+		this.attributes.set("tabindex", "-1");
 
 		this.content = new Component()
 			.append(this.title = new Component()
@@ -115,13 +117,26 @@ export default class Interrupt<O extends string = string> extends Component {
 		return this;
 	}
 
-	public getAction (action: string) {
+	public getAction (action: O) {
 		return this.actions.descendants<Button>(`:scope > button[action="${action}"]`).first();
 	}
 
+	private enterAction?: O;
+	private escapeAction?: O;
+	public setEnterAction (action: O) {
+		this.enterAction = action;
+		return this;
+	}
+	public setEscapeAction (action: O) {
+		this.escapeAction = action;
+		return this;
+	}
+
 	@Bound protected keyup (key: KeyboardEvent) {
-		if (key.code === "Enter") this.resolve(InterruptChoice.Yes) || this.resolve(InterruptChoice.Dismiss);
-		if (key.code === "Escape") this.resolve(InterruptChoice.No) || this.resolve(InterruptChoice.Done);
+		if (key.code === "Enter")
+			this.resolve(this.enterAction!) || this.resolve(InterruptChoice.Yes) || this.resolve(InterruptChoice.Dismiss);
+		if (key.code === "Escape")
+			this.resolve(this.escapeAction!) || this.resolve(InterruptChoice.No) || this.resolve(InterruptChoice.Done) || this.resolve(InterruptChoice.Cancel);
 	}
 
 	protected getIcon (action: string) {
@@ -137,6 +152,7 @@ export default class Interrupt<O extends string = string> extends Component {
 	}
 
 	@Bound private async onShow () {
+		this.focus();
 		const closePromise = this.event.waitFor(["hide", "remove"]);
 		Component.window.listeners.until(closePromise)
 			.add("keyup", this.keyup, true);
