@@ -17,8 +17,10 @@ import { sleep } from "util/Async";
 import type { Events, IEventEmitter } from "util/EventEmitter";
 import IndexedMap from "util/Map";
 import Translation from "util/string/Translation";
+import Searcher from "./Searcher";
 
 interface ExplorerEvents extends Events<Component> {
+	search (volume?: number, chapter?: number): any;
 	extract (volume: number, chapter: number, page: number): any;
 	back (): any;
 	remove (): any;
@@ -101,6 +103,12 @@ export default class Explorer extends Component {
 			.listeners.add("click", this.onProjectSettings(root)) // event.stopPropagation
 			.appendTo(this.actionWrapper);
 
+		new Button()
+			.classes.add("float-right")
+			.setText("search")
+			.event.subscribe("click", () => this.event.emit("search"))
+			.appendTo(this.actionWrapper);
+
 		const project = Projects.current = Projects.get(root)!;
 
 		// Dropdown.from(mediaRoot.users)
@@ -139,6 +147,12 @@ export default class Explorer extends Component {
 			.setDisabled(volume === project.volumes.size - 1)
 			.setText("next-volume")
 			.event.subscribe("click", () => this.showChapters(volume + 1))
+			.appendTo(this.actionWrapper);
+
+		new Button()
+			.classes.add("float-right")
+			.setText("search")
+			.event.subscribe("click", () => this.event.emit("search", volume))
 			.appendTo(this.actionWrapper);
 
 		const chapters = project.volumes.getByIndex(volume)!;
@@ -193,6 +207,12 @@ export default class Explorer extends Component {
 			.classes.add("float-right")
 			.setText("import")
 			.event.subscribe("click", () => this.import(volume, chapter))
+			.appendTo(this.actionWrapper);
+
+		new Button()
+			.classes.add("float-right")
+			.setText("search")
+			.event.subscribe("click", () => this.event.emit("search", volume, chapter))
 			.appendTo(this.actionWrapper);
 
 		const pages = await project.volumes.getByIndex(volume)!.getByIndex(chapter)!;

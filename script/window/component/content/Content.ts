@@ -2,6 +2,7 @@ import Component from "component/Component";
 import CharacterEditor from "component/content/character/CharacterEditor";
 import Explorer from "component/content/Explorer";
 import Extractor from "component/content/Extractor";
+import Searcher from "component/content/Searcher";
 import Header from "component/header/Header";
 import Interrupt from "component/shared/Interrupt";
 import Projects from "data/Projects";
@@ -43,6 +44,7 @@ export default class Content extends Component {
 
 		new Explorer(startLocation)
 			.event.subscribe("extract", this.onExtractPage)
+			.event.subscribe("search", this.onSearch)
 			.appendTo(this);
 	}
 
@@ -91,6 +93,15 @@ export default class Content extends Component {
 			});
 
 		return extractor.initialize();
+	}
+
+	@Bound private onSearch (explorer: any, volume?: number, chapter?: number, page?: number) {
+		this.children().drop(2).collectStream().forEach(child => child.remove());
+
+		const project = Projects.current!;
+		new Searcher([volume, chapter])
+			.event.subscribe("quit", () => this.showExplorer(tuple(project.root, volume, chapter)))
+			.appendTo(this);
 	}
 
 	private onExtractPrevious (volume: number, chapter: number, page: number) {

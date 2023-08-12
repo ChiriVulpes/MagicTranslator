@@ -87,6 +87,7 @@ requires-restart-description: Would you like to restart?
 requires-restart: Changing this option requires a restart.
 restore: Restore
 save-path: Page Saves
+search: Search
 source-placeholder: Foreign
 text-only: Text Only
 thumb-path: Thumbnail Folder
