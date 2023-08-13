@@ -116,6 +116,10 @@ export default class Component extends EventEmitter.Host<ComponentEvents> {
 		throw new Error("Element has already been removed. Removal is permanent.");
 	}
 
+	public contains (node: Component | Node | null) {
+		return this.internalElement?.contains(node instanceof Component ? node.internalElement ?? null : node) ?? false;
+	}
+
 	public setId (id: string) {
 		this.element().id = id;
 		return this;
@@ -187,7 +191,6 @@ export default class Component extends EventEmitter.Host<ComponentEvents> {
 	//
 
 	public appendTo (parent: Component, location: "beginning" | "end" | { before: Component | Node } | { after: Component | Node } = "end") {
-		parent.event.emit("appendChild", this);
 		const parentElement = parent.element();
 		if (location === "end" || !parentElement.firstChild) parentElement.appendChild(this.element());
 		else {
@@ -198,6 +201,7 @@ export default class Component extends EventEmitter.Host<ComponentEvents> {
 				parentElement.insertBefore(this.element(), (location.after instanceof Component ? location.after.element() : location.after).nextSibling);
 		}
 
+		parent.event.emit("appendChild", this);
 		this.event.emit("append", parent);
 		return this;
 	}

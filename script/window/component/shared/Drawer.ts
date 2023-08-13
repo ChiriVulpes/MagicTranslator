@@ -22,16 +22,31 @@ export default class Drawer extends Component {
 	private readonly options: DrawerOptions;
 	private readonly openReasons = new Set<string>();
 
+	public readonly tabDetector2 = new Component("button")
+		.style.set("position", "absolute")
+		.style.set("pointer-events", "none")
+		.style.set("opacity", "0")
+		.listeners.add("focus", () => {
+			this.host.focus();
+			this.close("click");
+		})
+		.appendTo(this);
+
 	public constructor (private readonly host: Component, options?: Partial<DrawerOptions>) {
 		super();
 		this.classes.add(DrawerClasses.Main);
+		this.attributes.set("tabindex", "-1");
 		this.options = {
 			width: "match",
 			position: "left",
 			anchor: "left",
 			...options,
 		};
-		this.event.subscribe("appendChild", () => sleep(0.01).then(() => this.refresh));
+		this.event.subscribe("appendChild", (self, child) => {
+			if (child !== this.tabDetector2)
+				this.tabDetector2.appendTo(this);
+			return sleep(0.01).then(() => this.refresh);
+		});
 		document.body.appendChild(this.element());
 		host.event.subscribe("remove", this.remove);
 		this.listeners.add("mouseenter", () => this.open("self:hover"));
@@ -67,11 +82,18 @@ export default class Drawer extends Component {
 	}
 
 	public toggleOpen (reason: string) {
-		this.openReasons.toggle(!this.openReasons.has(reason), reason);
+		if (this.openReasons.has(reason))
+			this.close(reason);
+		else
+			this.open(reason);
 		return this;
 	}
 
 	public isOpenFor (reason: string) {
 		return this.openReasons.has(reason);
+	}
+
+	public isOpen () {
+		return !!this.openReasons.size;
 	}
 }

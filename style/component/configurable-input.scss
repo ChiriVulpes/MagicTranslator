@@ -10,8 +10,10 @@
 			box-shadow: inset 0 0 0 1px var(--color-input-hover-border);
 		}
 
+		&:focus,
 		&:focus-within {
 			box-shadow: inset 0 0 0 1px var(--color-input-focus-border);
+			outline: none;
 		}
 
 		&:has(.error) {

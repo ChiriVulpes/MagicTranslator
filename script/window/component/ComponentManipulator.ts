@@ -194,7 +194,7 @@ export class StyleManipulator<T> extends Manipulator<T, StyleUntil<T>> {
 }
 
 export interface ListenUntil<T> extends Until<T> {
-	add<E extends Event = Event> (events: string | string[], callback: (event: E) => any, always?: boolean): T;
+	add<E extends Event = Event> (events: string | string[], callback: (event: E) => any, always?: boolean, capture?: true): T;
 }
 
 export interface ComponentEvent<T = any> extends Event {
@@ -204,7 +204,7 @@ export interface ComponentEvent<T = any> extends Event {
 export class EventListenerManipulator<T> extends Manipulator<T, ListenUntil<T>> {
 	protected override untilHandler = {
 		add: {
-			start: <E extends Event = ComponentEvent> (events: string | string[], callback: (event: E) => any) => this.add(events, callback),
+			start: <E extends Event = ComponentEvent> (events: string | string[], callback: (event: E) => any, capture?: true) => this.add(events, callback, capture),
 			end: <E extends Event = ComponentEvent> (events: string | string[], callback: (event: E) => any) => this.remove(events, callback),
 		},
 	};
@@ -236,11 +236,11 @@ export class EventListenerManipulator<T> extends Manipulator<T, ListenUntil<T>> 
 		}) as any;
 	}
 
-	public add<E extends Event = ComponentEvent> (events: string | string[], callback: (event: E) => any, always = false) {
+	public add<E extends Event = ComponentEvent> (events: string | string[], callback: (event: E) => any, capture = false) {
 		if (!Array.isArray(events)) events = [events];
 
 		for (const event of events) {
-			this.element().addEventListener(event, callback as (event: Event) => any, always);
+			this.element().addEventListener(event, callback as (event: Event) => any, capture);
 		}
 
 		return this.host;

@@ -32,7 +32,9 @@ export default class ConfigurableInput extends Component {
 		.listeners.add("mouseleave", () => this.configureDrawer.close("hover"))
 		.event.subscribe("click", button => {
 			this.configureDrawer.toggleOpen("click");
-			button.classes.toggle(this.configureDrawer.isOpenFor("click"), ConfigurableInputClasses.ConfigureButtonEnabled, ButtonClasses.Active);
+			this.updateConfigureButtonEnabled();
+			if (this.configureDrawer.isOpen())
+				this.configureDrawer.focus();
 		})
 		.appendTo(this);
 
@@ -42,9 +44,22 @@ export default class ConfigurableInput extends Component {
 	public constructor () {
 		super();
 		this.classes.add(ConfigurableInputClasses.Main);
+		this.attributes.set("tabindex", "-1");
 
 		this.event.subscribe("append", () => sleep(0.01).then(this.configureDrawer.refresh));
 		this.input.event.subscribe("change", () => this.event.emit("change"));
+		Component.window.listeners.until(this.event.waitFor("remove")).add(["focus", "blur"], async () => {
+			await sleep(0.01);
+			if (!this.configureDrawer.contains(document.activeElement)) {
+				this.configureDrawer.close("click");
+				this.updateConfigureButtonEnabled();
+			}
+		}, true);
+		this.listeners.add("focus", () => this.configureButton.focus());
+	}
+
+	private updateConfigureButtonEnabled () {
+		this.configureButton.classes.toggle(this.configureDrawer.isOpenFor("click"), ConfigurableInputClasses.ConfigureButtonEnabled, ButtonClasses.Active);
 	}
 
 	public setConfigureIcon (icon: string | null) {
