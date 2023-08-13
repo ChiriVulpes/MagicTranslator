@@ -3,7 +3,7 @@ import Component from "component/Component";
 import type { Events, IEventEmitter } from "util/EventEmitter";
 import Translation from "util/string/Translation";
 
-interface InputEvents extends Events<Component> {
+export interface InputEvents extends Events<Component> {
 	change (): any;
 }
 

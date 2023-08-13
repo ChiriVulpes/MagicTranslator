@@ -8,6 +8,10 @@ export enum ButtonDisplayMode {
 	TextOnly = "text-only",
 }
 
+export enum ButtonClasses {
+	Active = "button-active",
+}
+
 interface ButtonEvents extends Events<Component> {
 	click (): any;
 }
@@ -41,9 +45,15 @@ export default class Button extends Component {
 		return this;
 	}
 
+	public setDisplayMode (displayMode?: ButtonDisplayMode) {
+		this.attributes.set("button-display-mode", displayMode ?? null);
+		return this;
+	}
+
 	@Bound public override refreshText () {
 		let text = this.textGenerator ? this.textGenerator(this) : "";
-		if (Component.document.attributes.get("button-display-mode") === ButtonDisplayMode.IconOnly && this.attributes.has("icon"))
+		const displayMode = this.attributes.get("button-display-mode") ?? Component.document.attributes.get("button-display-mode");
+		if (displayMode === ButtonDisplayMode.IconOnly && this.attributes.has("icon"))
 			text = "";
 		this.element().textContent = text === null || text === undefined ? "" : `${text}`;
 		return this;

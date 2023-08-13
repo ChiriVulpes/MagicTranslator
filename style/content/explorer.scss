@@ -3,14 +3,14 @@
 	height: 100%;
 	display: grid;
 	grid-template-rows: auto 1fr;
-	
+
 	> .button-bar {
 		--button-bar-height: 30px;
 		$margin-top: 3px;
 		margin-top: $margin-top;
 		padding-left: 15px;
 		padding-right: 15px;
-		background: #0007;
+		background: var(--color-background-header);
 		&:empty {
 			opacity: 0;
 		}
@@ -18,7 +18,7 @@
 			content: "";
 			display: block;
 			position: absolute;
-			background: #0007;
+			background: var(--color-background-header);
 			width: 100%;
 			height: $margin-top;
 			left: 0;
@@ -44,24 +44,25 @@
 .image-button {
 	margin: 1px;
 	--padding: 15px;
-	padding: var(--padding);  
+	padding: var(--padding);
 	color: inherit;
 	text-decoration: none;
 	outline: none;
 	display: grid;
-    --height: 330;
-    grid-template-rows: calc(1px * var(--height)) auto;
-    width: calc(1114px * (var(--height) / 1600));
+	--height: 330;
+	grid-template-rows: calc(1px * var(--height)) auto;
+	width: calc(1114px * (var(--height) / 1600));
 	float: left;
 	overflow: hidden;
 	border: 2px solid transparent;
 	position: relative;
 
-	:not(.moving) > &:focus, &:hover {
+	:not(.moving) > &:focus,
+	&:hover {
 		background: #318bff44;
 		border-color: #318bffe6;
 	}
-	
+
 	// &:not(:focus):not(:hover) {
 	// 	:focus-within > &, .explorer-links:hover > & {
 	// 		&::before {
@@ -75,7 +76,9 @@
 		background: var(--preview);
 		background-size: cover;
 		background-repeat: no-repeat;
-		box-shadow: inset 0 0 0 1px #fff3, 0 0 2px 1px #0005;
+		box-shadow:
+			inset 0 0 0 1px #fff3,
+			0 0 2px 1px #0005;
 	}
 
 	& > .title {
@@ -93,23 +96,28 @@
 }
 
 @keyframes spin {
-	from { transform: var(--transform) rotate(0deg); }
-	to { transform: var(--transform) rotate(calc(360deg * 3)); }
+	from {
+		transform: var(--transform) rotate(0deg);
+	}
+	to {
+		transform: var(--transform) rotate(calc(360deg * 3));
+	}
 }
 
 .project-button {
 	float: none;
-	
+
 	grid-template-columns: 1fr auto;
-	&::before, & > .title {
-		grid-column: 1/3; 
+	&::before,
+	& > .title {
+		grid-column: 1/3;
 	}
-	
+
 	& > button {
 		grid-column: 2;
 		margin-bottom: 0px;
 	}
-	
+
 	& > .title {
 		margin-bottom: 5px;
 	}
@@ -124,12 +132,12 @@
 			color: #fff9;
 		}
 	}
-	
+
 	&.removed .sections {
 		opacity: 0.3;
 		pointer-events: none;
 	}
-	
+
 	[section="file-structure"] {
 		input {
 			width: 350px;
@@ -138,19 +146,19 @@
 }
 
 .missing-translations {
-    position: absolute;
-    top: var(--height);
-    right: 10px;
-    min-width: 30px;
-    box-sizing: border-box;
-    text-align: center;
-    color: #fff;
-    font-size: 14pt;
-    background: #c70909;
-    padding: 2px 6px 3px 6px;
-    border: 1px solid #f00;
-    border-right-color: #900e0e;
-    border-right-width: 2px;
-/*     border-bottom-right-radius: 5px; */
+	position: absolute;
+	top: var(--height);
+	right: 10px;
+	min-width: 30px;
+	box-sizing: border-box;
+	text-align: center;
+	color: #fff;
+	font-size: 14pt;
+	background: #c70909;
+	padding: 2px 6px 3px 6px;
+	border: 1px solid #f00;
+	border-right-color: #900e0e;
+	border-right-width: 2px;
+	/*     border-bottom-right-radius: 5px; */
 	box-shadow: 0 1px 2px 1px #0008;
 }

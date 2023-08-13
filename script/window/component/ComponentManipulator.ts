@@ -178,8 +178,8 @@ export class StyleManipulator<T> extends Manipulator<T, StyleUntil<T>> {
 		},
 	};
 
-	public set (rule: string, value: string | number) {
-		this.element().style.setProperty(rule, `${value}`);
+	public set (rule: string, value: string | number, unit = "") {
+		this.element().style.setProperty(rule, `${value}${unit}`);
 		return this.host;
 	}
 

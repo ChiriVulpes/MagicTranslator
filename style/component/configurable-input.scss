@@ -1,0 +1,40 @@
+.input-configurable {
+	&-wrapper {
+		margin: 0;
+		display: flex;
+		height: var(--button-bar-height);
+
+		box-shadow: inset 0 0 0 1px var(--color-input-border);
+
+		&:hover {
+			box-shadow: inset 0 0 0 1px var(--color-input-hover-border);
+		}
+
+		&:focus-within {
+			box-shadow: inset 0 0 0 1px var(--color-input-focus-border);
+		}
+
+		&:has(.error) {
+			box-shadow: inset 0 0 0 1px var(--color-input-error-border);
+		}
+	}
+
+	&-input {
+		margin: 0;
+		border: none;
+	}
+
+	&-configure-button {
+		&:not(:hover, :focus, :active, .button-active) {
+			background: #0003 !important;
+		}
+
+		padding-top: 0 !important;
+		padding-bottom: 0 !important;
+		height: var(--button-bar-height);
+
+		&-enabled {
+			box-shadow: inset 0 0 0 1px currentColor;
+		}
+	}
+}

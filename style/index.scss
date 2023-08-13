@@ -14,43 +14,42 @@
 
 @import "font/open-sans";
 
-
 ////////////////////////////////////
 // Vars
 //
 
 :root {
 	--color-background: #333;
-	--color-background-header: #444;
+	--color-background-header: #1b1b1b;
 	--color-background-footer: #444;
 	--color-background-tooltip: #333;
-	
+
 	--color-button-background: #318bff80;
 	--color-button-border: #318bff82;
 	--color-button-hover-background: #318bffe6;
 	--color-button-hover-border: #4998ff;
 	--color-button-active-background: #153d72e6;
 	--color-button-active-border: #153d72e6;
-	
+
 	--color-button-warning-background: #792424;
 	--color-button-warning-border: #a10f0f;
 	--color-button-warning-hover-background: #a02929;
 	--color-button-warning-hover-border: #f00;
 	--color-button-warning-active-background: #491a1a;
 	--color-button-warning-active-border: #792424;
-	
+
 	--color-input-border: transparent;
 	--color-input-hover-border: transparent;
 	--color-input-focus-border: #318bff;
 	--color-input-error-border: #f00;
-	
+
 	--color-border-tooltip: #555;
-	
+
 	--color-text: #fff;
-	
+
 	--font: "Segoe UI", "Open Sans";
 	--font-ja: "IPAexGothic";
-	
+
 	background-color: var(--color-background);
 	font-family: var(--font);
 	color: var(--color-text);
@@ -61,15 +60,15 @@
 //
 
 :root {
-	$transition-speed-default: .3s;
-	$transition-speed-fast: .1s;
+	$transition-speed-default: 0.3s;
+	$transition-speed-fast: 0.1s;
 
 	--transition-speed-out: #{$transition-speed-default};
 	--transition-speed-in: #{$transition-speed-fast};
 	--transition-speed-slow: #{$transition-speed-default};
 	--transition-speed-fast: #{$transition-speed-fast};
 	--transition-speed-0: 0s;
-	--transition-speed-subtle: .05s;
+	--transition-speed-subtle: 0.05s;
 }
 
 ////////////////////////////////////
@@ -102,7 +101,12 @@ body {
 	-webkit-user-drag: none; // disables link dragging
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
 	font-weight: lighter;
 }
 
@@ -125,40 +129,43 @@ button {
 	outline: none;
 	cursor: pointer;
 	box-shadow: 0 1px 2px #0003;
-	
+
 	background: var(--color-button-background);
 	border: 1px solid var(--color-button-border);
-	&:hover, &:focus {
+	@at-root &:hover,
+		&:focus,
+		.button-active {
 		background: var(--color-button-hover-background);
 		border-color: var(--color-button-hover-border);
 	}
-	
+
 	&:active {
 		background: var(--color-button-active-background);
 		border-color: var(--color-button-active-border);
-		box-shadow: inset 0 1px 2px #0003; 
+		box-shadow: inset 0 1px 2px #0003;
 	}
-	
+
 	&.warning {
 		background: var(--color-button-warning-background);
 		border: 1px solid var(--color-button-warning-border);
-		&:hover, &:focus {
+		&:hover,
+		&:focus {
 			background: var(--color-button-warning-hover-background);
 			border-color: var(--color-button-warning-hover-border);
 		}
-		
+
 		&:active {
 			background: var(--color-button-warning-active-background);
 			border-color: var(--color-button-warning-active-border);
-			box-shadow: inset 0 1px 2px #0003; 
+			box-shadow: inset 0 1px 2px #0003;
 		}
 	}
-	
+
 	&.disabled {
-		opacity: .3;
+		opacity: 0.3;
 		pointer-events: none;
 	}
-	
+
 	[platform="win32"]:not([button-display-mode="text-only"]) &[icon] {
 		&::before {
 			content: attr(icon);
@@ -169,36 +176,39 @@ button {
 			vertical-align: bottom;
 		}
 	}
-	
+
 	[platform="win32"][button-display-mode="normal"] *:not(.button-bar) > &[icon] {
 		&::before {
 			top: -2px;
 		}
 	}
-	
-	[platform="win32"][button-display-mode="icon-only"] &[icon] {
+
+	[platform="win32"][button-display-mode="icon-only"] &[icon],
+	[platform="win32"] &[icon][button-display-mode="icon-only"] {
 		padding: 21px 15px;
 	}
-	
+
 	[platform="win32"][button-display-mode="icon-only"] &[icon],
+	[platform="win32"] &[icon][button-display-mode="icon-only"],
 	.button-bar > & {
 		line-height: 0px;
 		border: none !important;
 		margin: 0;
-		
-		&:not(:hover):not(:focus):not(:active) {
+
+		&:not(:hover, :focus, :active, .button-active) {
 			background: none;
 			box-shadow: none;
 		}
 	}
-	
+
 	.button-bar > & {
 		padding-top: 0 !important;
 		padding-bottom: 0 !important;
 		height: var(--button-bar-height);
 	}
-	
-	[platform="win32"][button-display-mode="icon-only"] &[icon] {
+
+	[platform="win32"][button-display-mode="icon-only"] &[icon],
+	[platform="win32"] &[icon][button-display-mode="icon-only"] {
 		&::before {
 			margin: 0;
 		}
@@ -211,7 +221,8 @@ button {
 	height: var(--button-bar-height);
 }
 
-textarea, input {
+textarea,
+input {
 	padding: 5px 10px;
 	box-sizing: border-box;
 	background: #0003;
@@ -222,9 +233,9 @@ textarea, input {
 	font-weight: inherit;
 	resize: none;
 	margin: 5px 0;
-	
+
 	border: 1px solid var(--color-input-border);
-	
+
 	&:hover {
 		border-color: var(--color-input-hover-border);
 	}
@@ -232,12 +243,12 @@ textarea, input {
 	&:focus {
 		border-color: var(--color-input-focus-border);
 	}
-	
+
 	&.error {
 		border-color: var(--color-input-error-border);
 	}
 }
-	
+
 .loading::before {
 	content: "🗘";
 	position: absolute;
@@ -248,10 +259,10 @@ textarea, input {
 	font-size: 60pt;
 	color: #fff5;
 	animation: spin 2.5s infinite;
-	animation-timing-function: cubic-bezier(.5,.15,.5,.85);
+	animation-timing-function: cubic-bezier(0.5, 0.15, 0.5, 0.85);
 	// height: 117px;
 	height: 1.48em;
-	
+
 	[platform="win32"] & {
 		content: "\E117";
 		font-family: "Segoe MDL2 Assets";
@@ -267,7 +278,7 @@ textarea, input {
 .float-left {
 	float: left;
 }
-	
+
 ::-webkit-scrollbar {
 	background: #0004;
 	// box-shadow: inset 1px 0 0 0 black;
@@ -275,11 +286,11 @@ textarea, input {
 ::-webkit-scrollbar-thumb {
 	background: #3a3a3a;
 	border: 1px solid #555;
-	
+
 	&:hover {
 		background: #444;
 	}
-	
+
 	&:active {
 		background: #333;
 	}
@@ -298,6 +309,8 @@ textarea, input {
 @import "component/tooltips";
 @import "component/sortable-tiles";
 @import "component/interrupt";
+@import "component/configurable-input";
+@import "component/drawer";
 
 ////////////////////////////////////
 // Main

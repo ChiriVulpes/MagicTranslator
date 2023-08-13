@@ -5,6 +5,7 @@ import ProjectSettings from "component/content/ProjectSettings";
 import Header from "component/header/Header";
 import Button from "component/shared/Button";
 import ButtonBar from "component/shared/ButtonBar";
+import ConfigurableInput from "component/shared/ConfigurableInput";
 import SortableTiles from "component/shared/SortableTiles";
 import Tooltip from "component/shared/Tooltip";
 import type { CaptureData } from "data/Captures";
@@ -84,6 +85,14 @@ export default class Explorer extends Component {
 			.classes.add("float-right")
 			.setText("app-settings")
 			.event.subscribe("click", this.onSettings)
+			.appendTo(this.actionWrapper);
+
+		new ConfigurableInput()
+			.classes.add("float-right")
+			.setConfigureIcon("\uE16E")
+			.configure(drawer => drawer
+				.append(new Button()
+					.setText("search")))
 			.appendTo(this.actionWrapper);
 
 		Header.setBreadcrumbs(["title"]);
