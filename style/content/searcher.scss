@@ -1,0 +1,33 @@
+#searcher {
+	position: relative;
+	height: 100%;
+	display: grid;
+	grid-template-rows: auto 1fr;
+	
+	> .button-bar {
+		--button-bar-height: 30px;
+		$margin-top: 3px;
+		margin-top: $margin-top;
+		padding-left: 15px;
+		padding-right: 15px;
+		background: #0007;
+		&:empty {
+			opacity: 0;
+		}
+		&:not(:empty)::before {
+			content: "";
+			display: block;
+			position: absolute;
+			background: #0007;
+			width: 100%;
+			height: $margin-top;
+			left: 0;
+			bottom: 100%;
+		}
+	}
+}
+
+.searcher-wrapper {
+	position: relative;
+	height: 100%;
+}

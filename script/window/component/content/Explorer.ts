@@ -105,7 +105,7 @@ export default class Explorer extends Component {
 
 		new Button()
 			.classes.add("float-right")
-			.setText("search")
+			.setText("search-button")
 			.event.subscribe("click", () => this.event.emit("search"))
 			.appendTo(this.actionWrapper);
 
@@ -151,7 +151,7 @@ export default class Explorer extends Component {
 
 		new Button()
 			.classes.add("float-right")
-			.setText("search")
+			.setText("search-button")
 			.event.subscribe("click", () => this.event.emit("search", volume))
 			.appendTo(this.actionWrapper);
 
@@ -211,7 +211,7 @@ export default class Explorer extends Component {
 
 		new Button()
 			.classes.add("float-right")
-			.setText("search")
+			.setText("search-button")
 			.event.subscribe("click", () => this.event.emit("search", volume, chapter))
 			.appendTo(this.actionWrapper);
 
