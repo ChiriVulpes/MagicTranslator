@@ -1,20 +1,19 @@
 import Component from "component/Component";
 import Button from "component/shared/Button";
 import ButtonBar from "component/shared/ButtonBar";
-import SortableTiles from "component/shared/SortableTiles";
-import type { Events, IEventEmitter } from "util/EventEmitter";
-import Capture from "./extractor/Capture";
-import Projects from "data/Projects";
-import IndexedMap from "util/Map";
-import { CaptureData } from "data/Captures";
-import { tuple } from "util/Arrays";
-import LabelledRow from "component/shared/LabelledRow";
 import CheckButton from "component/shared/CheckButton";
-import Translation from "util/string/Translation";
 import Input from "component/shared/Input";
+import LabelledRow from "component/shared/LabelledRow";
+import SortableTiles from "component/shared/SortableTiles";
+import type { CaptureData } from "data/Captures";
+import Projects from "data/Projects";
+import { tuple } from "util/Arrays";
+import type { Events, IEventEmitter } from "util/EventEmitter";
+import Translation from "util/string/Translation";
+import Capture from "./extractor/Capture";
 
 interface SearcherEvents extends Events<Component> {
-	quit(): any;
+	quit (): any;
 }
 
 export class SearchParams {
@@ -38,7 +37,7 @@ export default class Searcher extends Component {
 
 	private readonly searchParams: SearchParams;
 
-	public constructor(private searchLocation: [number?, number?]) {
+	public constructor (searchLocation: [number?, number?]) {
 		super();
 		this.setId("searcher");
 
@@ -112,8 +111,8 @@ export default class Searcher extends Component {
 			.appendTo(searcherWrapper);
 	}
 
-	@Bound public issueSearch() {
-		if(!this.searchParams.query || !this.searchParams.query.trim()) {
+	@Bound public issueSearch () {
+		if (!this.searchParams.query || !this.searchParams.query.trim()) {
 			return;
 		}
 
@@ -136,7 +135,7 @@ export default class Searcher extends Component {
 		}
 	}
 
-	private captureMatches(captureData: CaptureData, searchParams: SearchParams): boolean {
+	private captureMatches (captureData: CaptureData, searchParams: SearchParams): boolean {
 		if (searchParams.searchInText) {
 			if (captureData.text.includes(searchParams.query)) {
 				return true;
@@ -152,7 +151,7 @@ export default class Searcher extends Component {
 		if (searchParams.searchInNormalNotes) {
 			for (const note of captureData.notes) {
 				for (const text of note) {
-					if(text.includes(searchParams.query)) {
+					if (text.includes(searchParams.query)) {
 						return true;
 					}
 				}
@@ -162,7 +161,7 @@ export default class Searcher extends Component {
 		if (searchParams.searchInGlossNotes) {
 			for (const note of captureData.glossNotes ?? []) {
 				for (const text of note) {
-					if(text.includes(searchParams.query)) {
+					if (text.includes(searchParams.query)) {
 						return true;
 					}
 				}
@@ -172,7 +171,7 @@ export default class Searcher extends Component {
 		return false;
 	}
 
-	private search(searchParams: SearchParams) {
+	private search (searchParams: SearchParams) {
 		const project = Projects.current!;
 		const volumes = project.volumes;
 
@@ -194,11 +193,11 @@ export default class Searcher extends Component {
 		})
 	}
 
-	@Bound private keyup(event: KeyboardEvent) {
-		if (event.code === "Escape") this.event.emit("quit");
-	}
+	// @Bound private keyup (event: KeyboardEvent) {
+	// 	if (event.code === "Escape") this.event.emit("quit");
+	// }
 
-	private getCapturePagePath(captureLocation: [number, number, number]) {
+	private getCapturePagePath (captureLocation: [number, number, number]) {
 		return Projects.current!.getPath("capture", captureLocation[0], captureLocation[1], captureLocation[2]);
 	}
 }

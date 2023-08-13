@@ -17,7 +17,6 @@ import { sleep } from "util/Async";
 import type { Events, IEventEmitter } from "util/EventEmitter";
 import IndexedMap from "util/Map";
 import Translation from "util/string/Translation";
-import Searcher from "./Searcher";
 
 interface ExplorerEvents extends Events<Component> {
 	search (volume?: number, chapter?: number): any;
