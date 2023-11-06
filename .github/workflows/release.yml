@@ -45,6 +45,7 @@ jobs:
         run: npm run build
         env:
           MAGIC_TRANSLATOR_BUILD_WINDOWS: true
+          MAGIC_TRANSLATOR_BUILD_MACOS: true
           MAGIC_TRANSLATOR_BUILD_LINUX: true
         
       - name: Tag
@@ -68,4 +69,6 @@ jobs:
             dist/MagicTranslator ${{ steps.build.outputs.version }}.exe
             dist/magic-translator-${{ steps.build.outputs.version }}.zip
             dist/MagicTranslator-${{ steps.build.outputs.version }}.AppImage
+            dist/MagicTranslator-${{ steps.build.outputs.version }}-universal.dmg
+            dist/MagicTranslator-${{ steps.build.outputs.version }}-universal-mac.zip
           tag_name: ${{ github.event.inputs.release-type == 'Pre-release' && steps.build.outputs.name || steps.build.outputs.version }}

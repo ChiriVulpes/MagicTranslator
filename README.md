@@ -6,6 +6,7 @@ A comics & manga translation tool.
 # Download
 [Latest Release](https://github.com/ChiriVulpes/MagicTranslator/releases/latest)
 - Win (zip/exe)
+- MacOS (dmg)
 - Linux (zip/AppImage)
 - Source code (zip/tar)
 
