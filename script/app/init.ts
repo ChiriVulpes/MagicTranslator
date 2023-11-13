@@ -18,7 +18,8 @@ function on (windowEvent: WindowEvent, listener: (event: IpcEvent, ...args: any[
 
 function createWindow () {
 
-	Menu.setApplicationMenu(null);
+	if (process.platform !== "darwin")
+		Menu.setApplicationMenu(null);
 
 	const width = store.get("window.width", 800);
 	const height = store.get("window.height", 600);
