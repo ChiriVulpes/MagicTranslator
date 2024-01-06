@@ -41,8 +41,9 @@ function createWindow () {
 			contextIsolation: false,
 		},
 	});
-
-	mainWindow.webContents.setIgnoreMenuShortcuts(true);
+	if (process.platform !== "darwin") {
+		mainWindow.webContents.setIgnoreMenuShortcuts(true);
+	}
 	mainWindow.setMenu(null);
 
 	// win.webContents.on("before-input-event", event => event.preventDefault());
