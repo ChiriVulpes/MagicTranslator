@@ -1,7 +1,8 @@
-import actions from "@actions/core";
+import * as actions from "@actions/core";
 import { build, Platform } from "electron-builder";
 import fs from "fs-extra";
 import clean from "./clean";
+import install from "./install";
 import sass from "./sass";
 import _static from "./static";
 import ts from "./ts";
@@ -19,6 +20,7 @@ interface VersionObject {
 let versionObject: VersionObject | undefined;
 
 export default Task("bundle", task => task.series(
+	install,
 	clean,
 	ts,
 	sass,
