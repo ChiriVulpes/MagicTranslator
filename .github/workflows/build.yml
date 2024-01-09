@@ -32,7 +32,7 @@ jobs:
 
       - name: Build
         id: build
-        run: npm run build
+        run: npm run bundle
         env:
           MAGIC_TRANSLATOR_BUILD_WINDOWS: true
           MAGIC_TRANSLATOR_BUILD_MACOS: true

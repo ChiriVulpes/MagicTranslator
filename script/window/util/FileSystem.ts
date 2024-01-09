@@ -1,5 +1,4 @@
-import type * as fsType from "fs";
-import type { Stats } from "fs";
+import type * as fsType from "fs/promises";
 import type * as pathType from "path";
 import Concurrency from "util/Concurrency";
 
@@ -17,42 +16,26 @@ class FileSystemMethods {
 	}
 
 	public async readdir (dir: string) {
-		return this.concurrent.promise<string[]>((resolve, reject) => {
-			nodefs.readdir(dir, (err, files) => {
-				if (err) {
-					if (err.code === "ENOENT") resolve([]);
-					else reject(err);
-				} else resolve(files);
-			});
-		});
+		return this.concurrent.promise<string[]>((resolve, reject) =>
+			nodefs.readdir(dir)
+				.catch(err => err.code === "ENOENT" ? [] : reject(err))
+				.then(resolve));
 	}
 
-	public async readFile (filepath: string, encoding: string): Promise<string>;
+	public async readFile (filepath: string, encoding: BufferEncoding): Promise<string>;
 	public async readFile (filepath: string): Promise<Buffer>;
-	public async readFile (filepath: string, encoding?: string): Promise<string | Buffer>;
-	public async readFile (filepath: string, encoding?: string) {
-		return this.concurrent.promise<string | Buffer>((resolve, reject) => {
-			nodefs.readFile(filepath, encoding, (err, file) => {
-				if (err) reject(err);
-				else resolve(file);
-			});
-		});
+	public async readFile (filepath: string, encoding?: BufferEncoding): Promise<string | Buffer>;
+	public async readFile (filepath: string, encoding?: BufferEncoding) {
+		return this.concurrent.promise<string | Buffer>((resolve, reject) =>
+			nodefs.readFile(filepath, encoding).catch(reject).then(resolve));
 	}
 
 	public async exists (filepath: string) {
-		return new Promise<boolean>((resolve, reject) => {
-			nodefs.stat(filepath, (err, stats) => {
-				resolve(!err);
-			});
-		});
+		return nodefs.stat(filepath).catch(() => false).then(() => true);
 	}
 
 	public async stat (filepath: string) {
-		return new Promise<Stats | undefined>((resolve, reject) => {
-			nodefs.stat(filepath, (err, stats) => {
-				resolve(err ? undefined : stats);
-			});
-		});
+		return nodefs.stat(filepath).catch(() => undefined);
 	}
 
 	public async writeFile (filepath: string, data: string | Buffer) {
@@ -60,14 +43,10 @@ class FileSystemMethods {
 
 		await fileWriteLocks.get(absolutePath);
 
-		const promise = this.concurrent.promise<void>((resolve, reject) => {
-			nodefs.writeFile(filepath, data, err => {
-				fileWriteLocks.delete(absolutePath);
-
-				if (err) reject(err);
-				else resolve();
-			});
-		});
+		const promise = this.concurrent.promise<void>((resolve, reject) =>
+			nodefs.writeFile(filepath, data)
+				.catch(reject).then(resolve)
+				.finally(() => fileWriteLocks.delete(absolutePath)));
 
 		fileWriteLocks.set(absolutePath, promise);
 
@@ -75,28 +54,19 @@ class FileSystemMethods {
 	}
 
 	public async mkdir (filepath: string) {
-		return this.concurrent.promise<void>((resolve, reject) => {
-			return this.mkdirp(filepath).then(resolve).catch(reject);
-		});
+		return this.concurrent.promise<void>((resolve, reject) =>
+			this.mkdirp(filepath).then(resolve).catch(reject));
 	}
 
 	public async unlink (filepath: string, errorIfNotExist?: true): Promise<void>;
 	public async unlink (filepath: string, errorIfNotExist = false) {
-		return this.concurrent.promise<void>((resolve, reject) => {
-			nodefs.unlink(filepath, err => {
-				if (err && errorIfNotExist) reject(err);
-				else resolve();
-			});
-		});
+		return this.concurrent.promise<void>((resolve, reject) =>
+			nodefs.unlink(filepath).catch(err => errorIfNotExist ? reject(err) : resolve()).then(resolve));
 	}
 
 	public async rename (filepath: string, newFilepath: string) {
-		return this.concurrent.promise<void>((resolve, reject) => {
-			nodefs.rename(filepath, newFilepath, err => {
-				if (err) reject(err);
-				else resolve();
-			});
-		});
+		return this.concurrent.promise<void>((resolve, reject) =>
+			nodefs.rename(filepath, newFilepath).catch(reject).then(resolve));
 	}
 
 	public async writeToUserChoice (data: string, defaultPath?: string) {
@@ -105,24 +75,23 @@ class FileSystemMethods {
 		void this.writeFile(dialog.filePath, data);
 	}
 
-	private async mkdirp (filepath: string) {
+	private async mkdirp (filepath: string): Promise<void> {
 		filepath = path.resolve(filepath);
 
-		return new Promise<void>((resolve, reject) => nodefs.mkdir(filepath, err => {
-			if (!err || err.code === "EEXIST") return resolve();
+		return nodefs.mkdir(filepath).catch(err => {
+			if (err.code === "EEXIST") return undefined;
 
 			if (err.code === "ENOENT") {
-				this.mkdirp(path.dirname(filepath))
-					.then(() => this.mkdirp(filepath).then(resolve))
-					.catch(reject);
-				return;
+				return this.mkdirp(path.dirname(filepath))
+					.then(() => this.mkdirp(filepath));
 			}
 
-			nodefs.stat(filepath, (err2, stat) => {
-				if (err2 || !stat.isDirectory()) reject(err);
-				else resolve();
-			});
-		}));
+			throw err;
+		}).then(async () => {
+			const stat = await nodefs.stat(filepath);
+			if (!stat.isDirectory())
+				throw new Error("Path is not a directory");
+		});
 	}
 
 }

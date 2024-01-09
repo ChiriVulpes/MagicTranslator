@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import Captor from "component/content/Captor";
 import Button, { ButtonDisplayMode } from "component/shared/Button";
 import FileSystem from "util/FileSystem";
@@ -59,7 +63,7 @@ export default class Options {
 						},
 						set (arr, property2, value) {
 							arr = store.get(`options.${key}` as any, arr);
-							const key2 = property2 as keyof typeof arr;
+							const key2 = property2 as any as number;
 							arr[key2] = value;
 							store.set(`options.${key}` as any, arr);
 							return true;

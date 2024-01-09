@@ -56,7 +56,7 @@ declare global {
 // Initialize external dependencies for utility classes
 //
 
-const fs = req<typeof import("fs")>("fs");
+const fs = req<typeof import("fs/promises")>("fs/promises");
 const path = req<typeof import("path")>("path");
 const childProcess = req<typeof import("child_process")>("child_process");
 

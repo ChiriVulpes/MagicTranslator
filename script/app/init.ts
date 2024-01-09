@@ -1,5 +1,6 @@
 /// <reference path="../Common.d.ts" />
-import { app, BrowserWindow, dialog, ipcMain, Menu, screen, WebContents } from "electron";
+import type { WebContents } from "electron";
+import { app, BrowserWindow, dialog, ipcMain, Menu, screen } from "electron";
 // tslint:disable-next-line
 const Store = require("electron-store") as StoreModule;
 
@@ -57,7 +58,7 @@ function createWindow () {
 	}
 
 
-	let storeTimeout: NodeJS.Timer | undefined;
+	let storeTimeout: NodeJS.Timeout | undefined;
 	function storeWindowPosition () {
 		if (storeTimeout) clearTimeout(storeTimeout);
 

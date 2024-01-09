@@ -1,7 +1,13 @@
+import ansicolor from "ansicolor";
 import proc from "child_process";
 import electron from "electron";
 import path from "path";
-import { nameFunction, stringifyCall } from "./Util";
+import Task from "./Task";
+
+function stringifyCall (name: string, ...args: (string | string[])[]) {
+	const simpleArgs = new Array<string>().concat(...args.map(arg => Array.isArray(arg) ? arg : [arg]));
+	return `${ansicolor.cyan(name)}(` + simpleArgs.map(w => ansicolor.lightGreen(w)).join(ansicolor.cyan(", ")) + ansicolor.cyan(")");
+}
 
 namespace Electron {
 	let p = ".";
@@ -11,17 +17,14 @@ namespace Electron {
 	export function start (dir?: string, ...args: string[]) {
 		p = path.resolve(process.cwd(), dir || p);
 		_args = [...args, p];
-		return nameFunction(stringifyCall("Electron.start", dir || "."), spawn);
+		return Task(stringifyCall("Electron.start", dir || "."), () => spawn());
 	}
 
-	export async function restart () {
-		await spawn();
-	}
-	nameFunction(stringifyCall("Electron.restart", p), restart);
+	export const restart = Task(stringifyCall("Electron.restart", p), () => spawn());
 
 	// eslint-disable-next-line no-inner-declarations
 	function spawn (cb?: () => void) {
-		// if (child) child.kill();
+		// if (child) child.kill() ;
 
 		// brutally murder any electron.exe processes lol
 		// pls forgive, nothing else worked
