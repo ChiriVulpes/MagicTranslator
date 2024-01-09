@@ -11,7 +11,7 @@ on:
 
 jobs:
   release:
-    name: Publish Release
+    name: Build
     runs-on: macos-latest
     steps:
       - name: Checkout repository
