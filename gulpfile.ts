@@ -20,14 +20,14 @@ const scriptWindow = new TypescriptWatch("script/window", "out/script")
 	.setDeclaration("out/defs")
 	.onComplete(Electron.restart);
 
-async function watchScriptWindow () {
+async function watchScriptWindow() {
 	return scriptWindow.watch().waitForInitial();
 }
 
 const scriptApp = new TypescriptWatch("script/app", "out")
 	.onComplete(Electron.restart);
 
-async function watchScriptApp () {
+async function watchScriptApp() {
 	return scriptApp.watch().waitForInitial();
 }
 
@@ -62,7 +62,7 @@ interface VersionObject {
 }
 
 let versionObject: VersionObject | undefined;
-async function version () {
+async function version() {
 	const FETCH_HEAD = (await fs.readFile(".git/FETCH_HEAD", "utf8"))?.slice(0, 7);
 	if (!FETCH_HEAD)
 		throw new Error("Could not find commit hash");
@@ -90,9 +90,10 @@ new Task("build", remove(["dist", "out"]))
 			platforms.push(Platform.WINDOWS);
 		if (process.env.MAGIC_TRANSLATOR_BUILD_LINUX)
 			platforms.push(Platform.LINUX);
-
+		if (process.env.MAGIC_TRANSLATOR_BUILD_MACOS)
+			platforms.push(Platform.MAC);
 		if (!platforms.length) {
-			console.warn("No platforms to build electron for. To build electron, make a .env file and set one or more of:\n    MAGIC_TRANSLATOR_BUILD_WINDOWS=true\n    MAGIC_TRANSLATOR_BUILD_LINUX=true");
+			console.warn("No platforms to build electron for. To build electron, make a .env file and set one or more of:\n    MAGIC_TRANSLATOR_BUILD_WINDOWS=true\n    MAGIC_TRANSLATOR_BUILD_LINUX=true\n    MAGIC_TRANSLATOR_BUILD_MACOS=true");
 			return;
 		}
 
@@ -110,6 +111,18 @@ new Task("build", remove(["dist", "out"]))
 				},
 				win: {
 					target: ["portable", "zip"],
+				},
+				mac: {
+					target: [
+						{
+							target: "dmg",
+							arch: ["universal"],
+						},
+						{
+							target: "zip",
+							arch: ["universal"],
+						},
+					],
 				},
 				linux: {
 					target: ["AppImage", "zip"],
