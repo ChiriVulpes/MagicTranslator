@@ -121,7 +121,8 @@ new Task("build", remove(["dist", "out"]))
 						{
 							target: "zip",
 							arch: ["universal"],
-						}],
+						},
+					],
 				},
 				linux: {
 					target: ["AppImage", "zip"],
