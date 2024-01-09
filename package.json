@@ -26,6 +26,7 @@
 		"rebuild": "npx ts-node tasks/utility/TaskRunner.ts clean build",
 		"watch": "npx ts-node tasks/utility/TaskRunner.ts clean build watch",
 		"clean": "npx ts-node tasks/utility/TaskRunner.ts clean",
+		"bundle": "npx ts-node tasks/utility/TaskRunner.ts bundle",
 		"app": "npx electron ."
 	}
 }
