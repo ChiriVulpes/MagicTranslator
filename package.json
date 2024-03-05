@@ -7,7 +7,7 @@
 		"ansicolor": "2.0.1",
 		"del": "6.1.1",
 		"electron": "28.1.2",
-		"electron-builder": "24.9.1",
+		"electron-builder": "24.13.3",
 		"sass": "1.69.7",
 		"ts-node": "10.9.2",
 		"typescript": "5.3.3",
