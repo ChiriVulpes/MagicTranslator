@@ -11,7 +11,7 @@ import ts from "./ts";
 import Env from "./utility/Env";
 import Task from "./utility/Task";
 
-const copyNodeModules = Task("copy node modules", () => fs.copy("script/window/node_modules", "out")
+const copyNodeModules = Task("copy node modules", () => fs.copy("script/window/node_modules", "out/node_modules")
 	.then(() => true).catch(() => false));
 
 interface VersionObject {

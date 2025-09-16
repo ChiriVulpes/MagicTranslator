@@ -7,10 +7,10 @@ install:
 
 # Runs the electron applicaiton
 run:
-	@npm run app
+	@npm run rebuild && npm run app
 
 # Automatically launches electron & relaunches on file change
-watch:
+run-dev:
 	@npm run watch
 
 # Builds (bundles) the electron applicaiton
@@ -38,3 +38,6 @@ build-windows:
 	@\
 	MAGIC_TRANSLATOR_BUILD_WINDOWS=true \
 	npm run bundle
+
+clean:
+	@npm run clean
