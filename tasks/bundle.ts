@@ -11,8 +11,12 @@ import ts from "./ts";
 import Env from "./utility/Env";
 import Task from "./utility/Task";
 
-const copyNodeModules = Task("copy node modules", () => fs.copy("script/window/node_modules", "out/node_modules")
-	.then(() => true).catch(() => false));
+const copyNodeModules = Task("copy node modules", () =>
+  fs
+    .copy("script/window/node_modules", "out/node_modules")
+    .then(() => true)
+    .catch(() => false),
+);
 
 interface VersionObject {
   version: string;
@@ -21,7 +25,8 @@ interface VersionObject {
 
 let versionObject: VersionObject | undefined;
 
-export default Task("bundle", task => task.series(
+export default Task("bundle", (task) =>
+  task.series(
     install,
     clean,
     ts,
@@ -30,78 +35,92 @@ export default Task("bundle", task => task.series(
     copyNodeModules,
 
     Task("version", async () => {
-        const FETCH_HEAD = child_process
-            .execSync("git rev-parse HEAD")
-            .toString()
-            .trim()
-            .slice(0, 7);
-        if (!FETCH_HEAD) {
-            throw new Error("Could not find commit hash");
-        }
+      const FETCH_HEAD = child_process
+        .execSync("git rev-parse HEAD")
+        .toString()
+        .trim()
+        .slice(0, 7);
+      if (!FETCH_HEAD) {
+        throw new Error("Could not find commit hash");
+      }
 
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-            const packageVersion = JSON.parse(await fs.readFile("static/package.json", "utf8") ?? "{}").version as string | undefined;
-            if (!packageVersion)
-            throw new Error("Could not find package version");
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      const packageVersion = JSON.parse(
+        (await fs.readFile("static/package.json", "utf8")) ?? "{}",
+      ).version as string | undefined;
+      if (!packageVersion) throw new Error("Could not find package version");
 
-            await fs.writeFile("out/version", JSON.stringify(versionObject = {
-                version: packageVersion,
-                commit: FETCH_HEAD,
-            }));
+      await fs.writeFile(
+        "out/version",
+        JSON.stringify(
+          (versionObject = {
+            version: packageVersion,
+            commit: FETCH_HEAD,
+          }),
+        ),
+      );
 
-        actions.setOutput("version", versionObject.version);
-        actions.setOutput("commit", versionObject.commit);
-            actions.setOutput("name", `${versionObject.version}-${versionObject.commit}`);
+      actions.setOutput("version", versionObject.version);
+      actions.setOutput("commit", versionObject.commit);
+      actions.setOutput(
+        "name",
+        `${versionObject.version}-${versionObject.commit}`,
+      );
     }),
 
     Task("build", async () => {
+      const platforms = [];
+      if (Env.MAGIC_TRANSLATOR_BUILD_WINDOWS) platforms.push(Platform.WINDOWS);
+      if (Env.MAGIC_TRANSLATOR_BUILD_LINUX) platforms.push(Platform.LINUX);
+      if (Env.MAGIC_TRANSLATOR_BUILD_MACOS) platforms.push(Platform.MAC);
+      if (!platforms.length) {
+        console.warn(
+          "No platforms to build electron for. To build electron, make a .env file and set one or more of:\n    MAGIC_TRANSLATOR_BUILD_WINDOWS=true\n    MAGIC_TRANSLATOR_BUILD_LINUX=true\n    MAGIC_TRANSLATOR_BUILD_MACOS=true",
+        );
+        return;
+      }
 
-        const platforms = [];
-        if (Env.MAGIC_TRANSLATOR_BUILD_WINDOWS)
-            platforms.push(Platform.WINDOWS);
-        if (Env.MAGIC_TRANSLATOR_BUILD_LINUX)
-            platforms.push(Platform.LINUX);
-        if (Env.MAGIC_TRANSLATOR_BUILD_MACOS)
-            platforms.push(Platform.MAC);
-        if (!platforms.length) {
-            console.warn("No platforms to build electron for. To build electron, make a .env file and set one or more of:\n    MAGIC_TRANSLATOR_BUILD_WINDOWS=true\n    MAGIC_TRANSLATOR_BUILD_LINUX=true\n    MAGIC_TRANSLATOR_BUILD_MACOS=true");
-            return;
-        }
+      console.log(
+        "Building for:",
+        platforms.map((platform) => platform.name).join(", "),
+      );
 
-		console.log("Building for:", platforms.map(platform => platform.name).join(", "));
-
-        return build({
-			targets: new Map(platforms
-				.flatMap(platform => [...platform.createTarget().entries()])),
-            config: {
-                appId: "chirivulpes.magictranslator",
-                productName: "MagicTranslator",
-                copyright: `Copyright © ${new Date().getFullYear()} Chiri Vulpes`,
-                directories: {
-                    app: "out",
-                },
-                win: {
-                    target: ["portable", "zip"],
-                },
-                mac: {
-                    target: [
-                    {
-                        target: "dmg",
-                        arch: ["universal"],
-                    },
-                    {
-                        target: "zip",
-                        arch: ["universal"],
-                    },
-                    ],
-                },
-                linux: {
-                    target: ["AppImage", "zip"],
-                },
-                includeSubNodeModules: true,
-                buildVersion: `${versionObject!.version}-${versionObject!.commit}`,
-            },
-            publish: "never",
-        });
+      return build({
+        targets: new Map(
+          platforms.flatMap((platform) => [
+            ...platform.createTarget().entries(),
+          ]),
+        ),
+        config: {
+          appId: "chirivulpes.magictranslator",
+          productName: "MagicTranslator",
+          copyright: `Copyright © ${new Date().getFullYear()} Chiri Vulpes`,
+          directories: {
+            app: "out",
+          },
+          win: {
+            target: ["portable", "zip"],
+          },
+          mac: {
+            target: [
+              {
+                target: "dmg",
+                arch: ["universal"],
+              },
+              {
+                target: "zip",
+                arch: ["universal"],
+              },
+            ],
+          },
+          linux: {
+            target: ["AppImage", "zip"],
+          },
+          includeSubNodeModules: true,
+          buildVersion: `${versionObject!.version}-${versionObject!.commit}`,
+        },
+        publish: "never",
+      });
     }),
-));
+  ),
+);
