@@ -3,7 +3,8 @@
 	"name": "window-deps",
 	"version": "0.0.1",
 	"dependencies": {
-		"electron-store": "8.1.0",
-		"@wayward/goodstream": "0.7.2"
+		"@wayward/goodstream": "0.7.2",
+		"conf": "^6.2.4",
+		"electron-store": "8.1.0"
 	}
 }
