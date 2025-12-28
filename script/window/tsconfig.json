@@ -6,6 +6,9 @@
                 "*"
             ]
         },
+        "outDir": "../../out/script",
+        "declarationDir": "../../out/defs",
+        "declaration": true,
         "forceConsistentCasingInFileNames": true,
         "module": "amd",
         "noImplicitReturns": true,
@@ -17,7 +20,7 @@
         "experimentalDecorators": true,
         "noImplicitOverride": true,
         "target": "es2020",
-        "sourceMap": true,
+        "inlineSourceMap": true,
         "lib": [
             "dom", "dom.iterable", "es2018", "es2018.promise"
         ]

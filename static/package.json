@@ -1,7 +1,8 @@
 {
 	"private": true,
 	"name": "magic-translator",
-	"description": "",
+	"description": "A comics & manga translation tool. It's magic!",
 	"version": "1.0.0",
+	"author": "ChiriVulpes",
 	"main": "./init.js"
 }

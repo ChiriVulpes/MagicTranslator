@@ -8,13 +8,13 @@
 				"isDefault": true
 			},
 			"type": "shell",
-			"command": "npx gulp watch"
+			"command": "npm run watch"
 		},
 		{
 			"label": "build",
 			"group": "build",
 			"type": "shell",
-			"command": "npx gulp build",
+			"command": "npm run build",
 			"problemMatcher": []
 		}
 	]

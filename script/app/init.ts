@@ -1,5 +1,6 @@
 /// <reference path="../Common.d.ts" />
-import { app, BrowserWindow, dialog, ipcMain, Menu, screen, WebContents } from "electron";
+import type { WebContents } from "electron";
+import { app, BrowserWindow, dialog, ipcMain, Menu, screen } from "electron";
 // tslint:disable-next-line
 const Store = require("electron-store") as StoreModule;
 
@@ -18,7 +19,8 @@ function on (windowEvent: WindowEvent, listener: (event: IpcEvent, ...args: any[
 
 function createWindow () {
 
-	Menu.setApplicationMenu(null);
+	if (process.platform !== "darwin")
+		Menu.setApplicationMenu(null);
 
 	const width = store.get("window.width", 800);
 	const height = store.get("window.height", 600);
@@ -40,8 +42,9 @@ function createWindow () {
 			contextIsolation: false,
 		},
 	});
-
-	mainWindow.webContents.setIgnoreMenuShortcuts(true);
+	if (process.platform !== "darwin") {
+		mainWindow.webContents.setIgnoreMenuShortcuts(true);
+	}
 	mainWindow.setMenu(null);
 
 	// win.webContents.on("before-input-event", event => event.preventDefault());
@@ -55,7 +58,7 @@ function createWindow () {
 	}
 
 
-	let storeTimeout: NodeJS.Timer | undefined;
+	let storeTimeout: NodeJS.Timeout | undefined;
 	function storeWindowPosition () {
 		if (storeTimeout) clearTimeout(storeTimeout);
 

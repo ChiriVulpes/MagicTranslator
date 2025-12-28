@@ -19,12 +19,10 @@ class EventEmitter<H, E> implements IEventEmitter<H, E> {
 		const h = host as any;
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
 		this.hostClass = h.constructor;
-		if (!(SYMBOL_SUBSCRIPTIONS in this.hostClass)) {
-			this.hostClass[SYMBOL_SUBSCRIPTIONS] = new Map();
-		}
+		this.hostClass[SYMBOL_SUBSCRIPTIONS] ??= new Map();
 
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-		if ("event" in host && h.event instanceof EventEmitter) {
+		if ("event" in (host as object) && h.event instanceof EventEmitter) {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
 			this.copyFrom(h.event);
 		}
@@ -188,10 +186,7 @@ export function EventHandler (injectInto: "self" | AnyClass<EventEmitterHost<any
 		<T extends { [key in P]: AnyFunction }, P extends string | number | symbol> (host: T, property2: P, descriptor: any) => {
 			if (injectInto === "self") {
 				const host1 = host as T & SelfSubscribedEmitter<any>;
-				if (!(SYMBOL_SUBSCRIPTIONS in host1)) {
-					host1[SYMBOL_SUBSCRIPTIONS] = [];
-				}
-
+				host1[SYMBOL_SUBSCRIPTIONS] ??= [];
 				host1[SYMBOL_SUBSCRIPTIONS].push([host1, property, property2, priority]);
 
 			} else {
